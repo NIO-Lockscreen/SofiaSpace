@@ -21,6 +21,27 @@ function formatTime(seconds){const n=Math.max(0,Math.ceil(seconds)),m=Math.floor
 // A scenic route follows orbital order, using compressed positions for readable flybys.
 // Real planets are not lined up; these waypoints are a teaching model.
 function buildRoute(from,to){if(from.id===to.id)return [];const lo=Math.min(from.au,to.au),hi=Math.max(from.au,to.au),direction=Math.sign(to.au-from.au);const start=Math.sqrt(from.au),end=Math.sqrt(to.au);return BODIES.filter(p=>p.au>lo&&p.au<hi).sort((a,b)=>(a.au-b.au)*direction).map(body=>({body,fraction:(Math.sqrt(body.au)-start)/(end-start)}));}
+// Moon mode: the real moons of every planet that has one. Mercury and Venus have none,
+// which is a fact worth meeting on the map. Each moon borrows its planet's orbit distance,
+// so travel times and the flyby route work out of the box; hops inside a system take 40 s.
+const MOONS = [
+ {id:'moon',name:'Månen',word:'MÅNEN',parent:'earth',color:'#d5d1c6',style:'crater',size:1.9,bead:.26,orbit:2.2,speed:.46,fact:'Månen er vår egen måne. Den lyser fordi sola skinner på den, og den er full av store kratere.'},
+ {id:'phobos',name:'Phobos',word:'PHOBOS',parent:'mars',color:'#9a8b7e',style:'crater',size:1.1,bead:.10,orbit:1.6,speed:.72,fact:'Phobos er den største av de to små månene til Mars. Den ser ut som en potet full av kratere.'},
+ {id:'deimos',name:'Deimos',word:'DEIMOS',parent:'mars',color:'#b0a08c',style:'crater',size:1.0,bead:.09,orbit:2.2,speed:.48,fact:'Deimos er den minste månen til Mars. Den er liten, mørk og dekket av fint støv.'},
+ {id:'io',name:'Io',word:'IO',parent:'jupiter',color:'#f2d66a',style:'spots',size:1.7,bead:.17,orbit:1.5,speed:.62,fact:'Io har flere vulkaner enn noe annet sted vi kjenner til. Den er gul og oransje av svovel.'},
+ {id:'europa',name:'Europa',word:'EUROPA',parent:'jupiter',color:'#e6ddc9',style:'cracks',size:1.7,bead:.16,orbit:1.95,speed:.47,fact:'Europa har et skall av is med lange sprekker. Under isen tror forskerne det finnes et stort hav.'},
+ {id:'ganymedes',name:'Ganymedes',word:'GANYMEDES',parent:'jupiter',color:'#b8ab9c',style:'crater',size:2.2,bead:.21,orbit:2.45,speed:.35,fact:'Ganymedes er den største månen i hele solsystemet. Den er faktisk større enn planeten Merkur!'},
+ {id:'callisto',name:'Callisto',word:'CALLISTO',parent:'jupiter',color:'#8e8275',style:'crater',size:1.9,bead:.19,orbit:2.95,speed:.26,fact:'Callisto er dekket av kratere over alt. Overflaten er en av de eldste vi vet om.'},
+ {id:'titan',name:'Titan',word:'TITAN',parent:'saturn',color:'#e8a94e',style:'haze',size:2.1,bead:.22,orbit:2.5,speed:.33,fact:'Titan er den største månen til Saturn. Den har tykk oransje luft og innsjøer som ikke er av vann.'},
+ {id:'enceladus',name:'Enceladus',word:'ENCELADUS',parent:'saturn',color:'#eef4f6',style:'stripes',size:1.3,bead:.12,orbit:3.05,speed:.5,fact:'Enceladus er hvit og iskald. Fra sprekker ved sydpolen spruter den fontener av is ut i rommet!'},
+ {id:'titania',name:'Titania',word:'TITANIA',parent:'uranus',color:'#c3b3aa',style:'crater',size:1.5,bead:.15,orbit:2.4,speed:.4,fact:'Titania er den største månen til Uranus. Den er iskald og har lange, dype daler.'},
+ {id:'miranda',name:'Miranda',word:'MIRANDA',parent:'uranus',color:'#cfd4d6',style:'crater',size:1.2,bead:.11,orbit:2.95,speed:.56,fact:'Miranda ser ut som den er satt sammen av biter. Her finnes noen av de høyeste stupene i solsystemet.'},
+ {id:'triton',name:'Triton',word:'TRITON',parent:'neptune',color:'#dfe9ee',style:'stripes',size:1.7,bead:.18,orbit:2.1,speed:.38,fact:'Triton går rundt Neptun motsatt vei av alle andre store måner. Den har gysere som spruter kald gass.'},
+ {id:'charon',name:'Charon',word:'CHARON',parent:'pluto',color:'#a8a29b',style:'crater',size:1.6,bead:.20,orbit:2.2,speed:.34,fact:'Charon er nesten like stor som Pluto selv. De to snurrer rundt hverandre som et par som danser.'}
+];
+// Each moon travels with its planet and is labelled by it, so the data above stays short.
+MOONS.forEach((m,i)=>{const parent=BODIES.find(p=>p.id===m.parent);m.au=parent.au;m.type='Måne · '+parent.name;m.phase=i*1.7;});
+function moonsOf(id){return MOONS.filter(m=>m.parent===id);}
 // Rocket paint jobs. The star rocket is the first new colour; the rest open with the colour picker.
 const SHIP_COLORS = [
  {id:'star',name:'Stjernerakett',body:'#ad83ff',accent:'#ff78bd'},
@@ -28,9 +49,12 @@ const SHIP_COLORS = [
  {id:'ocean',name:'Havrakett',body:'#8ed2ff',accent:'#3d78d8'},
  {id:'sunny',name:'Solrakett',body:'#ffe58a',accent:'#f2a33c'},
  {id:'cherry',name:'Kirsebærrakett',body:'#ffa7b6',accent:'#dd4a5e'},
- {id:'classic',name:'Klassisk rakett',body:'#f4f0e5',accent:'#e78457'}
+ {id:'classic',name:'Klassisk rakett',body:'#f4f0e5',accent:'#e78457'},
+ {id:'gold',name:'Gullrakett',body:'#f7cf55',accent:'#b87d1e',needs:'gold'}
 ];
-function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length;return {planets,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id))};}
+// A colour with a needs field only appears once that reward is earned.
+function shipColorsFor(rewards){return SHIP_COLORS.filter(c=>!c.needs||rewards[c.needs]);}
+function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length,moons=MOONS.filter(m=>set.has(m.id)).length;return {planets,moons,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id)),moonMode:planets>=8,gold:planets>=8&&moons===MOONS.length};}
 // Before the paint reward the rocket stays cream white; the picker only decides once it is unlocked.
-function shipPaint(rewards,choice){const fallback=SHIP_COLORS.find(c=>c.id===(rewards.paint?'star':'classic'));return rewards.palette&&SHIP_COLORS.some(c=>c.id===choice)?SHIP_COLORS.find(c=>c.id===choice):fallback;}
-if(typeof module!=='undefined')module.exports={BODIES,SHIP_COLORS,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards,shipPaint};
+function shipPaint(rewards,choice){const open=shipColorsFor(rewards),fallback=open.find(c=>c.id===(rewards.gold?'gold':rewards.paint?'star':'classic'));return rewards.palette&&open.some(c=>c.id===choice)?open.find(c=>c.id===choice):fallback;}
+if(typeof module!=='undefined')module.exports={BODIES,MOONS,SHIP_COLORS,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf};
