@@ -16,8 +16,9 @@ Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iP
 - Du kommer frem selv om du ikke skriver. Det er ingen liv eller poeng som kan mistes.
 - Ved sola brenner raketten opp. En redningskapsel tar Sofia trygt hjem på noen sekunder, og en ny rakett venter.
 - Opplesning, lyder, bokstavhjelp, roligere effekter og pause er tilgjengelig. Spillet pauses når nettleserfanen skjules under reisen.
-- Sofias oppdagelser lagres lokalt på enheten og beholdes ved ny sidelasting. Etter to ulike planetbesøk får raketten SOFIA-graffiti, etter fem får den lilla og rosa farger, og når alle ti reisemål er oppdaget får den regnbuespor. Jorda er oppdaget fra start. Sola teller ikke mot de to/fem planetbesøkene, men må også oppdages for regnbuesporet. Pluto teller som et planetbesøk i belønningssystemet.
+- Sofias oppdagelser lagres lokalt på enheten og beholdes ved ny sidelasting. Etter to ulike planetbesøk får raketten SOFIA-graffiti, etter fire får den lilla og rosa farger, etter seks kan Sofia velge rakettfarge selv, og når alle ti reisemål er oppdaget får den regnbuespor. Jorda er oppdaget fra start. Sola teller ikke mot planetbesøkene, men må også oppdages for regnbuesporet. Pluto teller som et planetbesøk i belønningssystemet.
 - Sofia blir tiltalt med navn i hilsener, ros, avgang, planetpasseringer og ankomst. Gjentatte besøk gir ikke nye planetpoeng. Belønningene følger raketten også etter solbesøket.
+- Fargevelgeren står på hjemmeskjermen når den er låst opp. Seks rakettfarger: stjerne, mint, hav, sol, kirsebær og den klassiske kremhvite. Valget leses opp og lagres lokalt sammen med oppdagelsene.
 
 ## Prøv med én fil
 
@@ -72,8 +73,8 @@ Kilder: [NASA – planetene](https://science.nasa.gov/solar-system/planets/), [N
 
 - `npm run dev`: lokal visning med Node på port 4173.
 - `npm run build`: lager den selvstendige HTML-filen i `dist`.
-- `npm test`: kontrollerer reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost og normalisering av fart, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk.
+- `npm test`: kontrollerer reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost og normalisering av fart, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk, og rakettfargene med fargevelgeren.
 
 `engine.js` er en liten WebGL-motor med ekte 3D-perspektiv, belyste geometriske modeller og dybdebuffer. En programvarerenderer med Canvas og egen dybdebuffer brukes hvis WebGL ikke er tilgjengelig. Ingen tredjepartspakker eller eiendeler er nødvendige.
 
-Validering: syntakskontroll og tester av reisetider, ruterekkefølge, boost og talekø. Nettleserkontroll av berøringsknapper, boost, reiserute, planetpasseringer, lagret fremgang, rakettfarger, SOFIA-graffiti og regnbuespor. Terskler og taleprioritet er i tillegg testet automatisk. Faktisk lyd og norsk uttale på en fysisk iPad gjenstår å verifisere. Første versjon ble også kontrollert for Mars-ankomst og solbesøk med trygg retur. Layout kontrollert i nettleservinduer på 1024 × 768 og 768 × 1024. Nettlesermiljøet brukte programvarerendereren; maskinvare-WebGL og fysisk iPad er ikke verifisert. Valgfri WebMCP-integrasjon er funksjonsdetektert, men testnettleseren eksponerte ikke denne API-en.
+Validering: syntakskontroll og tester av reisetider, ruterekkefølge, boost og talekø. Nettleserkontroll av berøringsknapper, boost, reiserute, planetpasseringer, lagret fremgang, rakettfarger, fargevelgeren, SOFIA-graffiti og regnbuespor. Terskler og taleprioritet er i tillegg testet automatisk. Faktisk lyd og norsk uttale på en fysisk iPad gjenstår å verifisere. Første versjon ble også kontrollert for Mars-ankomst og solbesøk med trygg retur. Layout kontrollert i nettleservinduer på 1024 × 768, 768 × 1024, 1024 × 600, 390 × 844 og 812 × 375. På lave vinduer står fargevelgeren på én linje sammen med etiketten. Nettlesermiljøet brukte programvarerendereren; maskinvare-WebGL og fysisk iPad er ikke verifisert. Valgfri WebMCP-integrasjon er funksjonsdetektert, men testnettleseren eksponerte ikke denne API-en.

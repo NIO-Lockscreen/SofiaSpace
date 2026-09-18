@@ -21,5 +21,16 @@ function formatTime(seconds){const n=Math.max(0,Math.ceil(seconds)),m=Math.floor
 // A scenic route follows orbital order, using compressed positions for readable flybys.
 // Real planets are not lined up; these waypoints are a teaching model.
 function buildRoute(from,to){if(from.id===to.id)return [];const lo=Math.min(from.au,to.au),hi=Math.max(from.au,to.au),direction=Math.sign(to.au-from.au);const start=Math.sqrt(from.au),end=Math.sqrt(to.au);return BODIES.filter(p=>p.au>lo&&p.au<hi).sort((a,b)=>(a.au-b.au)*direction).map(body=>({body,fraction:(Math.sqrt(body.au)-start)/(end-start)}));}
-function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length;return {planets,graffiti:planets>=2,paint:planets>=5,rainbow:BODIES.every(p=>set.has(p.id))};}
-if(typeof module!=='undefined')module.exports={BODIES,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards};
+// Rocket paint jobs. The star rocket is the first new colour; the rest open with the colour picker.
+const SHIP_COLORS = [
+ {id:'star',name:'Stjernerakett',body:'#ad83ff',accent:'#ff78bd'},
+ {id:'mint',name:'Mintrakett',body:'#9ef0c6',accent:'#2fae86'},
+ {id:'ocean',name:'Havrakett',body:'#8ed2ff',accent:'#3d78d8'},
+ {id:'sunny',name:'Solrakett',body:'#ffe58a',accent:'#f2a33c'},
+ {id:'cherry',name:'Kirsebærrakett',body:'#ffa7b6',accent:'#dd4a5e'},
+ {id:'classic',name:'Klassisk rakett',body:'#f4f0e5',accent:'#e78457'}
+];
+function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length;return {planets,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id))};}
+// Before the paint reward the rocket stays cream white; the picker only decides once it is unlocked.
+function shipPaint(rewards,choice){const fallback=SHIP_COLORS.find(c=>c.id===(rewards.paint?'star':'classic'));return rewards.palette&&SHIP_COLORS.some(c=>c.id===choice)?SHIP_COLORS.find(c=>c.id===choice):fallback;}
+if(typeof module!=='undefined')module.exports={BODIES,SHIP_COLORS,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards,shipPaint};
