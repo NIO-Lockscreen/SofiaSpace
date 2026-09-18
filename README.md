@@ -6,9 +6,9 @@ Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iP
 
 - Start ved et brunt hus i skogen på jorda. Sofia går om bord i raketten før avgang.
 - Velg sola, Merkur, Venus, jorda, Mars, Jupiter, Saturn, Uranus, Neptun eller Pluto. Når alle planetene er besøkt kommer 13 måner i tillegg.
-- Dra med fingeren for å se skogen eller planeten fra forskjellige vinkler.
+- Dra med fingeren for å se skogen eller planeten fra forskjellige vinkler. Scenen følger fingeren: drar du mot høyre, svinger landskapet mot høyre.
 - På reisen: trykk på bokstavene i navnet. De store knappene erstatter iPad-tastaturet helt.
-- Riktig bokstav øker farten; et helt navn gir ekstra kraft. Feil bokstav bremser litt, men riktig neste bokstav vises som hjelp. Hjelpen kan slås av.
+- Riktig bokstav øker farten; et helt navn gir ekstra kraft. Det finnes ingen øvre fartsgrense – staver Sofia raskt nok, suser raketten av gårde, og ved 5 × fart eller mer står det ZOOOOM på skjermen. Feil bokstav bremser litt, men riktig neste bokstav vises som hjelp. Hjelpen kan slås av.
 - Fremdriftslinjen viser reisen. Ved boost skyter raketten synlig frem mot planeten, flammen blir lengre og blåhvit, og fartsstriper og boostringer dukker opp. Farten faller mykt tilbake til vanlig fart etter noen sekunder.
 - Planeter på veien passerer i 3D under reisen, med navneskilt, lyd og norsk opplesning. På vei fra jorda til Pluto passerer vi Mars, Jupiter, Saturn, Uranus og Neptun. Reisen hjem viser omvendt rekkefølge. En rutelinje viser hvilke planeter som er passert og hvilke som gjenstår.
 - Hver bokstav som trykkes, leses med norsk bokstavnavn. Planetpasseringer og ankomstfakta får snakke ferdig uten å bli kuttet av nye bokstavtrykk.
@@ -70,7 +70,7 @@ Fra jorda ved vanlig fart, uten nedtelling:
 
 En måne ligger i samme avstand fra sola som planeten sin i denne modellen. Turen fra jorda til en måne tar derfor like lang tid som turen til planeten den hører til, og et hopp inne i et system – fra Jupiter til Europa, eller fra Europa til Io – tar 40 sekunder. Månen vår er dermed det korteste reisemålet fra jorda, med 40 sekunder.
 
-Bokstavkraft gjør reisen raskere. Feil kan gjøre reisen litt lengre. Farten går gradvis tilbake mot vanlig fart. Nærmeste planet fra jorda i denne modellen, Venus, tar 60 sekunder ved vanlig fart. Alle tidligere reisetider er ganget med fem. Nedtelling, pauser og redningssekvens kommer i tillegg.
+Bokstavkraft gjør reisen raskere, uten tak: farten stiger så lenge bokstavene er riktige, og en rask staver kommer frem på en brøkdel av tiden i tabellen. Feil kan gjøre reisen litt lengre. Uten trykk glir farten tilbake til vanlig fart – raskt over 3 × fart, og rolig det siste stykket ned til 1 ×. Nærmeste planet fra jorda i denne modellen, Venus, tar 60 sekunder ved vanlig fart. Alle tidligere reisetider er ganget med fem. Nedtelling, pauser og redningssekvens kommer i tillegg.
 
 Kilder: [NASA – planetene](https://science.nasa.gov/solar-system/planets/), [NASA – Pluto](https://science.nasa.gov/dwarf-planets/pluto/).
 
@@ -78,8 +78,8 @@ Kilder: [NASA – planetene](https://science.nasa.gov/solar-system/planets/), [N
 
 - `npm run dev`: lokal visning med Node på port 4173.
 - `npm run build`: lager den selvstendige HTML-filen i `dist`.
-- `npm test`: kontrollerer reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost og normalisering av fart, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk, rakettfargene med fargevelgeren, og månedataene med reisetider, foreldreplaneter og gullrakett.
+- `npm test`: kontrollerer reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost uten fartstak og normalisering av fart tilbake til nøyaktig 1 ×, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk, rakettfargene med fargevelgeren, og månedataene med reisetider, foreldreplaneter og gullrakett.
 
 `engine.js` er en liten WebGL-motor med ekte 3D-perspektiv, belyste geometriske modeller og dybdebuffer. En programvarerenderer med Canvas og egen dybdebuffer brukes hvis WebGL ikke er tilgjengelig. Ingen tredjepartspakker eller eiendeler er nødvendige.
 
-Validering: syntakskontroll og tester av reisetider, ruterekkefølge, boost og talekø. Nettleserkontroll av berøringsknapper, boost, reiserute, planetpasseringer, lagret fremgang, rakettfarger, fargevelgeren, SOFIA-graffiti, regnbuespor, månemodus med reise til Månen og Phobos, av- og påslag av månemodus, og gullraketten med diamant og myntspor. Månemodus er også kontrollert med programvarerendereren. Terskler og taleprioritet er i tillegg testet automatisk. Faktisk lyd og norsk uttale på en fysisk iPad gjenstår å verifisere. Første versjon ble også kontrollert for Mars-ankomst og solbesøk med trygg retur. Layout kontrollert i nettleservinduer på 1024 × 768, 768 × 1024, 1024 × 600, 390 × 844 og 812 × 375. På lave vinduer står fargevelgeren på én linje sammen med etiketten. Nettlesermiljøet brukte programvarerendereren; maskinvare-WebGL og fysisk iPad er ikke verifisert. Valgfri WebMCP-integrasjon er funksjonsdetektert, men testnettleseren eksponerte ikke denne API-en.
+Validering: syntakskontroll og tester av reisetider, ruterekkefølge, boost og talekø. Nettleserkontroll av berøringsknapper, boost opp til 19 × fart med rolig retur til 1 ×, dragretning på hjemmebasen, SOFIA-graffiti lest av på både stående og liggende rakett, reiserute, planetpasseringer, lagret fremgang, rakettfarger, fargevelgeren, regnbuespor, månemodus med reise til Månen og Phobos, av- og påslag av månemodus, og gullraketten med diamant og myntspor. Månemodus er også kontrollert med programvarerendereren. Terskler og taleprioritet er i tillegg testet automatisk. Faktisk lyd og norsk uttale på en fysisk iPad gjenstår å verifisere. Første versjon ble også kontrollert for Mars-ankomst og solbesøk med trygg retur. Layout kontrollert i nettleservinduer på 1024 × 768, 768 × 1024, 1024 × 600, 390 × 844 og 812 × 375. På lave vinduer står fargevelgeren på én linje sammen med etiketten. Nettlesermiljøet brukte programvarerendereren; maskinvare-WebGL og fysisk iPad er ikke verifisert. Valgfri WebMCP-integrasjon er funksjonsdetektert, men testnettleseren eksponerte ikke denne API-en.

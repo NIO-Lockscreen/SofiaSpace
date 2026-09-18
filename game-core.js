@@ -15,8 +15,8 @@ const BODIES = [
 // Venus is the nearest destination from Earth on this average-orbit model: 60 s.
 // These are game times, not current Earth-to-planet distances or real travel times.
 function duration(from,to){return from.id===to.id?0:5*Math.round(8+52*Math.sqrt(Math.abs(from.au-to.au)/38.48));}
-function accelerate(speed,correct){return correct?Math.min(3,speed+.35):Math.max(.65,speed-.35);}
-function relaxSpeed(speed,dt,hold=0){if(hold>0)return speed;return speed>1?Math.max(1,speed-dt*.48):Math.min(1,speed+dt*.16);}
+function accelerate(speed,correct){return correct?speed+.35:Math.max(.65,speed-.35);}
+function relaxSpeed(speed,dt,hold=0){if(hold>0)return speed;return speed>1?Math.max(1,speed-dt*(.48+Math.max(0,speed-3)*1.1)):Math.min(1,speed+dt*.16);}
 function formatTime(seconds){const n=Math.max(0,Math.ceil(seconds)),m=Math.floor(n/60),s=n%60;return m?(s?`${m} min ${s} sek`:`${m} min`):`${s} sek`;}
 // A scenic route follows orbital order, using compressed positions for readable flybys.
 // Real planets are not lined up; these waypoints are a teaching model.
