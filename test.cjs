@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const{BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound}=require('./game-core.js');
+const{BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves}=require('./game-core.js');
 const byId=id=>BODIES.find(p=>p.id===id),earth=byId('earth');
 assert.equal(duration(earth,byId('venus')),60);assert.equal(duration(earth,byId('pluto')),300);assert.equal(duration(earth,earth),0);
 assert.equal(Math.min(...BODIES.filter(p=>p.id!=='earth').map(p=>duration(earth,p))),60);
@@ -86,3 +86,14 @@ for(const correct of [0,3,8,15,25,60])for(let k=0;k<300;k++){const recent=BODIES
  if(choices.length<4)assert.equal(new Set(choices.map(p=>p.word[0])).size,choices.length);}
 const seen=new Set();for(let k=0;k<400;k++)seen.add(quizRound(0,[],random).answer.id);assert.equal(seen.size,BODIES.length);
 console.log('Passed: reading game rounds with 2, 3 and 4 names, the answer always offered, no repeats of recent planets, and different first letters while the choices are few.');
+
+// Undoing a reset brings everything back and keeps what was found after the reset too.
+const before={visited:['earth','mars','venus'],played:['mars'],quizStars:3,quizCorrect:17,shipColor:'mint',moonMode:false};
+const since={visited:['earth','pluto'],played:['pluto'],quizStars:1,quizCorrect:5,shipColor:'star',moonMode:true};
+const merged=mergeSaves(since,before);
+assert.deepEqual([...merged.visited].sort(),['earth','mars','pluto','venus']);assert.deepEqual([...merged.played].sort(),['mars','pluto']);
+assert.equal(merged.quizStars,4);assert.equal(merged.quizCorrect,22);assert.equal(merged.shipColor,'mint');assert.equal(merged.moonMode,false);
+const fresh={visited:['earth'],played:[],quizStars:0,quizCorrect:0,shipColor:'star',moonMode:true},back=mergeSaves(fresh,before);
+assert.deepEqual([...back.visited].sort(),[...before.visited].sort());assert.equal(back.quizStars,3);assert.equal(back.quizCorrect,17);
+assert.deepEqual(mergeSaves(fresh,{visited:'nonsense',quizStars:'x'}).visited,['earth']);assert.equal(mergeSaves(fresh,null).quizStars,0);
+console.log('Passed: undoing a reset restores every place, star and setting, adds what was found since, and ignores a damaged copy.');
