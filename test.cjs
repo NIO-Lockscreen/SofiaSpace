@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const{BODIES,MOONS,SHIP_COLORS,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf}=require('./game-core.js');
+const{BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound}=require('./game-core.js');
 const byId=id=>BODIES.find(p=>p.id===id),earth=byId('earth');
 assert.equal(duration(earth,byId('venus')),60);assert.equal(duration(earth,byId('pluto')),300);assert.equal(duration(earth,earth),0);
 assert.equal(Math.min(...BODIES.filter(p=>p.id!=='earth').map(p=>duration(earth,p))),60);
@@ -57,3 +57,32 @@ assert.equal(moonsOf('jupiter').length,4);
 const europa=MOONS.find(m=>m.id==='europa');assert.deepEqual(buildRoute(earth,europa).map(e=>e.body.id),['mars']);
 assert.equal(duration(europa,MOONS.find(m=>m.id==='io')),40);assert.equal(duration(earth,MOONS.find(m=>m.id==='moon')),40);assert.equal(duration(europa,earth),duration(earth,europa));
 console.log(`Passed: ${MOONS.length} moons with real parents, 40 s hops inside a system, planet travel times reused, no moons for Mercury and Venus, and unique spelling words.`);
+
+// The asteroid belt sits between Mars and Jupiter, in order, on every trip that crosses it and on no other.
+assert.deepEqual(tripRoute(earth,byId('pluto')).map(e=>e.body.id),['mars','belt','jupiter','saturn','uranus','neptune']);
+assert.deepEqual(tripRoute(byId('pluto'),earth).map(e=>e.body.id),['neptune','uranus','saturn','jupiter','belt','mars']);
+assert.deepEqual(tripRoute(byId('jupiter'),byId('mars')).map(e=>e.body.id),['belt']);
+assert.deepEqual(tripRoute(earth,byId('venus')),[]);assert.deepEqual(tripRoute(earth,byId('mars')),[]);
+assert.deepEqual(tripRoute(MOONS.find(m=>m.id==='europa'),MOONS.find(m=>m.id==='io')),[]);
+for(const from of [...BODIES,...MOONS])for(const to of [...BODIES,...MOONS]){const route=tripRoute(from,to),crosses=Math.min(from.au,to.au)<BELT.au&&Math.max(from.au,to.au)>BELT.au;
+ assert.equal(route.some(e=>e.body.id==='belt'),crosses,from.id+'>'+to.id);for(let i=0;i<route.length;i++){assert.ok(route[i].fraction>0&&route[i].fraction<1);if(i)assert.ok(route[i].fraction>route[i-1].fraction);}
+ assert.deepEqual(route.filter(e=>e.body.id!=='belt'),buildRoute(from,to));}
+console.log('Passed: the asteroid belt between Mars and Jupiter on every crossing trip, in flight order both ways, and nowhere else.');
+
+// Every planet and moon has a game, each planet its own; the Sun burns up and Earth is home.
+assert.equal(playFor(byId('sun')),null);assert.equal(playFor(earth),null);
+const planetGames=BODIES.filter(p=>!['sun','earth'].includes(p.id)).map(playFor);
+assert.ok(planetGames.every(Boolean));assert.equal(new Set(planetGames.map(g=>g.kind)).size,planetGames.length);
+for(const m of MOONS)assert.equal(playFor(m),PLAYS.moon);
+for(const g of Object.values(PLAYS)){assert.ok(g.goal>0&&g.goal<=10,g.kind);for(const key of ['title','icon','task','intro','outro'])assert.ok(g[key],g.kind+' '+key);}
+assert.equal(PLAYS.neptune.word,byId('neptune').word);assert.equal(PLAYS.neptune.goal,PLAYS.neptune.word.length);assert.equal(PLAYS.jupiter.goal,moonsOf('jupiter').length);
+console.log(`Passed: ${planetGames.length} different planet games, one moon game for all ${MOONS.length} moons, and none for the Sun or home.`);
+
+// The reading game: the answer is always among the choices, no name twice, and early rounds differ in the first letter.
+let seed=7;const random=()=>(seed=(seed*16807)%2147483647)/2147483647;
+assert.equal(quizChoiceCount(0),2);assert.equal(quizChoiceCount(6),3);assert.equal(quizChoiceCount(20),4);
+for(const correct of [0,3,8,15,25,60])for(let k=0;k<300;k++){const recent=BODIES.slice(k%8,k%8+3).map(p=>p.id),{answer,choices}=quizRound(correct,recent,random);
+ assert.equal(choices.length,quizChoiceCount(correct));assert.ok(choices.includes(answer));assert.equal(new Set(choices.map(p=>p.id)).size,choices.length);assert.ok(!recent.includes(answer.id));
+ if(choices.length<4)assert.equal(new Set(choices.map(p=>p.word[0])).size,choices.length);}
+const seen=new Set();for(let k=0;k<400;k++)seen.add(quizRound(0,[],random).answer.id);assert.equal(seen.size,BODIES.length);
+console.log('Passed: reading game rounds with 2, 3 and 4 names, the answer always offered, no repeats of recent planets, and different first letters while the choices are few.');

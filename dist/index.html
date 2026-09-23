@@ -18,18 +18,104 @@
 .arrival-console .arrival-reward{font-size:14px;color:var(--yellow);margin-top:8px;line-height:1.4}.arrival-reward::before{content:'✦ ';color:var(--yellow)}
 @media(max-height:620px) and (min-width:561px){.home-console p{display:none}.home-console h2,.inside-console h2{font-size:20px;margin-bottom:4px}.inside-console p{font-size:13px;max-width:430px}.moon-toggle{display:inline-block;vertical-align:middle;margin:8px 12px 0 0;padding:7px 12px;font-size:12px;min-height:36px}.planet-card.moon-card{min-height:92px}.planet-card.moon-card canvas{height:38px}.color-choice{display:inline-flex;vertical-align:middle;align-items:center;gap:11px;margin-top:8px}.color-choice-label{display:none}.color-swatches{gap:8px}.swatch{width:34px;height:34px;border-radius:11px}}
 @media(max-width:370px){.brand small{display:none}.brand b{font-size:17px}.brand{gap:9px}.top-actions{gap:5px}}
+
+/* Space glows: a drifting nebula behind the HUD and a white flash when the rocket arrives. */
+.nebula{position:absolute;inset:-12%;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity 1.2s;background:radial-gradient(38% 34% at 22% 30%,var(--neb-a,#2a2560),transparent 72%),radial-gradient(44% 40% at 78% 64%,var(--neb-b,#123e5a),transparent 72%),radial-gradient(26% 22% at 58% 18%,#3a1d4a,transparent 70%);animation:nebula-drift 48s ease-in-out infinite alternate}
+.space .nebula{opacity:calc(.5 + var(--boost-strength,0) * .35)}
+.warp-flash{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle at 60% 50%,#fff 0,#dff9ffcc 30%,#79e4e200 70%)}
+.warp-flash.go{animation:warp .7s ease-out}
+.countdown.go{font-size:78px;color:#ff9ed1;letter-spacing:2px;animation:go-pop .45s ease-out}
+.letter-fly{position:fixed;left:0;top:0;z-index:30;pointer-events:none;font-size:36px;font-weight:900;color:var(--yellow);text-shadow:0 0 16px #ffde71,0 3px 0 #1b2446;will-change:transform}
+@keyframes nebula-drift{from{transform:translate(-3%,-2%) scale(1)}to{transform:translate(3%,2%) scale(1.08)}}
+@keyframes warp{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
+@keyframes go-pop{from{transform:translate(-50%,-50%) scale(.5)}to{transform:translate(-50%,-50%) scale(1)}}
+
+/* The pink play button waits on every world with a game. */
+.play-btn{display:block;margin-top:14px;min-height:58px;border-radius:19px;background:linear-gradient(135deg,#ffb3dc,#ff76ba);color:#3a1030;font-weight:900;font-size:19px;padding:14px 24px;box-shadow:0 5px 0 #b8457f;animation:play-pulse 1.8s ease-in-out infinite}
+@keyframes play-pulse{0%,100%{box-shadow:0 5px 0 #b8457f,0 0 0 0 #ff76ba70}60%{box-shadow:0 5px 0 #b8457f,0 0 0 14px #ff76ba00}}
+.play-console{padding-top:16px;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.play-row{display:flex;align-items:center;gap:22px}
+.play-copy{flex:1;min-width:0}
+.play-copy h2{font-size:22px;margin:0 0 5px;letter-spacing:-.4px}
+.play-copy p{margin:0;color:#d6dbee;font-size:16px;line-height:1.4}
+.play-progress{display:flex;flex-wrap:wrap;gap:3px;max-width:380px;justify-content:center}
+.play-dot{font-size:27px;line-height:1.1;opacity:.3;filter:grayscale(1)}
+.play-dot.got{opacity:1;filter:none;animation:dot-pop .35s ease-out}
+.play-word{justify-content:center}
+.play-actions{display:flex;align-items:center;gap:10px}
+@keyframes dot-pop{from{transform:scale(1.7)}to{transform:scale(1)}}
+
+/* Planetspillet: big, readable name cards. */
+.quiz-console{padding-top:16px;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.quiz-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.quiz-head h2{margin:0;font-size:24px;letter-spacing:-.4px}
+.quiz-stars{margin-left:auto;font-size:28px;letter-spacing:3px;color:#ffffff38;white-space:nowrap}
+.quiz-stars .got{color:var(--yellow);text-shadow:0 0 12px #ffde7199}
+.quiz-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quiz-choice{min-height:78px;border-radius:20px;background:#fff8e6;color:#1c2940;font-size:36px;font-weight:900;letter-spacing:4px;box-shadow:0 6px 0 #c9b98f;padding:8px 10px;overflow:hidden;text-overflow:ellipsis}
+.quiz-choice:hover{background:#fffdf4}
+.quiz-choice .first{display:inline-block}
+.quiz-choice.hint .first{color:#e2457f;text-shadow:0 0 14px #ff9ed1;animation:hint-bounce .9s ease-in-out infinite}
+.quiz-choice.right{background:#8fe3a8;box-shadow:0 6px 0 #4fa56a;animation:right-pop .4s ease-out}
+.quiz-choice.right::after{content:' ✓'}
+.quiz-choice.wrong{background:#5d5170;color:#ffffffb0;box-shadow:0 3px 0 #2d2640;animation:shake .25s}
+.quiz-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px}
+.quiz-foot .feedback{margin:0;font-size:16px;flex:1}
+.quiz-buttons{display:flex;gap:10px}
+@keyframes hint-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes right-pop{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+@media(min-width:700px){.quiz-choices{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}}
+
+@media(max-width:760px){.play-copy h2{font-size:19px}
+.play-copy p{font-size:14px}
+.play-dot{font-size:23px}
+.quiz-choice{font-size:30px;min-height:68px;letter-spacing:3px}
+.quiz-head h2{font-size:21px}
+.quiz-stars{font-size:24px}
+}
+@media(max-width:560px){.play-row{flex-direction:column;align-items:stretch;gap:10px}
+.play-copy{text-align:center}
+.play-actions{justify-content:space-between}
+.play-actions .primary,.play-actions .secondary{flex:1}
+.play-btn{width:100%;font-size:17px}
+.quiz-choice{font-size:26px;min-height:62px;letter-spacing:2px}
+.quiz-foot{flex-direction:column;align-items:stretch;gap:10px}
+.quiz-buttons>*{flex:1}
+.inside-console .home-actions .primary,.inside-console .home-actions .secondary{width:100%}
+}
+@media(max-height:620px) and (min-width:561px){.play-copy p{font-size:13px}
+.play-dot{font-size:20px}
+.play-btn{min-height:46px;padding:9px 18px;font-size:16px;margin-top:9px}
+.quiz-console,.play-console{padding-top:10px;padding-bottom:12px}
+.quiz-head{margin-bottom:7px}
+.quiz-head h2{font-size:19px}
+.quiz-choices{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:9px}
+.quiz-choice{min-height:52px;font-size:24px}
+.quiz-foot{margin-top:7px}
+.quiz-foot .feedback{font-size:13px}
+.countdown.go{font-size:56px}
+}
+@media(max-height:620px) and (min-width:561px){.quiz-console{position:relative}
+.quiz-buttons{position:absolute;top:8px;right:max(28px,env(safe-area-inset-right))}
+.quiz-buttons>*{min-height:40px;padding:8px 16px;font-size:15px}
+.quiz-stars{margin-right:120px}
+.quiz-console:has(#quiz-again:not([hidden])) .quiz-stars{display:none}
+.quiz-foot{margin-top:5px;min-height:18px}
+}
 </style></head>
 <body><main id="app">
 <header><div class="brand"><span class="brand-symbol" aria-hidden="true">✦</span><div><b>Sofias romreise</b><small>ET LITE ROMEVENTYR</small></div></div><div class="top-actions"><span class="passport" id="passport" aria-label="Besøkte reisemål">✦ 1 / 10 oppdaget</span><button class="icon-btn" id="sound" aria-label="Slå av lyd" title="Lyd">🔊</button><button class="icon-btn" id="pause" aria-label="Sett spillet på pause" title="Pause" hidden>Ⅱ</button><button class="icon-btn" id="fullscreen" aria-label="Full skjerm" aria-pressed="false" title="Full skjerm"><svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="fs-open" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fs-close" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button class="icon-btn" id="settings" aria-label="Innstillinger og hjelp" title="Innstillinger">⚙</button></div></header>
-<section id="world" aria-label="Tredimensjonalt romeventyr"><canvas id="scene" aria-label="Sofia ved det brune huset sitt i skogen. Dra for å se deg rundt."></canvas><div class="scene-top"><div class="eyebrow" id="scene-label">HER BEGYNNER EVENTYRET</div><h1 id="scene-title">Hjemme på jorda</h1><p id="scene-sub">Raketten er klar. Hvor skal vi reise?</p></div><div class="scene-badge" id="scene-badge">⌂ Din egen lille rombase</div><span class="world-hint" id="world-hint" hidden>Dra med fingeren for å se deg rundt · dobbelttrykk for full skjerm</span><div class="scene-caption" id="scene-caption" hidden></div><div id="flyby-card" class="flyby-card" role="status" aria-live="polite" hidden><span class="flyby-kicker">SE UT AV VINDUET!</span><strong id="flyby-name"></strong><span id="flyby-next"></span></div><div id="boost-callout" class="boost-callout" hidden>✦ BOKSTAVKRAFT!</div><div id="countdown" class="countdown" hidden></div><div class="sun-flash" id="sun-flash"></div></section>
+<section id="world" aria-label="Tredimensjonalt romeventyr"><canvas id="scene" aria-label="Sofia ved det brune huset sitt i skogen. Dra for å se deg rundt."></canvas><div class="nebula" id="nebula" aria-hidden="true"></div><div class="warp-flash" id="warp-flash" aria-hidden="true"></div><div class="scene-top"><div class="eyebrow" id="scene-label">HER BEGYNNER EVENTYRET</div><h1 id="scene-title">Hjemme på jorda</h1><p id="scene-sub">Raketten er klar. Hvor skal vi reise?</p></div><div class="scene-badge" id="scene-badge">⌂ Din egen lille rombase</div><span class="world-hint" id="world-hint" hidden>Dra med fingeren for å se deg rundt · dobbelttrykk for full skjerm</span><div class="scene-caption" id="scene-caption" hidden></div><div id="flyby-card" class="flyby-card" role="status" aria-live="polite" hidden><span class="flyby-kicker">SE UT AV VINDUET!</span><strong id="flyby-name"></strong><span id="flyby-next"></span></div><div id="boost-callout" class="boost-callout" hidden>✦ BOKSTAVKRAFT!</div><div id="countdown" class="countdown" hidden></div><div class="sun-flash" id="sun-flash"></div></section>
 <section id="home-console" class="console home-console"><div><h2>Hei, Sofia!</h2><p>Huset ditt, skogen din – og et helt solsystem å utforske.</p><div id="rocket-rewards" class="rocket-rewards" hidden></div><button id="moon-toggle" class="moon-toggle on" aria-pressed="true" hidden>🌙 Månemodus på</button><div id="color-choice" class="color-choice" hidden><span class="color-choice-label">Velg rakettfarge</span><div class="color-swatches" id="color-swatches" role="group" aria-label="Velg rakettfarge"></div></div></div><div class="home-actions"><button id="open-map" class="primary">Velg et reisemål</button><div class="home-extra"><button id="open-system" class="secondary">🪐 Solsystemet</button><button id="enter-house" class="secondary">🏠 Inn i huset</button></div></div></section>
-<section id="inside-console" class="console inside-console" hidden><div><h2>Sofias rom</h2><p id="inside-progress"></p><div id="inside-rewards" class="rocket-rewards" hidden></div></div><button id="go-outside" class="primary">Gå ut igjen</button></section>
+<section id="inside-console" class="console inside-console" hidden><div><h2>Sofias rom</h2><p id="inside-progress"></p><div id="inside-rewards" class="rocket-rewards" hidden></div></div><div class="home-actions"><button id="open-quiz" class="primary">🔭 Planetspillet</button><button id="go-outside" class="secondary">Gå ut igjen</button></div></section>
+<section id="quiz-console" class="console quiz-console" hidden><div class="quiz-head"><h2 id="quiz-question">Hvilken planet er dette?</h2><button class="speak-small" id="quiz-speak" aria-label="Hør spørsmålet">🔊</button><div id="quiz-stars" class="quiz-stars" role="img"></div></div><div id="quiz-choices" class="quiz-choices" role="group" aria-label="Planetnavn"></div><div class="quiz-foot"><p id="quiz-feedback" class="feedback" role="status" aria-live="polite"></p><div class="quiz-buttons"><button class="primary" id="quiz-again" hidden>Spill igjen</button><button class="secondary" id="quiz-done">Ferdig</button></div></div></section>
 <section id="flight-console" class="console flight-console" hidden><div class="flight-head"><strong id="route-title">På vei til Pluto</strong><span class="speed" id="speed">⚡ 1,0 × fart</span></div><div id="route-stops" class="route-stops" aria-label="Planeter på veien" hidden></div><span id="route-preview" class="sr-only"></span><div class="route"><span id="origin-name">Jorda</span><div class="progress-track" role="progressbar" aria-label="Reisen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress"><div class="progress-fill" id="progress-fill"></div></div><span id="eta">60 s igjen</span><span id="target-name">Pluto</span></div><div class="typing-area"><div class="word-side"><div class="instruction">Trykk på bokstavene i riktig rekkefølge <button class="speak-small" id="speak-word" aria-label="Hør planetnavnet">🔊</button></div><div class="word" id="word" aria-label="Stav planetnavnet"></div><div class="feedback" id="feedback" role="status" aria-live="polite">Hjelp raketten med bokstavkraft!</div></div><div class="keyboard" id="keyboard" aria-label="Bokstavknapper"></div></div></section>
-<section id="arrival-console" class="console arrival-console" hidden><div class="arrival-row"><div class="arrival-copy"><h2 id="arrival-title"></h2><p id="arrival-fact"></p><p id="arrival-reward" class="arrival-reward" hidden></p></div><div class="arrival-actions"><button class="icon-btn" id="read-fact" aria-label="Les fakta høyt">🔊</button><button class="secondary" id="go-home">⌂ Hjem</button><button class="primary" id="next-trip">Reis videre</button></div></div></section>
+<section id="play-console" class="console play-console" hidden><div class="play-row"><div class="play-copy"><h2 id="play-title"></h2><p id="play-task"></p></div><div id="play-progress" class="play-progress" role="img"></div><div id="play-word" class="word play-word" hidden></div><div class="play-actions"><button class="icon-btn" id="play-speak" aria-label="Hør oppgaven">🔊</button><button class="primary" id="play-again" hidden>Spill igjen</button><button class="secondary" id="play-done">Tilbake</button></div></div></section>
+<section id="arrival-console" class="console arrival-console" hidden><div class="arrival-row"><div class="arrival-copy"><h2 id="arrival-title"></h2><p id="arrival-fact"></p><p id="arrival-reward" class="arrival-reward" hidden></p><button class="play-btn" id="play-here" hidden></button></div><div class="arrival-actions"><button class="icon-btn" id="read-fact" aria-label="Les fakta høyt">🔊</button><button class="secondary" id="go-home">⌂ Hjem</button><button class="primary" id="next-trip">Reis videre</button></div></div></section>
 <div id="map-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="map-title" hidden><div class="modal"><div class="modal-head"><div><div class="eyebrow">SOLSYSTEMET DITT</div><h2 id="map-title">Hvor vil du dra?</h2></div><button class="icon-btn" id="close-map" aria-label="Lukk planetkart">✕</button></div><p class="modal-intro">Fra den varme sola til iskalde Pluto. Trykk på et reisemål!</p><div class="planet-grid" id="planet-grid"></div><p id="map-route-preview" class="map-route-preview"></p><div class="selection"><div><h3 id="selection-title">Mars</h3><p id="selection-info">Den røde planeten</p></div><button class="primary" id="launch">Reis til Mars</button></div><p class="map-note" id="map-note">Sola er en stjerne. Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.</p></div></div>
 <div id="system-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="system-title" hidden><div class="modal system-modal"><div class="modal-head"><div><div class="eyebrow">KART OVER SOLSYSTEMET</div><h2 id="system-title">Planetene i riktig rekkefølge</h2></div><button class="icon-btn" id="close-system" aria-label="Lukk solsystemkartet">✕</button></div><p class="modal-intro">Sola øverst, så planetene i rekkefølge utover. Trykk på en planet for å høre navnet.</p><div class="system-map" id="system-map"></div><p class="map-note">Rekkefølgen fra sola er riktig. Størrelser og avstander mellom banene er tilpasset spillet, ikke ekte tall. Sola er en stjerne, og Pluto er en dvergplanet.</p><button class="primary system-go" id="system-go">Velg et reisemål</button></div></div>
 <div id="pause-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal small-modal"><div class="eyebrow">EN LITEN PUSTEPAUSE</div><h2 id="pause-title">Raketten venter på deg</h2><p>Eventyret fortsetter akkurat der du var.</p><button class="primary" id="resume">Fortsett reisen ▶</button><button class="secondary" id="cancel-trip" style="width:100%;margin-top:15px">Avbryt og dra hjem</button></div></div>
-<div id="settings-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal small-modal"><div class="modal-head"><h2 id="settings-title">For store og små</h2><button class="icon-btn" id="close-settings" aria-label="Lukk innstillinger">✕</button></div><div class="setting-row"><span>Hjelp med neste bokstav</span><button class="toggle on" id="hint-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Les bokstaver og fakta høyt</span><button class="toggle on" id="voice-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Roligere effekter</span><button class="toggle" id="motion-toggle" aria-pressed="false">Av</button></div><p>Trykk på bokstavene i navnet. Riktig bokstav gir mer fart. Feil bremser litt, og du kan prøve igjen. Du kommer frem selv uten å skrive!</p><p class="pause-note">Det finnes ingen fartsgrense: jo raskere Sofia staver, jo fortere flyr raketten. Stopper hun opp, glir farten rolig tilbake til vanlig fart.</p><p class="pause-note">Nærmeste planet i spillet, Venus, tar 1 minutt fra jorda ved vanlig fart. Mars tar 1 minutt og 10 sekunder, og Pluto tar 5 minutter. Avstander er forenklet med gjennomsnittlige planetbaner. Vi følger en forenklet reiserute for å lære planetenes rekkefølge. I virkeligheten står ikke planetene på rekke, og man trenger ikke fly forbi alle på vei utover. Dette er ikke virkelige avstander eller reisetider.</p><p class="pause-note">På gass- og iskjempene flyr vi forbi: de har ingen fast overflate vi kan lande på. Ved sola brenner raketten opp. Sofia kommer trygt hjem i en redningskapsel.</p><p class="pause-note" id="rewards-info"></p><p class="pause-note">Knappen for stor skjerm øverst til høyre rydder bort overskriften slik at 3D-bildet fyller alt. Dobbelttrykk på bildet gjør det samme. Trykk på knappen igjen for å gå tilbake. Nettlesere som tillater ekte fullskjerm bruker den i tillegg.</p><p class="pause-note">Sofias oppdagelser og rakettbelønninger lagres på denne enheten.</p><p class="pause-note" id="voice-note">Opplesning bruker en norsk stemme hvis enheten har det. Spillet fungerer også uten lyd.</p><p class="pause-note">Fakta: <a href="https://science.nasa.gov/solar-system/planets/" target="_blank" rel="noopener">NASA – planetene</a> · <a href="https://science.nasa.gov/dwarf-planets/pluto/" target="_blank" rel="noopener">Pluto</a></p></div></div>
+<div id="settings-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal small-modal"><div class="modal-head"><h2 id="settings-title">For store og små</h2><button class="icon-btn" id="close-settings" aria-label="Lukk innstillinger">✕</button></div><div class="setting-row"><span>Hjelp med neste bokstav</span><button class="toggle on" id="hint-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Les bokstaver og fakta høyt</span><button class="toggle on" id="voice-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Roligere effekter</span><button class="toggle" id="motion-toggle" aria-pressed="false">Av</button></div><p>Trykk på bokstavene i navnet. Riktig bokstav gir mer fart. Feil bremser litt, og du kan prøve igjen. Du kommer frem selv uten å skrive!</p><p class="pause-note">Det finnes ingen fartsgrense: jo raskere Sofia staver, jo fortere flyr raketten. Stopper hun opp, glir farten rolig tilbake til vanlig fart.</p><p class="pause-note">Nærmeste planet i spillet, Venus, tar 1 minutt fra jorda ved vanlig fart. Mars tar 1 minutt og 10 sekunder, og Pluto tar 5 minutter. Avstander er forenklet med gjennomsnittlige planetbaner. Vi følger en forenklet reiserute for å lære planetenes rekkefølge. I virkeligheten står ikke planetene på rekke, og man trenger ikke fly forbi alle på vei utover. Dette er ikke virkelige avstander eller reisetider.</p><p class="pause-note">På gass- og iskjempene flyr vi forbi: de har ingen fast overflate vi kan lande på. Ved sola brenner raketten opp. Sofia kommer trygt hjem i en redningskapsel.</p><p class="pause-note">På hver planet venter en lek: meteorer på Merkur, skyer på Venus, robotbil på Mars, måner å telle ved Jupiter, is i Saturns ringer, diamantregn ved Uranus, bokstavstorm ved Neptun og snømann på Pluto. På månene kan Sofia hoppe høyt. Ingen av lekene kan tapes. Inne i huset står Planetspillet: se en planet og trykk på riktig navn. Det begynner med to navn og får flere etter hvert som Sofia leser mer.</p><p class="pause-note" id="rewards-info"></p><p class="pause-note">Knappen for stor skjerm øverst til høyre rydder bort overskriften slik at 3D-bildet fyller alt. Dobbelttrykk på bildet gjør det samme. Trykk på knappen igjen for å gå tilbake. Nettlesere som tillater ekte fullskjerm bruker den i tillegg.</p><p class="pause-note">Sofias oppdagelser og rakettbelønninger lagres på denne enheten.</p><p class="pause-note" id="voice-note">Opplesning bruker en norsk stemme hvis enheten har det. Spillet fungerer også uten lyd.</p><p class="pause-note">Fakta: <a href="https://science.nasa.gov/solar-system/planets/" target="_blank" rel="noopener">NASA – planetene</a> · <a href="https://science.nasa.gov/dwarf-planets/pluto/" target="_blank" rel="noopener">Pluto</a></p></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div><div id="fallback" class="fallback" hidden><h2>Vi får ikke startet 3D akkurat nå</h2><p>Prøv å laste siden på nytt i Safari på iPaden. Hvis du åpnet spillet i en filvisning, åpne nettadressen i Safari i stedet.</p><button class="primary" onclick="location.reload()">Prøv igjen</button></div>
 </main><script>
 /* Sofias romreise — gameplay and child-friendly facts. */
@@ -91,7 +177,28 @@ function shipColorsFor(rewards){return SHIP_COLORS.filter(c=>!c.needs||rewards[c
 function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length,moons=MOONS.filter(m=>set.has(m.id)).length;return {planets,moons,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id)),moonMode:planets>=8,gold:planets>=8&&moons===MOONS.length};}
 // Before the paint reward the rocket stays cream white; the picker only decides once it is unlocked.
 function shipPaint(rewards,choice){const open=shipColorsFor(rewards),fallback=open.find(c=>c.id===(rewards.gold?'gold':rewards.paint?'star':'classic'));return rewards.palette&&open.some(c=>c.id===choice)?open.find(c=>c.id===choice):fallback;}
-if(typeof module!=='undefined')module.exports={BODIES,MOONS,SHIP_COLORS,duration,accelerate,relaxSpeed,formatTime,buildRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf};
+// The asteroid belt lies between Mars and Jupiter. Trips that cross it fly straight through the rocks.
+const BELT={id:'belt',name:'Asteroidebeltet',color:'#b89c7c',au:2.7};
+function tripRoute(from,to){const route=buildRoute(from,to),lo=Math.min(from.au,to.au),hi=Math.max(from.au,to.au);if(!(lo<BELT.au&&hi>BELT.au))return route;const fraction=(Math.sqrt(BELT.au)-Math.sqrt(from.au))/(Math.sqrt(to.au)-Math.sqrt(from.au));return [...route,{body:BELT,fraction}].sort((a,b)=>a.fraction-b.fraction);}
+// Something fun to do on every world. Gas and ice giants are played from orbit, the rest on the ground.
+// Every game counts up and cannot be lost. Moons share one game: jumping high in weak gravity.
+const PLAYS={
+ mercury:{kind:'meteors',title:'Meteorregn',icon:'☄️',goal:8,task:'Trykk på meteorene!',intro:'Se, Sofia! Meteorer suser mot Merkur. Trykk på dem, så blir de til stjernestøv!',outro:'Så flott, Sofia! Merkur har nesten ingen luft som beskytter den. Derfor har den så mange kratere.'},
+ venus:{kind:'clouds',title:'Blås bort skyene',icon:'☁️',goal:8,task:'Trykk på skyene!',intro:'Venus er dekket av tykke skyer. Trykk på skyene og blås dem bort!',outro:'Bra, Sofia! Under skyene er Venus varmere enn inni en stekeovn!'},
+ mars:{kind:'rover',title:'Robotbilen',icon:'🪨',goal:6,task:'Trykk på steinene som glitrer!',intro:'Robotbilen på Mars samler steiner. Trykk på steinene som glitrer, så hopper de opp i bilen!',outro:'Supert, Sofia! Forskerne studerer steiner fra Mars. De tror det rant vann her for lenge, lenge siden.'},
+ jupiter:{kind:'moons',title:'Tell månene',icon:'🌕',goal:4,task:'Trykk på de fire store månene og tell dem!',intro:'Jupiter har mange måner. Trykk på de fire store månene, så teller vi dem sammen!',outro:'Fire store måner! Og vet du hva? Jupiter har mer enn nitti måner til sammen!'},
+ saturn:{kind:'ice',title:'Isbiter i ringene',icon:'🧊',goal:8,task:'Trykk på isbitene som glitrer!',intro:'Ringene til Saturn er laget av is og stein. Trykk på isbitene som glitrer!',outro:'Så mye is! Noen biter i ringene er små som støvkorn, og andre er store som fjell.'},
+ uranus:{kind:'diamonds',title:'Diamantregn',icon:'💎',goal:10,task:'Fang diamantene!',intro:'Forskerne tror at det kanskje regner diamanter dypt inne i Uranus! Trykk på diamantene og fang dem!',outro:'For en skatt, Sofia! Uranus ruller rundt sola på siden, som en ball.'},
+ neptune:{kind:'letters',title:'Bokstavstorm',icon:'🌬️',word:'NEPTUN',goal:6,task:'Fang bokstavene i riktig rekkefølge!',intro:'Oi! Den sterke vinden på Neptun har blåst bort bokstavene. Fang bokstavene i Neptun, én og én!',outro:'Du stavet Neptun, Sofia! Vinden på Neptun er den sterkeste i hele solsystemet.'},
+ pluto:{kind:'snowman',title:'Snømann på Pluto',icon:'⛄',goal:6,task:'Trykk på det som glitrer, og bygg en snømann!',intro:'Pluto er full av is. La oss bygge en snømann! Trykk på snøballen som glitrer.',outro:'For en fin snømann, Sofia! Pluto er så langt borte at sola bare ser ut som en lys stjerne.'},
+ moon:{kind:'hop',title:'Månehopp',icon:'⭐',goal:5,task:'Trykk på en stjerne, så hopper Sofia!',intro:'På en måne kan du hoppe kjempehøyt! Trykk på stjernene, så hopper Sofia opp og tar dem.',outro:'Så høyt du hoppet, Sofia! På en måne veier du mye mindre enn hjemme på jorda.'}
+};
+function playFor(p){return p?PLAYS[p.id]||(p.parent?PLAYS.moon:null):null;}
+// The reading game in the house: two names to choose from at first, more as Sofia reads more.
+// While there are few choices, the names start with different letters, so the first letter is enough.
+function quizChoiceCount(correct){return correct<6?2:correct<20?3:4;}
+function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCount(correct),pool=BODIES.filter(p=>!recent.includes(p.id)),answer=pool[Math.floor(rand()*pool.length)%pool.length];const shuffle=list=>{const out=[...list];for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1))%(i+1);[out[i],out[j]]=[out[j],out[i]];}return out;};const others=BODIES.filter(p=>p.id!==answer.id&&(count===4||p.word[0]!==answer.word[0])),picked=[];for(const p of shuffle(others)){if(picked.length>=count-1)break;if(count===4||!picked.some(q=>q.word[0]===p.word[0]))picked.push(p);}return {answer,choices:shuffle([answer,...picked])};}
+if(typeof module!=='undefined')module.exports={BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound};
 
 </script><script>
 /* Tiny dependency-free WebGL renderer: true perspective, depth buffer and lit 3D meshes. */
@@ -118,6 +225,8 @@ class SpaceRenderer{
  for(const type of ['cone','cylinder']){a=[];for(let i=0;i<24;i++){let t=i*Math.PI/12,u=(i+1)*Math.PI/12,p=[Math.cos(t),-1,Math.sin(t)],q=[Math.cos(u),-1,Math.sin(u)],r=type==='cone'?[0,1,0]:[q[0],1,q[2]],s=[p[0],1,p[2]];tri(a,p,r,q);if(type==='cylinder'){tri(a,p,s,r);tri(a,s,[0,1,0],r);}tri(a,p,q,[0,-1,0]);}this.mesh(type,a);}
  a=[];{const g=[[0,1,0],[1,0,0],[0,0,1],[-1,0,0],[0,0,-1],[0,-1,0]];for(let i=0;i<4;i++){const b=g[1+i],c=g[1+(i+1)%4];tri(a,g[0],c,b);tri(a,g[5],b,c);}}this.mesh('gem',a);
  a=[];for(let i=0;i<96;i++){let t=i*Math.PI/48,u=(i+1)*Math.PI/48,p=[Math.cos(t),0,Math.sin(t)],q=[Math.cos(u),0,Math.sin(u)],r=q.map(v=>v*1.65),s=p.map(v=>v*1.65);tri(a,p,q,r);tri(a,p,r,s);}this.mesh('ring',a);
+ // A chunky five-pointed star facing +z, for prizes, wall stickers and sparkles.
+ a=[];{const pts=[];for(let i=0;i<10;i++){const t=Math.PI/2+i*Math.PI/5,r=i%2?.44:1;pts.push([Math.cos(t)*r,Math.sin(t)*r,0]);}for(let i=0;i<10;i++){const p=pts[i],q=pts[(i+1)%10];tri(a,[0,0,.26],p,q);tri(a,[0,0,-.26],q,p);}}this.mesh('star',a);
  a=[];for(let i=0;i<64;i++){const t=i*Math.PI/32,u=(i+1)*Math.PI/32,p=[Math.cos(t),0,Math.sin(t)],q=[Math.cos(u),0,Math.sin(u)];tri(a,p,q,q.map(v=>v*1.025));tri(a,p,q.map(v=>v*1.025),p.map(v=>v*1.025));}this.mesh('ringlet',a);
  }
  begin(eye,at,bg){const gl=this.gl,c=this.canvas,dpr=Math.min(window.devicePixelRatio||1,1.6),w=Math.round(c.clientWidth*dpr),h=Math.round(c.clientHeight*dpr);if(c.width!==w||c.height!==h){c.width=w;c.height=h;}gl.viewport(0,0,w,h);gl.clearColor(...rgb(bg),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);this.vp=M.mul(M.perspective(.68,w/Math.max(h,1),.1,180),M.look(eye,at));}
@@ -147,17 +256,34 @@ SpaceRenderer.prototype.decal=function(texture,p,size,rotation=[0,0,0]){
 SoftwareRenderer.prototype.decal=function(texture,p,size,rotation=[0,0,0]){this.decalCache??=new WeakMap();let tex=this.decalCache.get(texture);if(!tex){tex={data:texture.getContext('2d').getImageData(0,0,texture.width,texture.height).data,w:texture.width,h:texture.height};this.decalCache.set(texture,tex);}const local=M.model(p,[size[0],size[1],1],rotation),m=this.root?M.mul(this.root,local):local;const pts=[[-.5,-.5,0],[.5,-.5,0],[.5,.5,0],[-.5,.5,0]].map(v=>this.project(this.transform(m,v)));if(pts.some(v=>v[2]<.1))return;for(const ids of [[0,1,2],[0,2,3]])this.faces.push({ps:ids.map(i=>pts[i]),uv:ids.map(i=>[[0,1],[1,1],[1,0],[0,0]][i]),tex,color:'#ffffff'});};
 
 </script><script>
-/* Original, deterministic painted maps. These are educational illustrations, not spacecraft photographs.
-   Visual reference: NASA Science planet pages. All maps are created once and work offline. */
+/* Painted maps that follow NASA mission images: Blue Marble (Earth), Viking and Mars Global Surveyor (Mars),
+   Cassini, Hubble and Juno (Jupiter and Saturn), MESSENGER (Mercury), Voyager 2 (Uranus, Neptune and Triton),
+   New Horizons (Pluto and Charon), Galileo (Jupiter's moons) and Lunar Reconnaissance Orbiter (the Moon).
+   Named features sit at their real latitude and longitude, and colours follow the natural-colour pictures.
+   The maps are painted in code once, so the whole game still works offline as a single file. */
 const PlanetArt=(()=>{
- const cache=new Map(),TAU=Math.PI*2,W=512,H=256;
+ const cache=new Map(),TAU=Math.PI*2,W=512,H=256,RAD=Math.PI/180;
  // Moon mode paints its moons the same way, from the palette and style each moon carries.
  const moonLook=new Map(typeof MOONS!=='undefined'?MOONS.map(m=>[m.id,m]):[]);
  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
  const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*Math.max(0,Math.min(1,t)));
+ const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+ const css=(c,a=1)=>`rgba(${c.map(Math.round).join(',')},${a})`;
  const hash=(x,y)=>{let n=Math.imul(x,374761393)+Math.imul(y,668265263);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295;};
  function noise(x,y,period=256){const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,s=fx*fx*(3-2*fx),t=fy*fy*(3-2*fy),h=(a,b)=>hash(((a%period)+period)%period,b);return (h(ix,iy)*(1-s)+h(ix+1,iy)*s)*(1-t)+(h(ix,iy+1)*(1-s)+h(ix+1,iy+1)*s)*t;}
  function fb(u,v){let n=0,a=.55;for(let k=0;k<4;k++){const f=8*(1<<k);n+=a*noise(u*f,v*f,f);a*=.5;}return n;}
+ // The globe shader and the thumbnails show u = .25 straight ahead. Each map turns its best-known face there,
+ // and east lies to the right, as on a real globe seen from space with north up.
+ const FACE={earth:15,mars:-65,jupiter:-30,mercury:-20,moon:0,pluto:175};
+ const xOf=(id,lon)=>((FACE[id]||0)+90-lon)/360*W,yOf=lat=>(90-lat)/180*H;
+ const lonOf=(id,u)=>(((FACE[id]||0)+90-u*360)%360+540)%360-180;
+ // Draws something three times, one map-width apart, so shapes crossing the seam wrap round the globe.
+ function wrap(g,fn){for(const dx of [-W,0,W]){g.save();g.translate(dx,0);fn();g.restore();}}
+ // Soft patches placed by longitude and latitude, widened towards the poles so they stay round on the globe.
+ function field(id,list){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  for(const [lon,lat,rl,rt,a=1] of list){const x=xOf(id,lon),y=yOf(lat),rx=rl/360*W/Math.max(.2,Math.cos(lat*RAD)),ry=rt/180*H;
+   wrap(g,()=>{g.translate(x,y);g.scale(rx/ry,1);const grad=g.createRadialGradient(0,0,0,0,0,ry);grad.addColorStop(0,`rgba(255,255,255,${a})`);grad.addColorStop(.6,`rgba(255,255,255,${a*.75})`);grad.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=grad;g.fillRect(-ry,-ry,ry*2,ry*2);});}
+  const d=g.getImageData(0,0,W,H).data,out=new Float32Array(W*H);for(let i=0;i<out.length;i++)out[i]=d[i*4+3]/255;return out;}
  const polygons=[ // Simplified longitude/latitude coastlines, deliberately recognizable at child-friendly scale.
  [[-168,70],[-141,70],[-125,60],[-129,51],[-124,42],[-117,32],[-108,24],[-99,17],[-89,15],[-83,9],[-78,8],[-82,20],[-88,22],[-81,25],[-80,33],[-72,43],[-60,47],[-53,53],[-64,60],[-78,62],[-88,70],[-108,74],[-135,70]],
  [[-81,12],[-71,11],[-61,7],[-51,3],[-35,-6],[-40,-20],[-49,-28],[-58,-38],[-66,-55],[-74,-50],[-75,-30],[-81,-6]],
@@ -167,39 +293,125 @@ const PlanetArt=(()=>{
  [[112,-11],[129,-11],[137,-14],[145,-13],[153,-25],[150,-37],[137,-39],[130,-32],[114,-35]],
  [[47,-13],[51,-17],[48,-26],[44,-24]],[[130,32],[135,35],[141,41],[144,44],[142,35]],[[95,5],[106,-5],[119,-9],[112,-4]],[[109,6],[119,6],[119,-4],[110,-3]],[[131,-3],[150,-6],[146,-10],[136,-8]],[[166,-34],[178,-39],[169,-47],[166,-44]],[[ -8,50],[-6,59],[0,58],[2,52]],[[ -25,64],[-13,64],[-15,67],[-24,67]]
  ];
- function landMask(){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';for(const poly of polygons){g.beginPath();poly.forEach(([lon,lat],i)=>g[i?'lineTo':'moveTo']((lon+180)/360*W,(90-lat)/180*H));g.closePath();g.fill();}g.fillRect(0,H*.92,W,H*.08);return g.getImageData(0,0,W,H).data;}
+ // Water cut back out of the land: the Baltic and Skagerrak, the Black Sea, the Caspian, Hudson Bay and the Red Sea.
+ const seas=[[[10,54],[14,54],[21,55],[24,57],[23,59],[30,60],[25,61],[22,65],[25,66],[20,63],[17,61],[19,59],[16,57],[12,56]],[[7,57.4],[11,57.8],[12.5,56],[13,55.4],[12,57.6],[11,59.2],[8,58.3]],
+  [[28,42],[41,41],[41,44],[35,45],[30,46]],[[47,45],[53,46],[54,40],[52,37],[49,38]],[[-94,59],[-80,63],[-77,56],[-82,52],[-91,56]],[[33,29],[35,28],[39,21],[43,13],[42,14],[37,20]]];
+ const ireland=[[-10,52],[-6,52],[-6,55],[-8,55.3]];
+ function landMask(){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),shape=poly=>{g.beginPath();poly.forEach(([lon,lat],i)=>g[i?'lineTo':'moveTo'](xOf('earth',lon),yOf(lat)));g.closePath();g.fill();};
+  g.fillStyle='#fff';wrap(g,()=>{for(const poly of [...polygons,ireland])shape(poly);});g.globalCompositeOperation='destination-out';wrap(g,()=>{for(const poly of seas)shape(poly);});
+  g.globalCompositeOperation='source-over';g.fillRect(0,H*.92,W,H*.08);return g.getImageData(0,0,W,H).data;}
+ // Where each world is darker or lighter, as in the spacecraft maps.
+ const PATCHES={
+  // Sahara, Arabia, Iran and Thar, Taklamakan and Gobi, Australia, Kalahari and Namib, the American deserts, Patagonia and Atacama.
+  earth:{dry:[[0,24,22,8],[15,22,18,8],[28,23,12,8],[-8,21,10,6],[5,18,20,5,.8],[46,22,12,8],[58,30,10,5],[71,27,5,4],[84,39,10,4],[104,42,10,4],[133,-25,14,8],[20,-24,7,6],[-111,32,8,6],[-68,-44,4,8],[-70,-23,2,7],[62,45,15,5,.6]]},
+  // Syrtis Major, Sinus Sabaeus and Meridiani, Erythraeum, Acidalium, Tyrrhenum, Cimmerium and Sirenum, Solis Lacus and the dark northern collar.
+  mars:{dark:[[70,8,9,14],[64,-6,13,9],[20,-8,26,6],[-3,-3,9,6],[-40,-24,24,10],[-28,-10,10,8],[-30,46,18,11],[115,-20,24,9],[150,-24,24,9],[-165,-28,24,9],[-125,-32,14,7],[-85,-26,7,5],[100,52,28,7,.7],[-160,56,25,6,.6],[40,60,40,6,.6]],
+   light:[[70,-42,14,10],[-43,-50,8,6,.8],[20,22,30,14,.6],[147,25,12,10,.5],[-112,5,30,22,.5]]},
+  // Oceanus Procellarum, the maria Imbrium, Serenitatis, Tranquillitatis, Crisium, Fecunditatis, Nectaris, Nubium, Humorum, Frigoris, Vaporum and Cognitum.
+  moon:{dark:[[-57,18,24,28],[-40,32,14,12],[-16,33,16,12],[17,27,9,9],[24,17,7,7],[31,8,11,9],[42,-2,7,7],[59,17,7,6],[51,-7,8,10],[35,-15,6,6],[-17,-21,12,9],[-39,-24,7,6],[4,13,6,5],[-24,-8,11,9],[-8,5,8,6,.8],[-80,-20,4,6,.6],[150,-50,30,20,.25]]},
+  // Low-reflectance material around old basins, and the pale floor of the huge Caloris basin.
+  mercury:{dark:[[-30,-5,22,16,.7],[100,-40,25,15,.6],[60,20,15,10,.5],[-150,10,20,20,.5]],light:[[162,30,18,17]]},
+  // Cthulhu Macula, the long dark «whale» west of the heart, and the smaller dark maculae east of it.
+  pluto:{dark:[[30,-3,16,11],[50,-6,20,13],[72,-8,24,15],[95,-5,20,13],[115,-2,16,11],[132,2,10,8],[-140,-8,12,8,.8],[-105,-4,16,9,.8],[-70,-6,14,8,.7]]},
+  // Ganymede's dark, cratered regions between the paler grooved terrain.
+  ganymedes:{dark:[[-150,30,40,25],[40,-20,30,25,.8],[140,10,25,20,.7]]},
+  charon:{dark:[[0,-5,60,10,.3]]}};
+ // Cloud belts of the giants from pole to pole, following Hubble and Cassini: cream zones, red-brown belts.
+ const JUPITER=[[90,[140,136,130]],[62,[160,150,136]],[50,[200,186,162]],[42,[168,134,104]],[36,[222,208,184]],[29,[162,114,82]],[23,[236,224,202]],[18,[150,92,62]],[9,[170,108,72]],[7,[222,200,164]],[0,[238,224,194]],[-7,[224,204,168]],[-9,[176,116,78]],[-18,[164,108,72]],[-21,[236,224,204]],[-29,[232,218,194]],[-31,[168,124,90]],[-36,[222,206,182]],[-46,[190,172,152]],[-62,[160,150,138]],[-90,[138,134,128]]];
+ const SATURN=[[90,[98,112,122]],[80,[120,134,138]],[74,[170,160,126]],[62,[204,186,140]],[50,[214,196,150]],[40,[196,174,124]],[30,[228,210,160]],[20,[212,186,130]],[10,[236,220,174]],[0,[242,228,186]],[-10,[234,216,168]],[-20,[214,188,132]],[-32,[226,206,156]],[-45,[206,186,138]],[-60,[190,176,140]],[-75,[176,166,136]],[-90,[160,154,132]]];
+ function belt(table,lat){for(let i=1;i<table.length;i++)if(lat>=table[i][0]){const [l0,c0]=table[i-1],[l1,c1]=table[i];return mix(c1,c0,smooth(0,1,(lat-l1)/(l0-l1)));}return table.at(-1)[1];}
+ // Moons: a few carry their own colours, the rest paint from the colour and style in the moon list.
+ const MOON_PAINT={io:{dark:[168,120,52],pale:[246,238,190]},europa:{dark:[196,178,150],pale:[240,234,220]},ganymedes:{dark:[120,108,96],pale:[196,188,176]},callisto:{dark:[74,66,58],pale:[132,120,106]},triton:{dark:[176,172,160],pale:[240,222,212]},charon:{dark:[112,108,104],pale:[196,192,186]},moon:{dark:[132,128,122],pale:[206,202,194]}};
  function get(id){if(cache.has(id))return cache.get(id);const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),img=ctx.createImageData(W,H),mask=id==='earth'?landMask():null,moon=moonLook.get(id);
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){const u=x/W,v=y/H,n=fb(u,v),fine=noise(u*128,v*128,128),lat=(.5-v)*180;let c;
- if(id==='earth'){const land=mask[(y*W+x)*4+3]>100;const desert=Math.exp(-(((lat-24)/15)**2))*.85;c=land?mix([34,89,52],[193,158,98],Math.max(0,desert+n*.4-.18)):mix([13,49,98],[34,98,151],n);if(land&&Math.abs(lat)>64)c=mix(c,[227,237,235],Math.min(1,(Math.abs(lat)-64)/13));const cloud=fb(u+.12*Math.sin(v*17),v*1.7);c=mix(c,[245,249,248],Math.max(0,cloud-.59)*3.5);}
- else if(id==='jupiter'){const warp=v+.012*Math.sin(u*TAU*6+n*8)+.014*(n-.5),band=Math.sin(warp*TAU*11)+.35*Math.sin(warp*TAU*27);c=mix([156,99,67],[232,216,180],(band+1.4)/2.8);c=mix(c,[113,79,62],Math.max(0,n-.55)*.6);c=c.map(z=>z+(fine-.5)*12);}
- else if(id==='saturn'){const band=Math.sin((v+.004*Math.sin(u*TAU*5))*TAU*18);c=mix([181,158,113],[230,212,166],.5+band*.22+(n-.5)*.6);if(Math.abs(lat)>60)c=mix(c,[141,141,110],.15);}
- else if(id==='venus'){const swirl=fb(u+.065*Math.sin(v*14+n*4),v*.65);c=mix([192,165,112],[251,238,196],.35+swirl*.8);c=c.map(z=>z+Math.sin(v*33+n*6)*4);}
- else if(id==='uranus'||id==='neptune'){const ur=id==='uranus';c=mix(ur?[135,190,193]:[112,171,186],ur?[187,218,214]:[157,204,211],.5+Math.sin(v*TAU*9+n*2)*(ur?.06:.11)+(n-.5)*.15);if(ur)c=mix(c,[207,228,220],Math.max(0,(Math.abs(lat)-48)/55));if(!ur)c=mix(c,[230,242,241],Math.max(0,noise(u*64,v*128,64)-.78)*.55);}
- else if(id==='mars'){c=mix([113, 60,42],[205,135,88],n);const dark=fb(u+.2,v+.8);c=mix(c,[69,66,53],Math.max(0,dark-.57)*1.8);if(Math.abs(lat)>77+noise(u*32,2,32)*6)c=mix(c,[236,222,201],.85);}
- else if(id==='mercury'){c=mix([91,87,82],[168,159,145],n);c=c.map(z=>z+(fine-.5)*16);}
- else if(id==='pluto'){c=mix([119,89,74],[218,202,176],n);if(Math.abs(lat)<26)c=mix(c,[95,61,49],Math.max(0,n-.4)*1.1);if(lat>53)c=mix(c,[218,207,186],.35);}
- else if(moon){const base=hex(moon.color),dark=base.map(z=>z*.52),pale=mix(base,[255,255,255],.34);
- c=mix(dark,pale,.2+n*.85);
- if(moon.style==='spots'){const blot=fb(u+.37,v*.92);c=mix(c,[255,236,146],Math.max(0,.46-blot)*1.1);c=mix(c,[146,52,31],Math.max(0,blot-.58)*1.7);}
- if(moon.style==='haze'){c=mix(base,pale,.45+Math.sin(v*TAU*4+n)*.13+(n-.5)*.35);}
- if(moon.style==='cracks'){c=mix(pale,base,n*.55);}
- if(moon.style==='stripes'){c=mix(c,[248,252,254],.42);if(v>.63)c=mix(c,[121,173,201],Math.min(1,(v-.63)*4.5)*Math.max(0,Math.sin(u*TAU*9+n*3))*.55);}
- c=c.map(z=>z+(fine-.5)*11);}
- else {const gran=noise(u*128,v*128,128),cell=Math.abs(gran-.5)*2;c=mix([217, 90,8],[255,224, 90],.3+n*.6+cell*.3);}
- const i=(y*W+x)*4;for(let k=0;k<3;k++)img.data[i+k]=c[k];img.data[i+3]=255;
+ const patch=PATCHES[id]||{},dark=patch.dark?field(id,patch.dark):null,light=patch.light?field(id,patch.light):null,dry=patch.dry?field(id,patch.dry):null,paint=MOON_PAINT[id];
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const u=x/W,v=y/H,n=fb(u,v),fine=noise(u*128,v*128,128),rough=noise(u*40,v*40,40)*.6+noise(u*96,v*96,96)*.4,lat=(.5-v)*180,alat=Math.abs(lat),i=y*W+x;let c;
+ if(id==='earth'){const land=mask[i*4+3]>100,lon=lonOf(id,u);
+  if(land){c=mix([66,106,52],[28,76,38],Math.exp(-((lat/12)**2))+(n-.5)*.5);if(alat>48)c=mix(c,[52,82,58],smooth(48,58,alat));if(alat>62)c=mix(c,[124,114,94],smooth(62,70,alat));
+   c=mix(c,[214,180,124],smooth(.12,.45,dry[i]+(n-.5)*.35));c=mix(c,[190,126,80],smooth(.6,.95,dry[i])*fine*.6);
+   if((lat>60&&lon>-75&&lon<-12)||lat<-62)c=mix(c,[238,243,246],.95);}
+  else{c=mix([8,26,70],[22,64,126],n*.9);if(alat>75)c=mix(c,[226,234,240],smooth(75,83,alat)*.85);}
+  const weather=.62+.3*Math.exp(-((lat/9)**2))+.38*Math.exp(-(((alat-55)/12)**2))-.25*Math.exp(-(((alat-24)/9)**2)),cloud=fb(u+.12*Math.sin(v*17),v*1.7)*weather;c=mix(c,[246,249,250],Math.max(0,cloud-.56)*3.4);}
+ else if(id==='jupiter'){const lon=u*360,wobble=lat+1.4*Math.sin(lon*RAD*7+n*7)*smooth(0,12,alat)+(n-.5)*3.2;c=belt(JUPITER,wobble);
+  const edge=Math.abs(Math.sin(wobble*RAD*18));c=mix(c,[250,240,222],Math.max(0,noise(u*48,v*96,48)-.72)*1.4*edge);if(alat>48)c=mix(c,[112,112,118],Math.max(0,noise(u*40,v*80,40)-.55)*.9);c=c.map(z=>z+(fine-.5)*10);}
+ else if(id==='saturn'){const lon=lonOf(id,u),wob=lat+.5*Math.sin(u*TAU*5+n*4)+(n-.5)*1.5;c=belt(SATURN,wob);c=c.map(z=>z+(fine-.5)*6);
+  // The hexagon-shaped jet stream around the north pole, as Cassini saw it.
+  const phi=((lon%60)+60)%60-30,edge=90-11.3/Math.cos(phi*RAD);if(lat>edge-1.2&&lat<edge+1.2)c=mix(c,[150,138,104],.6);if(lat>88)c=mix(c,[70,82,96],.7);}
+ else if(id==='venus'){const swirl=fb(u+.065*Math.sin(v*14+n*4),v*.65);c=mix([204,174,120],[250,236,198],.4+swirl*.75);c=c.map(z=>z+Math.sin(v*33+n*6)*4);if(alat>60)c=mix(c,[242,232,206],smooth(60,80,alat)*.5);}
+ else if(id==='uranus'){c=mix([150,203,209],[190,226,228],.5+Math.sin(v*TAU*9+n*2)*.05+(n-.5)*.12);c=mix(c,[214,236,234],smooth(45,85,alat)*.7);}
+ else if(id==='neptune'){c=mix([60,104,190],[116,160,222],.5+Math.sin(v*TAU*9+n*2)*.12+(n-.5)*.2);if(alat>60)c=mix(c,[52,88,170],smooth(60,85,alat)*.6);c=mix(c,[236,244,250],Math.max(0,noise(u*64,v*128,64)-.8)*.6*smooth(15,30,alat));}
+ else if(id==='mars'){c=mix([174,96,60],[212,138,92],n);c=mix(c,[222,168,122],light[i]*.5);c=mix(c,[94,66,52],smooth(.22,.7,dark[i]+(n-.5)*.3+(rough-.5)*.4)*.85);c=c.map(z=>z+(fine-.5)*9);
+  if(lat>80+noise(u*32,2,32)*5)c=mix(c,[242,238,230],.92);else if(lat>72)c=mix(c,[96,70,56],.25*smooth(72,80,lat));if(lat<-84-noise(u*32,5,32)*2)c=mix(c,[240,236,228],.9);}
+ else if(id==='mercury'){c=mix([104,98,92],[170,160,146],n);c=mix(c,[184,162,128],light[i]*.35);c=mix(c,[78,78,82],smooth(.3,.8,dark[i]+(n-.5)*.4)*.5);c=c.map(z=>z+(fine-.5)*16);}
+ else if(id==='pluto'){c=mix([160,122,94],[218,196,168],n);c=mix(c,[88,50,38],smooth(.25,.6,dark[i]+(rough-.5)*.6)*.92);if(lat>55)c=mix(c,[208,198,178],smooth(55,70,lat)*.6);if(lat>82)c=mix(c,[150,110,88],.4);}
+ else if(moon){const base=hex(moon.color),low=paint?.dark||base.map(z=>z*.62),pale=paint?.pale||mix(base,[255,255,255],.34);
+  c=mix(low,pale,.2+n*.85);
+  if(dark)c=id==='moon'?mix(c,[88,88,86],smooth(.15,.5,dark[i]+(rough-.5)*.7)*.92):mix(c,[92,82,72],smooth(.2,.7,dark[i]+(n-.5)*.35)*.9);
+  if(id==='io'){const blot=fb(u+.37,v*.92);c=mix(c,[250,244,206],Math.max(0,.45-blot)*1.4);c=mix(c,[196,104,44],Math.max(0,blot-.58)*1.6);if(alat>55)c=mix(c,[140,96,62],smooth(55,80,alat)*.7);}
+  else if(moon.style==='spots'){const blot=fb(u+.37,v*.92);c=mix(c,[255,236,146],Math.max(0,.46-blot)*1.1);c=mix(c,[146,52,31],Math.max(0,blot-.58)*1.7);}
+  if(moon.style==='haze')c=mix(base,pale,.45+Math.sin(v*TAU*4+n)*.13+(n-.5)*.35);
+  if(id==='europa')c=mix(c,[172,120,86],Math.max(0,fb(u+.5,v)-.6)*1.4);else if(moon.style==='cracks')c=mix(pale,base,n*.55);
+  if(id==='ganymedes'&&alat>55)c=mix(c,[226,224,220],smooth(55,75,alat)*.7);
+  if(id==='charon'&&lat>62)c=mix(c,[122,70,52],smooth(62,78,lat)*.85);
+  if(id==='triton')c=mix(mix(c,[160,168,150],.4+noise(u*64,v*64,64)*.3),[242,220,210],smooth(5,-22,lat+(n-.5)*8)*.85);
+  else if(moon.style==='stripes')c=mix(c,[248,252,254],.42);
+  c=c.map(z=>z+(fine-.5)*11);}
+ else {const gran=noise(u*128,v*128,128),cell=Math.abs(gran-.5)*2;c=mix([236,128,24],[255,228,120],.35+n*.6+cell*.3);}
+ const k=i*4;for(let j=0;j<3;j++)img.data[k+j]=c[j];img.data[k+3]=255;
  }ctx.putImageData(img,0,0);
+ const X=lon=>xOf(id,lon);
  function ellipse(x,y,rx,ry,fill){ctx.fillStyle=fill;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,TAU);ctx.fill();}
- if(['mercury','mars','pluto'].includes(id)||moon?.style==='crater'){const count=id==='mercury'?240:id==='mars'?65:moon?170:45;for(let i=0;i<count;i++){const x=hash(i,3)*W,y=22+hash(i,9)*(H-44),r=1+hash(i,8)**3*(id==='mercury'?13:7),sy=Math.max(.45,Math.sin(y/H*Math.PI));const g=ctx.createRadialGradient(x-r*.17,y-r*.22,.1,x,y,r);g.addColorStop(0,id==='mercury'?'#39383780':'#35271945');g.addColorStop(.7,'#30291d45');g.addColorStop(.84,'#f2e0b95a');g.addColorStop(1,'#bda88700');ellipse(x,y,r/sy,r,g);}}
- if(id==='mars'){ctx.strokeStyle='#76432e88';ctx.lineWidth=2.4;ctx.beginPath();for(let i=0;i<45;i++){const x=104+i*.9,y=139+Math.sin(i*.17)*2+Math.sin(i*1.4)*.7;ctx[i?'lineTo':'moveTo'](x,y);}ctx.stroke();}
- if(id==='jupiter'){for(let i=11;i>=0;i--){const color=mix([153,65,39],[220,157,101],i/11);ellipse(141+i*.17,160-i*.13,19*(i+1)/12,9*(i+1)/12,'rgb('+color.join(',')+')');}for(let i=0;i<18;i++){ellipse(hash(i,51)*W,62+hash(i,32)*137,2+hash(i,15)*4,1.3,'#f8ebcf85');}}
- if(id==='pluto'){ctx.fillStyle='#e9dfc8';ctx.beginPath();ctx.moveTo(127,169);ctx.bezierCurveTo(97,147,90,117,110,115);ctx.bezierCurveTo(119,113,124,121,127,126);ctx.bezierCurveTo(141,108,168,123,157,139);ctx.bezierCurveTo(147,151,135,162,127,169);ctx.fill();ctx.fillStyle='#c6bca52a';for(let i=0;i<40;i++)ellipse(107+hash(i,22)*43,124+hash(i,78)*21,1,.7,ctx.fillStyle);}
- if(moon?.style==='cracks'){ctx.lineWidth=2.2;for(let i=0;i<30;i++){ctx.strokeStyle=i%3?'#a8714d7a':'#8c573899';const x0=hash(i,11)*W,y0=hash(i,5)*H,len=110+hash(i,7)*280,slope=(hash(i,3)-.5)*1.3;ctx.beginPath();for(let k=0;k<=12;k++)ctx[k?'lineTo':'moveTo'](x0+len*k/12,y0+slope*len*k/12+Math.sin(k*1.7+i)*5);ctx.stroke();}}
- if(moon?.style==='stripes'){ctx.strokeStyle='#89b9d5aa';ctx.lineWidth=5;for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(64+i*52,H*.68);ctx.lineTo(78+i*52,H);ctx.stroke();}}
- if(moon?.style==='spots'){for(let i=0;i<44;i++){const x=hash(i,44)*W,y=18+hash(i,17)*(H-36),r=3+hash(i,29)**2*10;ellipse(x,y,r,r*.82,i%3?'#8d301f7a':'#3b1e1466');}}
- if(id==='sun'){for(let i=0;i<8;i++){const x=hash(i,20)*W,y=H*(.3+hash(i,8)*.4);ellipse(x,y,3,2,'#b8691699');ellipse(x,y,1.3,1,'#653611bb');}}
+ function oval(lon,lat,rl,rt,fill){const rx=rl/360*W/Math.max(.2,Math.cos(lat*RAD)),ry=rt/180*H;wrap(ctx,()=>ellipse(X(lon),yOf(lat),rx,ry,fill));}
+ function path(points,width,stroke){wrap(ctx,()=>{ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();points.forEach(([lon,lat],k)=>ctx[k?'lineTo':'moveTo'](X(lon),yOf(lat)));ctx.stroke();});}
+ // Bright young craters throw long rays of fresh dust across the surface.
+ function rays(lon,lat,count,length,alpha){for(let k=0;k<count;k++){const a=k/count*TAU+hash(k,Math.round(lon))*.4,len=length*(.5+hash(k,Math.round(lat+99))*.7),end=[lon+Math.cos(a)*len/Math.max(.3,Math.cos(lat*RAD)),Math.max(-88,Math.min(88,lat+Math.sin(a)*len))];path([[lon,lat],end],1,`rgba(236,232,222,${alpha})`);}oval(lon,lat,1.6,1.6,'#f3efe6');}
+ if(['mercury','mars','pluto'].includes(id)||moon?.style==='crater'){const count=id==='mercury'?240:id==='mars'?80:id==='moon'?80:moon?170:45;
+  for(let k=0;k<count;k++){const x=hash(k,3)*W,south=id==='mars'&&k%3>0,y=south?H*.5+hash(k,9)*(H*.5-22):22+hash(k,9)*(H-44),r=1+hash(k,8)**3*(id==='mercury'?13:id==='moon'?5:7),sy=Math.max(.45,Math.sin(y/H*Math.PI));
+   const bright=id==='callisto'&&k%3===0,g=ctx.createRadialGradient(x-r*.17,y-r*.22,.1,x,y,r);
+   if(bright){g.addColorStop(0,'#f4f0e8ee');g.addColorStop(.6,'#d8d0c080');g.addColorStop(1,'#d8d0c000');}else if(id==='moon'){g.addColorStop(0,'#00000026');g.addColorStop(.72,'#00000014');g.addColorStop(.86,'#ffffff38');g.addColorStop(1,'#ffffff00');}else{g.addColorStop(0,id==='mercury'?'#39383780':'#35271945');g.addColorStop(.7,'#30291d45');g.addColorStop(.84,'#f2e0b95a');g.addColorStop(1,'#bda88700');}
+   wrap(ctx,()=>ellipse(x,y,r/sy,r,g));}}
+ if(id==='mercury'){for(const [lon,lat,n,len] of [[17,58,16,38],[-31,-11,12,22],[-12,-34,14,28],[-127,37,12,24],[-80,-60,10,20],[110,-5,10,18]])rays(lon,lat,n,len,.28);
+  wrap(ctx,()=>{ctx.strokeStyle='#d6c8ae55';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(X(162),yOf(30),18/360*W/Math.cos(30*RAD),17/180*H,0,0,TAU);ctx.stroke();});}
+ if(id==='moon'){rays(-11,-43,18,40,.32);rays(-20,10,14,18,.26);rays(-38,8,10,12,.22);}
+ if(id==='mars'){
+  // Olympus Mons and the three Tharsis volcanoes, with a dark cliff round Olympus and a caldera on top.
+  oval(-134,18,5.6,5.2,'#7c4a3288');oval(-134,18,4.8,4.4,'#dca47a');oval(-134,18.3,1.2,1,'#8b5236');
+  for(const [lon,lat] of [[-121,-9],[-113,1],[-104,11]]){oval(lon,lat,3,3,'#d49a70');oval(lon,lat,.8,.8,'#8b5236');}oval(-110,40,7,5,'#d8a07a66');
+  // Valles Marineris, the giant canyon, with the tangled Noctis Labyrinthus at its western end.
+  const canyon=[[-102,-7],[-92,-8],[-80,-9],[-70,-10],[-60,-12],[-50,-13],[-43,-10]];path(canyon.map(([a,b])=>[a,b+.8]),2.6,'#e0a98266');path(canyon,2.4,'#5e3424cc');path([[-66,-7],[-58,-6]],1.6,'#5e3424aa');
+  for(let k=0;k<7;k++){const a=hash(k,77)*TAU;path([[-104,-7],[-104+Math.cos(a)*4,-7+Math.sin(a)*3]],1.2,'#6b3c2a99');}
+  wrap(ctx,()=>{ctx.strokeStyle='#e8c4a077';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(X(70),yOf(-42),14/360*W/Math.cos(42*RAD),10/180*H,0,0,TAU);ctx.stroke();});}
+ if(id==='jupiter'){const spot=-30;
+  // Dark blue-grey festoons trailing from the North Equatorial Belt into the bright equator.
+  for(let k=0;k<12;k++){const lon=k*30+hash(k,4)*12;path([[lon,7.6],[lon+4,5],[lon+9,2.5],[lon+14,1.5]],2.2,'#5f6a82aa');}
+  // The Great Red Spot in its pale «hollow», Oval BA and the string of white ovals further south.
+  oval(spot,-22.5,13,7.6,'#efe2cf');for(let k=10;k>=0;k--){const col=mix([184,84,56],[222,150,110],k/10);oval(spot,-22.5,10*(k+1)/11,6*(k+1)/11,css(col));}
+  oval(spot+42,-33,3,2,'#ead8c6');oval(spot+42,-33,1.6,1.1,'#d9a88e');for(let k=0;k<6;k++)oval(spot+95+k*28,-40,1.8,1.2,'#f6eee0');
+  for(let k=0;k<18;k++){const x=hash(k,51)*W,y=62+hash(k,32)*137;wrap(ctx,()=>ellipse(x,y,2+hash(k,15)*4,1.3,'#f8ebcf70'));}}
+ if(id==='neptune'){
+  // The Great Dark Spot Voyager 2 saw, with bright companion clouds, the «Scooter» and a second dark spot.
+  oval(0,-22,15,7,'#2a4696');oval(0,-22,12,5.4,'#243c86');oval(4,-28.5,9,1.4,'#f2f6fbdd');oval(-12,-17,6,1,'#e8f0f8aa');
+  oval(70,-42,5,1.6,'#f4f8fcdd');oval(110,-55,5,3,'#2c4a98');oval(110,-55,1.6,1.2,'#eef4fa');
+  for(let k=0;k<5;k++)oval(hash(k,9)*360-180,24+hash(k,3)*8,10+hash(k,5)*12,.9,'#eef4f9aa');}
+ if(id==='pluto'){
+  // Tombaugh Regio, the bright heart, with the smooth ice plain Sputnik Planitia as its western lobe.
+  const cx=X(175),cy=yOf(18),sx=2.4/360*W*1.05,sy=2.2/180*H;wrap(ctx,()=>{ctx.fillStyle='#ece3d0';ctx.beginPath();for(let k=0;k<=64;k++){const t=k/64*TAU,hx=16*Math.sin(t)**3,hy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);ctx[k?'lineTo':'moveTo'](cx+hx*sx,cy-hy*sy);}ctx.fill();});
+  oval(163,22,14,20,'#f4f1ea');for(let k=0;k<26;k++)oval(155+hash(k,7)*22,6+hash(k,8)*32,1.2,.9,'#d8d0c255');
+  oval(-120,72,40,10,'#c8bca4');}
+ if(id==='europa'||moon?.style==='cracks'){ctx.lineWidth=2.2;for(let k=0;k<30;k++){ctx.strokeStyle=k%3?'#a8714d7a':'#8c573899';const x0=hash(k,11)*W,y0=hash(k,5)*H,len=110+hash(k,7)*280,slope=(hash(k,3)-.5)*1.3;wrap(ctx,()=>{ctx.beginPath();for(let s=0;s<=12;s++)ctx[s?'lineTo':'moveTo'](x0+len*s/12,y0+slope*len*s/12+Math.sin(s*1.7+k)*5);ctx.stroke();});}}
+ // Enceladus has four blue «tiger stripes» near its south pole; Triton has dark streaks from its geysers.
+ if(id==='enceladus'){for(let k=0;k<4;k++)path([[-150+k*18,-66-k],[-60+k*18,-78-k*1.5],[30+k*18,-70-k]],2.6,'#6fa8cfcc');}
+ if(id==='triton'){for(let k=0;k<22;k++){const lon=hash(k,12)*360-180,lat=-20-hash(k,13)*45;path([[lon,lat],[lon+6,lat+2.5]],1.6,'#8a6e66aa');}}
+ if(moon?.style==='spots'){for(let k=0;k<44;k++){const x=hash(k,44)*W,y=18+hash(k,17)*(H-36),r=3+hash(k,29)**2*10;wrap(ctx,()=>ellipse(x,y,r,r*.82,id==='io'?(k%3?'#b8582a70':'#2a1a1288'):(k%3?'#8d301f7a':'#3b1e1466')));}
+  if(id==='io')for(const [lon,lat,r] of [[-104,-19,11],[-60,12,6],[140,-30,7]]){wrap(ctx,()=>{ctx.strokeStyle='#c2502c99';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(X(lon),yOf(lat),r/360*W/Math.cos(lat*RAD),r/180*H,0,0,TAU);ctx.stroke();});}}
+ if(id==='sun'){for(let k=0;k<8;k++){const x=hash(k,20)*W,y=H*(.3+hash(k,8)*.4);ellipse(x,y,3,2,'#b8691699');ellipse(x,y,1.3,1,'#653611bb');}}
  cache.set(id,canvas);return canvas;
  }
- function rings(id){if(id==='saturn'){const out=[];for(let i=0;i<30;i++){const r=1.22+i*.034;if(r>1.91&&r<2.01)continue;const fade=i<7?-.22:0;const col=mix([137,119,91],[222,207,167],.5+Math.sin(i*2.8)*.2+fade);out.push({r,color:'#'+col.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')});}return out;}return id==='uranus'?[1.62,1.73,1.85,2.0].map(r=>({r,color:'#718a89'})):[];}
+ // Saturn's rings from the inside out: the faint C ring, the bright B ring, the dark Cassini Division,
+ // the A ring with the thin Encke Gap, and the narrow F ring. Uranus has thin, dark rings, the outer Epsilon ring brightest.
+ function rings(id){const hexOf=c=>'#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+  if(id==='saturn'){const out=[],add=(r,c)=>out.push({r,color:hexOf(c)});for(let r=1.24;r<1.52;r+=.035)add(r,mix([96,86,76],[130,116,100],hash(Math.round(r*1000),1)));
+   for(let r=1.53;r<1.945;r+=.03)add(r,mix([214,196,158],[238,224,190],hash(Math.round(r*1000),2)));for(let r=2.03;r<2.27;r+=.03)if(Math.abs(r-2.21)>.012)add(r,mix([186,170,138],[210,196,164],hash(Math.round(r*1000),3)));add(2.33,[212,202,180]);return out;}
+  return id==='uranus'?[[1.64,'#566365'],[1.75,'#5d6a6c'],[1.79,'#5d6a6c'],[1.86,'#617072'],[1.9,'#617072'],[2,'#8a9898']].map(([r,color])=>({r,color})):[];}
  function thumbnail(canvas,p,moons=[],opts={}){const w=opts.w||240,h=opts.h||130;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d'),r=opts.r||(p.parent?24:p.id==='saturn'?29:p.id==='uranus'?31:p.id==='pluto'?28:42),cx=opts.cx===undefined?w/2:opts.cx,cy=opts.cy===undefined?h/2-1:opts.cy;ctx.clearRect(0,0,w,h);const ringlist=rings(p.id),tilt=p.id==='uranus'?1.3:-.28;
  function ringHalf(front){ctx.save();ctx.translate(cx,cy);ctx.rotate(tilt);for(const band of ringlist){ctx.strokeStyle=band.color;ctx.lineWidth=p.id==='saturn'?1.5:.65;ctx.beginPath();ctx.ellipse(0,0,r*band.r,r*band.r*.31,0,front?0:Math.PI,front?Math.PI:TAU);ctx.stroke();}ctx.restore();}
  ringHalf(false);if(p.id==='sun'){const glow=ctx.createRadialGradient(cx,cy,r*.85,cx,cy,r*1.45);glow.addColorStop(0,'#ffc54599');glow.addColorStop(1,'#ffc54500');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);}
@@ -210,6 +422,8 @@ const PlanetArt=(()=>{
 
 </script><script>
 /* Synthesized, gesture-unlocked sound design and bounded Norwegian speech queue. */
+// Norwegian letter names, read aloud when a letter is pressed or asked for.
+const LETTER_NAMES={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};
 class GameAudio {
  constructor(getState){this.getState=getState;this.context=null;this.master=null;this.engine=null;this.queue=[];this.current=null;this.generation=0;this.voices=[];this.synth=window.speechSynthesis;this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];const label=document.getElementById('voice-note');if(label)label.textContent=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang))?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';};this.refreshVoices();this.synth?.addEventListener('voiceschanged',this.refreshVoices);}
  unlock(){if(this.getState().muted)return;try{if(!this.context){this.context=new(window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=.65;this.master.connect(this.context.destination);}if(this.context.state==='suspended')this.context.resume().catch(()=>{});}catch{}}
@@ -226,12 +440,21 @@ class GameAudio {
  case 'sun':this.swoosh(1.2,.12,false);this.tone(95,.75,'triangle',.07,0,55);break;
  case 'rescue':[784,988,1175].forEach((f,i)=>this.tone(f,.3,'sine',.055,i*.12));break;
  case 'countdown':this.tone(420,.12,'sine',.065);break;
+ case 'pop':this.tone(520,.09,'sine',.07,0,1150);this.swoosh(.18,.03);break;
+ case 'sparkle':[1319,1568,2093].forEach((f,i)=>this.tone(f,.16,'sine',.04,i*.05));break;
+ case 'thud':this.tone(120,.3,'triangle',.08,0,48);this.swoosh(.35,.05,false);break;
+ case 'boing':this.tone(210,.42,'sine',.07,0,640);break;
+ case 'correct':[784,1047].forEach((f,i)=>this.tone(f,.24,'sine',.06,i*.11));break;
+ case 'oops':this.tone(330,.16,'sine',.04,0,260);this.tone(262,.2,'sine',.035,.12,230);break;
+ case 'fanfare':[523,659,784,1047,784,1047].forEach((f,i)=>this.tone(f,i>3?.5:.2,'triangle',.06,i*.12));this.swoosh(.9,.05);break;
  }}
+ // A cheerful five-note scale, so a row of catches plays a little tune.
+ note(i){const scale=[523,587,659,784,880];this.tone(scale[i%5]*(1+Math.floor(i/5)),.3,'sine',.06);this.tone(scale[i%5]*2*(1+Math.floor(i/5)),.22,'sine',.02,.02);}
  makeEngine(){if(this.engine||!this.context)return;const ctx=this.context,o=ctx.createOscillator(),harmonic=ctx.createOscillator(),gain=ctx.createGain();o.type='sine';harmonic.type='triangle';o.frequency.value=65;harmonic.frequency.value=130;gain.gain.value=0;o.connect(gain);harmonic.connect(gain);gain.connect(this.master);o.start();harmonic.start();this.engine={o,harmonic,gain};}
  update(){if(!this.context)return;const s=this.getState(),active=s.mode==='flight'&&!s.muted&&!s.paused;this.master.gain.setTargetAtTime(s.muted||s.paused?0:this.current?.id?.startsWith('letter')?.36:(this.current?.id?.startsWith('fact')||this.current?.id?.startsWith('flyby'))?.20:.65,this.context.currentTime,.045);if(active)this.makeEngine();if(!this.engine)return;const t=this.context.currentTime;this.engine.gain.gain.setTargetAtTime(active?.012+Math.max(0,s.speed-1)*.014:0,t,.09);this.engine.o.frequency.setTargetAtTime(62+s.speed*18,t,.1);this.engine.harmonic.frequency.setTargetAtTime(125+s.speed*35,t,.1);}
  stopSpeech(){this.generation++;this.queue=[];this.current=null;this.synth?.cancel();}
  say(text,{force=false,queue=false,id='info'}={}){const s=this.getState();if(s.muted||(!s.voice&&!force)||!this.synth||typeof SpeechSynthesisUtterance==='undefined')return;if(!queue)this.stopSpeech();if(this.queue.length>=8)this.queue.shift();this.queue.push({text,id,force});this.pump();}
- letter(letter,completedWord=''){const names={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
+ letter(letter,completedWord=''){const names=LETTER_NAMES;if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
  pump(){if(this.current||!this.queue.length)return;const s=this.getState();if(s.muted||(!s.voice&&!this.queue[0].force)||s.paused)return;const item=this.queue.shift(),u=new SpeechSynthesisUtterance(item.text),gen=this.generation;this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;const voice=this.voices.find(v=>/^(nb|no)(-|_|$)/i.test(v.lang))||this.voices.find(v=>/^nn/i.test(v.lang));if(voice)u.voice=voice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
 }
 
@@ -239,16 +462,16 @@ class GameAudio {
 'use strict';
 const $=id=>document.getElementById(id),earth=BODIES.find(p=>p.id==='earth');
 let renderer;try{renderer=new SpaceRenderer($('scene'));}catch(e){$('fallback').hidden=false;console.error(e);}
-const state={mode:'home',origin:earth,location:earth,target:null,selected:BODIES[4],elapsed:0,total:0,speed:1,word:'',index:0,wordNumber:0,wordLocked:false,paused:false,launchTime:0,arrivalTime:0,sunTime:0,angle:0,dragging:false,muted:false,hints:true,voice:true,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,visited:new Set(['earth']),shipColor:SHIP_COLORS[0].id,moonMode:true,clock:0,boostHold:0,boostFlash:0,rocketOffset:0,starTravel:0,rescueSound:false,route:[],passedCount:0,flyby:null,flybyTime:0,flybyQueue:[]};
+const state={mode:'home',origin:earth,location:earth,target:null,selected:BODIES[4],elapsed:0,total:0,speed:1,word:'',index:0,wordNumber:0,wordLocked:false,paused:false,launchTime:0,arrivalTime:0,sunTime:0,angle:0,dragging:false,muted:false,hints:true,voice:true,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,visited:new Set(['earth']),shipColor:SHIP_COLORS[0].id,moonMode:true,clock:0,boostHold:0,boostFlash:0,rocketOffset:0,starTravel:0,rescueSound:false,route:[],passedCount:0,flyby:null,flybyTime:0,flybyQueue:[],played:new Set(),quizStars:0,quizCorrect:0};
 const PROGRESS_KEY='sofias-romreise-progress-v1';
-try{const saved=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'null');const known=new Set([...BODIES,...MOONS].map(p=>p.id));if(Array.isArray(saved?.visited))for(const id of saved.visited)if(known.has(id))state.visited.add(id);if(SHIP_COLORS.some(c=>c.id===saved?.shipColor))state.shipColor=saved.shipColor;if(saved?.moonMode===false)state.moonMode=false;}catch{}
+try{const saved=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'null');const known=new Set([...BODIES,...MOONS].map(p=>p.id));if(Array.isArray(saved?.visited))for(const id of saved.visited)if(known.has(id))state.visited.add(id);if(SHIP_COLORS.some(c=>c.id===saved?.shipColor))state.shipColor=saved.shipColor;if(saved?.moonMode===false)state.moonMode=false;if(Array.isArray(saved?.played))for(const id of saved.played)if(known.has(id))state.played.add(id);if(Number.isFinite(saved?.quizStars))state.quizStars=Math.max(0,Math.min(999,Math.floor(saved.quizStars)));if(Number.isFinite(saved?.quizCorrect))state.quizCorrect=Math.max(0,Math.floor(saved.quizCorrect));}catch{}
 let rewards=earnedRewards(state.visited);
 // Moon mode opens when every planet is visited; the toggle lets Sofia put the moons away again.
 function moonModeOn(){return rewards.moonMode&&state.moonMode;}
 function destinations(){return moonModeOn()?[...BODIES,...MOONS]:BODIES;}
 function parentOf(p){return BODIES.find(b=>b.id===p.parent);}
 function bodiesVisited(){return BODIES.filter(p=>state.visited.has(p.id)).length;}
-function saveProgress(){try{localStorage.setItem(PROGRESS_KEY,JSON.stringify({visited:[...state.visited],shipColor:state.shipColor,moonMode:state.moonMode}));}catch{}}
+function saveProgress(){try{localStorage.setItem(PROGRESS_KEY,JSON.stringify({visited:[...state.visited],shipColor:state.shipColor,moonMode:state.moonMode,played:[...state.played],quizStars:state.quizStars,quizCorrect:state.quizCorrect}));}catch{}}
 function paintGraffiti(){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;const ctx=canvas.getContext('2d');ctx.translate(252,130);ctx.rotate(-.065);ctx.transform(1,0,-.16,1,0,0);const colors=['#ff76ba','#ffde71','#79e4e2','#ba95ff','#ff9e6e'];for(let i=0;i<21;i++){ctx.fillStyle=colors[i%5];ctx.beginPath();ctx.arc(Math.sin(i*5.2)*216,Math.cos(i*3.1)*67,3+i%5,0,Math.PI*2);ctx.fill();}ctx.font='italic 900 106px "Arial Black",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.strokeStyle='#202642';ctx.lineWidth=22;ctx.strokeText('SOFIA',0,0);ctx.strokeStyle='#fff8e7';ctx.lineWidth=11;ctx.strokeText('SOFIA',0,0);const letters='SOFIA',widths=[...letters].map(l=>ctx.measureText(l).width),total=widths.reduce((a,b)=>a+b,0);let x=-total/2;ctx.textAlign='left';for(let i=0;i<letters.length;i++){ctx.fillStyle=colors[i];ctx.fillText(letters[i],x,0);x+=widths[i];}ctx.strokeStyle='#79e4e2';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-177,66);ctx.lineTo(183,51);ctx.stroke();return canvas;}
 const sofiaGraffiti=paintGraffiti();
 function rewardMessage(before,after){const messages=[];if(!before.graffiti&&after.graffiti)messages.push('Kult, Sofia! Du har besøkt to forskjellige planeter! Nå har raketten fått tøff graffiti med navnet ditt!');if(!before.paint&&after.paint)messages.push('Fantastisk, Sofia! Fire planetbesøk! Raketten din har fått en ny lilla og rosa farge!');if(!before.palette&&after.palette)messages.push('Seks planetbesøk, Sofia! Nå kan du velge rakettfarge selv. Fargeknappene står hjemme på jorda!');if(!before.rainbow&&after.rainbow)messages.push('Hurra, Sofia! Du har oppdaget alle reisemålene! Nå lager raketten din regnbuer!');if(!before.moonMode&&after.moonMode)messages.push('Helt utrolig, Sofia! Du har besøkt alle planetene! Nå er månemodus åpen: månene går i bane rundt planetene sine, og du kan reise til dem.');if(!before.gold&&after.gold)messages.push('Du har besøkt alle månene, Sofia! Raketten din er blitt av rent gull, med en ekte diamant på toppen og et spor av gullmynter etter seg!');return messages.join(' ');}
@@ -269,21 +492,21 @@ function updatePassport(){$('passport').textContent=moonModeOn()?`✦ ${bodiesVi
 function renderMoonToggle(){const btn=$('moon-toggle');btn.hidden=!rewards.moonMode;btn.textContent=state.moonMode?'🌙 Månemodus på':'🌙 Månemodus av';btn.classList.toggle('on',state.moonMode);btn.setAttribute('aria-pressed',String(state.moonMode));}
 // The colour picker opens with the sixth planet visit and lives on the home console.
 function renderColorPicker(){const box=$('color-choice'),swatches=$('color-swatches');box.hidden=!rewards.palette;if(!rewards.palette){swatches.replaceChildren();return;}const current=shipPaint(rewards,state.shipColor);swatches.replaceChildren();for(const c of shipColorsFor(rewards)){const btn=document.createElement('button');btn.className='swatch'+(c.id===current.id?' selected':'');btn.type='button';btn.style.background=`linear-gradient(145deg,${c.body} 52%,${c.accent} 52%)`;btn.setAttribute('aria-label',c.name);btn.setAttribute('aria-pressed',String(c.id===current.id));btn.title=c.name;btn.onclick=()=>{state.shipColor=c.id;saveProgress();renderColorPicker();tone(430,.06);speak(c.name);};swatches.append(btn);}}
-function showConsole(which){for(const id of ['home','inside','flight','arrival'])$(id+'-console').hidden=id!==which;}
+function showConsole(which){for(const id of ['home','inside','quiz','flight','play','arrival'])$(id+'-console').hidden=id!==which;}
 function title(label,name,sub,badge){$('scene-label').textContent=label;$('scene-title').textContent=name;$('scene-sub').textContent=sub;$('scene-badge').textContent=badge;}
 function dialog(id,open){const el=$(id);if(open){lastFocus=document.activeElement;el.hidden=false;el.querySelector('button:not([disabled])')?.focus();}else{el.hidden=true;if(lastFocus?.isConnected)lastFocus.focus();}}
 function updateSettings(){for(const [id,key]of [['hint-toggle','hints'],['voice-toggle','voice'],['motion-toggle','reduced']]){const b=$(id);b.textContent=state[key]?'På':'Av';b.classList.toggle('on',state[key]);b.setAttribute('aria-pressed',String(state[key]));}}
-function home(withMessage=false,preserveSpeech=false){state.mode='home';state.location=earth;state.target=null;clearFlyby();state.paused=false;state.speed=1;state.boostHold=0;state.boostFlash=0;state.rocketOffset=0;$('boost-callout').hidden=true;state.angle=0;state.wordLocked=false;wordDelay=0;showConsole('home');$('pause').hidden=true;$('world-hint').hidden=true;$('scene-caption').hidden=true;$('countdown').hidden=true;$('app').classList.remove('boosted');for(const id of ['pause-modal','map-modal','system-modal'])$(id).hidden=true;title('HER BEGYNNER EVENTYRET','Hjemme på jorda','Raketten er klar. Hvor skal vi reise?','⌂ Din egen lille rombase');scene.setAttribute('aria-label','Sofia ved det brune huset sitt i skogen. Dra for å se deg rundt.');if(!preserveSpeech)gameAudio.stopSpeech();if(withMessage){notify('Trygt hjemme, Sofia! En ny rakett står klar.');if(!preserveSpeech)speak('Trygt hjemme, Sofia! En ny rakett står klar.');}}
+function home(withMessage=false,preserveSpeech=false){state.mode='home';resetFx();state.location=earth;state.target=null;clearFlyby();state.paused=false;state.speed=1;state.boostHold=0;state.boostFlash=0;state.rocketOffset=0;$('boost-callout').hidden=true;state.angle=0;state.wordLocked=false;wordDelay=0;showConsole('home');$('pause').hidden=true;$('world-hint').hidden=true;$('scene-caption').hidden=true;$('countdown').hidden=true;$('app').classList.remove('boosted');for(const id of ['pause-modal','map-modal','system-modal'])$(id).hidden=true;title('HER BEGYNNER EVENTYRET','Hjemme på jorda','Raketten er klar. Hvor skal vi reise?','⌂ Din egen lille rombase');scene.setAttribute('aria-label','Sofia ved det brune huset sitt i skogen. Dra for å se deg rundt.');if(!preserveSpeech)gameAudio.stopSpeech();if(withMessage){notify('Trygt hjemme, Sofia! En ny rakett står klar.');if(!preserveSpeech)speak('Trygt hjemme, Sofia! En ny rakett står klar.');}}
 function insideProgress(){const n=bodiesVisited(),left=10-n;
- return (left?`Veggen viser ${n} av 10 oppdagede reisemål. ${left===1?'Ett reisemål':left+' reisemål'} igjen å finne!`:'Alle ti reisemålene henger på veggen. Hele solsystemet er oppdaget!')+(moonModeOn()?` Månene: ${rewards.moons} av ${MOONS.length}.`:'');}
-function enterHouse(){if(state.mode!=='home')return;state.mode='inside';state.angle=0;state.dragging=false;showConsole('inside');
+ return (left?`Veggen viser ${n} av 10 oppdagede reisemål. ${left===1?'Ett reisemål':left+' reisemål'} igjen å finne!`:'Alle ti reisemålene henger på veggen. Hele solsystemet er oppdaget!')+(moonModeOn()?` Månene: ${rewards.moons} av ${MOONS.length}.`:'')+(state.quizStars?` Du har ${state.quizStars} ${state.quizStars===1?'lesestjerne':'lesestjerner'} fra Planetspillet.`:' Prøv Planetspillet og få lesestjerner på veggen!');}
+function enterHouse(){if(!['home','quiz'].includes(state.mode))return;state.mode='inside';resetFx();state.angle=0;state.dragging=false;showConsole('inside');
  $('inside-progress').textContent=insideProgress();$('world-hint').hidden=false;$('scene-caption').hidden=true;
  title('INNE HOS SOFIA','Rommet til Sofia','Navnet ditt står på veggen, og planetene du har besøkt henger under.','🏠 Hjemme i huset');
  scene.setAttribute('aria-label','Inne i huset til Sofia. Navnet SOFIA står på veggen, med de besøkte planetene under. Dra for å se deg rundt.');
  tone(300,.1);speak(insideProgress());}
 function drawThumbnail(c,p){PlanetArt.thumbnail(c,p,moonModeOn()&&!p.parent?moonsOf(p.id):[]);}
 function renderMap(){const grid=$('planet-grid');grid.replaceChildren();$('map-note').textContent=moonModeOn()?'Månene går i bane rundt planeten sin. Merkur og Venus har ingen måner. Sola er en stjerne, Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.':'Sola er en stjerne. Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.';for(const p of destinations()){const btn=document.createElement('button');const seen=state.visited.has(p.id);btn.className='planet-card'+(p.parent?' moon-card':'')+(seen?' visited':'')+(state.selected.id===p.id?' selected':'')+(state.location.id===p.id?' current':'');btn.setAttribute('aria-label',`${p.name}. ${p.type}. ${seen?'Besøkt. ':''}${state.location.id===p.id?'Du er her':p.id==='earth'?'Hjem med én gang':formatTime(duration(state.location,p))+' ved vanlig fart'}`);btn.setAttribute('aria-pressed',String(state.selected.id===p.id));btn.dataset.planet=p.id;const c=document.createElement('canvas');c.setAttribute('aria-hidden','true');btn.append(c);drawThumbnail(c,p);const name=document.createElement('b');name.textContent=p.name;btn.append(name);const label=document.createElement('small');label.textContent=state.location.id===p.id?'Du er her':p.type;btn.append(label);if(seen){const s=document.createElement('span');s.className='stamp';s.textContent='✓';s.setAttribute('aria-hidden','true');btn.append(s);}btn.onclick=()=>{state.selected=p;selectPlanet();tone(390,.06);speak(p.name);};grid.append(btn);}selectPlanet();}
-function selectPlanet(){for(const el of $('planet-grid').children){const selected=el.dataset.planet===state.selected.id;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));}const p=state.selected,here=p.id===state.location.id;const sec=duration(state.location,p);$('selection-title').textContent=p.name+' · '+p.type;$('selection-info').textContent=here?'Her er du nå. Velg et nytt sted!':p.id==='earth'?'Hjem igjen med én gang · ingen reisetid':p.id==='sun'?`${formatTime(sec)} · Veldig varm! Raketten vil brenne opp.`:`${formatTime(sec)} fra ${state.location.name.toLowerCase()} · Bokstavkraft gjør turen raskere!`;const route=p.id==='earth'?[]:buildRoute(state.location,p);$('map-route-preview').textContent=route.length?'På veien passerer vi: '+route.map(s=>s.body.name).join(' → '):'';$('launch').disabled=here;$('launch').textContent=here?'Du er her':p.id==='earth'?'⌂ Rett hjem':`Reis til ${p.name}`;}
+function selectPlanet(){for(const el of $('planet-grid').children){const selected=el.dataset.planet===state.selected.id;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));}const p=state.selected,here=p.id===state.location.id;const sec=duration(state.location,p);$('selection-title').textContent=p.name+' · '+p.type;$('selection-info').textContent=here?'Her er du nå. Velg et nytt sted!':p.id==='earth'?'Hjem igjen med én gang · ingen reisetid':p.id==='sun'?`${formatTime(sec)} · Veldig varm! Raketten vil brenne opp.`:`${formatTime(sec)} fra ${state.location.name.toLowerCase()} · Bokstavkraft gjør turen raskere!`;const route=p.id==='earth'?[]:tripRoute(state.location,p);$('map-route-preview').textContent=route.length?'På veien passerer vi: '+route.map(s=>s.body.name).join(' → '):'';$('launch').disabled=here;$('launch').textContent=here?'Du er her':p.id==='earth'?'⌂ Rett hjem':`Reis til ${p.name}`;}
 // A poster of the solar system in orbital order, painted with the same globes as the rest of the game.
 const systemNoise=i=>{const x=Math.sin(i*12.9898+i*i*.017)*43758.5453;return x-Math.floor(x);};
 function systemRadius(p){return Math.max(12,Math.round(11+(p.size-2)*26));}
@@ -322,17 +545,19 @@ function paintSystemMap(){const map=$('system-map'),width=map.clientWidth;if(!wi
   drawOrbit(back,{w:width,h:rowH,dpr,seed:BODIES.indexOf(p),skip:sun?r*.94:ext.hx,glow:state.visited.has(p.id),orbit:!sun,px});}}
 function openSystemMap(){if(!['home','arrival'].includes(state.mode))return;tone(330,.08);renderSystemMap();dialog('system-modal',true);paintSystemMap();speak('Sola og planetene i rekkefølge');}
 function openMap(){if(!['home','arrival'].includes(state.mode))return;tone(350,.08);state.selected=state.location.id==='earth'?BODIES[4]:earth;renderMap();dialog('map-modal',true);speak('Hei, Sofia! Hvor vil du reise nå?');}
-function startTrip(p){if(!['home','arrival'].includes(state.mode)||p.id===state.location.id)return false;if(p.id==='earth'){dialog('map-modal',false);dialog('system-modal',false);tone(430,.12);home(true);return true;}state.origin=state.location;state.target=p;state.elapsed=0;state.total=duration(state.origin,p);clearFlyby();state.route=buildRoute(state.origin,p);state.passedCount=0;renderRoute();state.speed=1;state.boostHold=0;state.boostFlash=0;state.rocketOffset=0;state.starTravel=0;state.rescueSound=false;$('boost-callout').hidden=true;state.launchTime=0;state.wordNumber=0;state.mode='launch';state.paused=false;state.angle=0;state.wordLocked=false;wordDelay=0;dialog('map-modal',false);showConsole('flight');$('pause').hidden=false;$('world-hint').hidden=true;$('scene-caption').hidden=true;$('route-title').textContent=`På vei til ${p.name}`;$('origin-name').textContent=state.origin.name;$('target-name').textContent=p.name;title('KLAR FOR AVREISE',`Neste stopp: ${p.name}`,'Trykk på bokstaver og gi raketten fart!',p.id==='sun'?'☀ En veldig varm stjerne':p.type);$('countdown').hidden=false;$('countdown').textContent='3';newWord(true);updateFlight();tone(440,.15);speak(`Klar, Sofia? Vi reiser til ${p.name}!`);return true;}
+function startTrip(p){if(!['home','arrival'].includes(state.mode)||p.id===state.location.id)return false;if(p.id==='earth'){dialog('map-modal',false);dialog('system-modal',false);tone(430,.12);home(true);return true;}state.origin=state.location;state.target=p;state.elapsed=0;state.total=duration(state.origin,p);clearFlyby();state.route=tripRoute(state.origin,p);startFlightFx();state.passedCount=0;renderRoute();state.speed=1;state.boostHold=0;state.boostFlash=0;state.rocketOffset=0;state.starTravel=0;state.rescueSound=false;$('boost-callout').hidden=true;state.launchTime=0;state.wordNumber=0;state.mode='launch';state.paused=false;state.angle=0;state.wordLocked=false;wordDelay=0;dialog('map-modal',false);showConsole('flight');$('pause').hidden=false;$('world-hint').hidden=true;$('scene-caption').hidden=true;$('route-title').textContent=`På vei til ${p.name}`;$('origin-name').textContent=state.origin.name;$('target-name').textContent=p.name;title('KLAR FOR AVREISE',`Neste stopp: ${p.name}`,'Trykk på bokstaver og gi raketten fart!',p.id==='sun'?'☀ En veldig varm stjerne':p.type);$('countdown').hidden=false;$('countdown').classList.remove('go');$('countdown').textContent='3';newWord(true);updateFlight();tone(440,.15);speak(`Klar, Sofia? Vi reiser til ${p.name}!`);return true;}
 function clearFlyby(){state.flyby=null;state.flybyTime=0;state.flybyQueue=[];$('flyby-card').hidden=true;}
 function renderRoute(){const el=$('route-stops');el.replaceChildren();el.hidden=!state.route.length;$('route-preview').textContent=state.route.length?'Vi passerer '+state.route.map(s=>s.body.name).join(' → ')+'.':'';for(const[ i,entry]of state.route.entries()){const chip=document.createElement('span');chip.className='route-stop'+(i<state.passedCount?' passed':'')+(state.flyby?.body.id===entry.body.id?' passing':'');chip.textContent=(i<state.passedCount?'✓ ':'')+entry.body.name;chip.title=i<state.passedCount?'Passert '+entry.body.name:'På veien: '+entry.body.name;el.append(chip);}if(state.target){const end=document.createElement('span');end.className='route-stop destination';end.textContent='⚑ '+state.target.name;el.append(end);}}
-function beginFlyby(entry){state.flyby=entry;state.flybyTime=0;const next=state.route[state.passedCount]?.body||state.target;$('flyby-name').textContent='Vi passerer '+entry.body.name+'!';$('flyby-next').textContent=next.id===state.target.id?'Videre til '+state.target.name+'!':'Neste på veien: '+next.name+' · Mål: '+state.target.name;$('flyby-card').style.setProperty('--planet-color',entry.body.color);$('flyby-card').hidden=false;gameAudio.effect('flyby');gameAudio.say('Se, Sofia! Vi passerer '+entry.body.name+'!',{id:'flyby-'+entry.body.id});renderRoute();}
-function updateFlybys(dt){const progress=state.elapsed/state.total;while(state.passedCount<state.route.length&&progress>=state.route[state.passedCount].fraction){state.flybyQueue.push(state.route[state.passedCount++]);}if(state.flyby){state.flybyTime+=dt;if(state.flybyTime>=5){state.flyby=null;$('flyby-card').hidden=true;renderRoute();}}if(!state.flyby&&state.flybyQueue.length)beginFlyby(state.flybyQueue.shift());}
+function beginFlyby(entry){state.flyby=entry;state.flybyTime=0;const belt=entry.body.id==='belt',next=state.route[state.passedCount]?.body||state.target;$('flyby-card').querySelector('.flyby-kicker').textContent=belt?'HOLD DEG FAST!':'SE UT AV VINDUET!';$('flyby-name').textContent=belt?'Vi flyr gjennom asteroidebeltet!':'Vi passerer '+entry.body.name+'!';if(belt)startBelt();$('flyby-next').textContent=next.id===state.target.id?'Videre til '+state.target.name+'!':'Neste på veien: '+next.name+' · Mål: '+state.target.name;$('flyby-card').style.setProperty('--planet-color',entry.body.color);$('flyby-card').hidden=false;gameAudio.effect('flyby');gameAudio.say(belt?'Hold deg fast, Sofia! Vi flyr gjennom asteroidebeltet. Trykk på steinene!':'Se, Sofia! Vi passerer '+entry.body.name+'!',{id:'flyby-'+entry.body.id});renderRoute();}
+function updateFlybys(dt){const progress=state.elapsed/state.total;while(state.passedCount<state.route.length&&progress>=state.route[state.passedCount].fraction){state.flybyQueue.push(state.route[state.passedCount++]);}if(state.flyby){state.flybyTime+=dt;if(state.flybyTime>=(state.flyby.body.id==='belt'?8:5)){state.flyby=null;$('flyby-card').hidden=true;renderRoute();}}if(!state.flyby&&state.flybyQueue.length)beginFlyby(state.flybyQueue.shift());}
 function newWord(first=false){const pool=destinations();let p=first?state.target:pool[(state.wordNumber*3+Math.max(0,pool.indexOf(state.target)))%pool.length];if(!p)p=earth;state.word=p.word;state.index=0;state.wordLocked=false;state.wordNumber++;$('feedback').textContent='Hjelp raketten med bokstavkraft!';let letters=[...new Set(state.word)];const extras='AEIOUMNRSPLTV';for(const l of extras){if(letters.length>=10)break;if(!letters.includes(l))letters.push(l);}letters=letters.sort();$('keyboard').replaceChildren();for(const letter of letters){const b=document.createElement('button');b.className='letter-key';b.textContent=letter;b.setAttribute('aria-label','Bokstav '+letter);b.onclick=()=>inputLetter(letter,b);$('keyboard').append(b);}renderWord();}
 function renderWord(){$('word').replaceChildren();for(let i=0;i<state.word.length;i++){const span=document.createElement('span');span.className='slot'+(i<state.index?' done':i===state.index?' current':'');span.textContent=state.word[i];$('word').append(span);}$('word').setAttribute('aria-label',`${state.word}. ${state.index} av ${state.word.length} bokstaver.`);for(const b of $('keyboard').children){b.classList.toggle('hint',state.hints&&b.textContent===state.word[state.index]);b.disabled=state.wordLocked;}}
-function inputLetter(letter,button){if(!['flight','launch'].includes(state.mode)||state.paused||state.wordLocked)return;const correct=letter===state.word[state.index];state.speed=accelerate(state.speed,correct);if(correct){state.index++;const full=state.index===state.word.length;gameAudio.letter(letter,full?state.word:'');triggerBoost(full);$('feedback').textContent=['Kult, Sofia! Mer rakettkraft!','Bra, Sofia! Raketten får mer fart!','Du fant riktig bokstav, Sofia!'][state.index%3];if(full){state.speed+=.65;state.wordLocked=true;wordDelay=1.2;$('feedback').textContent='Hele navnet! SUPERBOOST! ✦';notify('✦ Bra, Sofia! Superboost!');}}else{state.boostHold=0;state.boostFlash=0;gameAudio.effect('wrong');gameAudio.letter(letter);$('feedback').textContent=`Prøv ${state.word[state.index]}! Du klarer det.`;button?.classList.add('wrong');setTimeout(()=>button?.classList.remove('wrong'),280);}renderWord();updateFlight();}
+function inputLetter(letter,button){if(!['flight','launch'].includes(state.mode)||state.paused||state.wordLocked)return;const correct=letter===state.word[state.index];state.speed=accelerate(state.speed,correct);if(correct){state.index++;const full=state.index===state.word.length;flyLetter(letter,button);gameAudio.letter(letter,full?state.word:'');triggerBoost(full);$('feedback').textContent=['Kult, Sofia! Mer rakettkraft!','Bra, Sofia! Raketten får mer fart!','Du fant riktig bokstav, Sofia!'][state.index%3];if(full){state.speed+=.65;state.wordLocked=true;wordDelay=1.2;$('feedback').textContent='Hele navnet! SUPERBOOST! ✦';notify('✦ Bra, Sofia! Superboost!');}}else{state.boostHold=0;state.boostFlash=0;gameAudio.effect('wrong');gameAudio.letter(letter);$('feedback').textContent=`Prøv ${state.word[state.index]}! Du klarer det.`;button?.classList.add('wrong');setTimeout(()=>button?.classList.remove('wrong'),280);}renderWord();updateFlight();}
 function updateFlight(){const percent=Math.min(100,state.elapsed/state.total*100)||0;$('progress-fill').style.width=percent+'%';$('progress').setAttribute('aria-valuenow',String(Math.round(percent)));$('eta').textContent=formatTime(Math.max(0,state.total-state.elapsed)/state.speed)+' igjen';$('speed').textContent='⚡ '+state.speed.toFixed(1).replace('.',',')+' × fart';$('app').classList.toggle('boosted',state.speed>1.1);$('boost-callout').hidden=state.boostFlash<=0;$('world').style.setProperty('--boost-strength',String(Math.min(1,Math.max(0,state.speed-1)/2)));}
 function arrive(){clearFlyby();const before=rewards;state.visited.add(state.target.id);rewards=earnedRewards(state.visited);if(!before.gold&&rewards.gold)state.shipColor='gold';saveProgress();const rewardText=rewardMessage(before,rewards);updatePassport();if(rewardText){notify(!before.gold&&rewards.gold?'💎 Gullrakett, Sofia!':!before.moonMode&&rewards.moonMode?'🌙 Månemodus er åpen!':!before.rainbow&&rewards.rainbow?'🌈 Hurra, Sofia! Regnbuespor!':!before.palette&&rewards.palette?'🎨 Velg rakettfarge, Sofia!':!before.paint&&rewards.paint?'★ Nye farger, Sofia!':'★ SOFIA-graffiti er låst opp!');}state.location=state.target;state.arrivalTime=0;state.angle=0;state.wordLocked=true;$('pause').hidden=true;$('boost-callout').hidden=true;state.boostFlash=0;state.boostHold=0;state.rocketOffset=0;$('app').classList.remove('boosted');if(state.target.id==='earth'){home();notify('Velkommen hjem, astronaut!');melody();gameAudio.say('Velkommen hjem, Sofia! '+earth.fact,{id:'fact-earth'});return;}if(state.target.id==='sun'){state.mode='sun';state.sunTime=0;showConsole('arrival');$('arrival-title').textContent='Oi! Sola er for varm!';$('arrival-reward').textContent=rewardText;$('arrival-reward').hidden=!rewardText;$('arrival-fact').textContent='Raketten brenner opp. Sofia er trygg i redningskapselen og flyr hjem igjen.';$('next-trip').hidden=true;$('go-home').hidden=true;$('scene-caption').hidden=false;$('scene-caption').textContent='Redningskapselen passer på Sofia ♥';title('FOR VARMT FOR EN RAKETT','Oi, sola!','En stjerne full av lys og varme.','☀ Sola er en stjerne');$('sun-flash').classList.add('active');gameAudio.say('Se, Sofia! '+state.target.fact+' Oi! Raketten brenner opp. Sofia er trygg i redningskapselen og reiser hjem. '+rewardText,{id:'fact-sun'});gameAudio.effect('sun');return;}
- state.mode='arrival';showConsole('arrival');$('next-trip').hidden=false;$('go-home').hidden=false;$('arrival-title').textContent='Hei, '+state.target.name+'!';$('arrival-fact').textContent=state.target.fact;$('arrival-reward').textContent=rewardText;$('arrival-reward').hidden=!rewardText;$('world-hint').hidden=false;const orbit=['jupiter','saturn','uranus','neptune'].includes(state.target.id);title(state.target.parent?'DU HAR OPPDAGET EN NY MÅNE':'DU HAR OPPDAGET ET NYTT STED',state.target.name,'Se deg rundt, lille romforsker!',state.target.type);$('scene-caption').hidden=false;$('scene-caption').textContent=orbit?'Vi flyr rundt – her kan vi ikke lande!':state.target.parent?`Måne i bane rundt ${parentOf(state.target).name}`:state.target.id==='pluto'?'En liten isverden langt, langt borte':'Se! '+({mercury:'Massevis av kratere',venus:'Et tykt teppe av skyer',mars:'Rødt støv danser rundt oss'}[state.target.id]||'Så fint det er her');melody();gameAudio.say('Bra, Sofia! Velkommen til '+state.target.name+'! '+state.target.fact+' '+rewardText,{id:'fact-'+state.target.id});scene.setAttribute('aria-label',`Romraketten ved ${state.target.name}. ${state.target.fact}`);}
+ showArrival(rewardText);melody();arrivalFx();const game=playFor(state.location);gameAudio.say('Bra, Sofia! Velkommen til '+state.target.name+'! '+state.target.fact+' '+rewardText+(game?' Vil du leke? Trykk på den rosa knappen!':''),{id:'fact-'+state.target.id});}
+// The arrival screen: the fact, the way on, and the game waiting on this world.
+function showArrival(rewardText=''){const p=state.location,game=playFor(p);state.mode='arrival';state.angle=0;showConsole('arrival');$('next-trip').hidden=false;$('go-home').hidden=false;$('arrival-title').textContent='Hei, '+p.name+'!';$('arrival-fact').textContent=p.fact;$('arrival-reward').textContent=rewardText;$('arrival-reward').hidden=!rewardText;$('play-here').hidden=!game;if(game)$('play-here').textContent=`${game.icon} Lek: ${game.title}`+(state.played.has(p.id)?' ⭐':'');$('world-hint').hidden=false;const orbit=['jupiter','saturn','uranus','neptune'].includes(p.id);title(p.parent?'DU HAR OPPDAGET EN NY MÅNE':'DU HAR OPPDAGET ET NYTT STED',p.name,'Se deg rundt, lille romforsker!',p.type);$('scene-caption').hidden=false;$('scene-caption').textContent=orbit?'Vi flyr rundt – her kan vi ikke lande!':p.parent?`Måne i bane rundt ${parentOf(p).name}`:p.id==='pluto'?'En liten isverden langt, langt borte':'Se! '+({mercury:'Massevis av kratere',venus:'Et tykt teppe av skyer',mars:'Rødt støv danser rundt oss'}[p.id]||'Så fint det er her');scene.setAttribute('aria-label',`Romraketten ved ${p.name}. ${p.fact}`);}
 // Stor skjerm: spillet rydder bort sin egen overskrift selv, og ber i tillegg nettleseren om ekte
 // fullskjerm der det er lov. Safari på iPad sier nei til det siste, men bildet blir stort uansett.
 function fullscreenOn(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
@@ -348,28 +573,31 @@ $('open-map').onclick=openMap;$('next-trip').onclick=openMap;$('close-map').oncl
 let pausedBeforeSettings=false;$('fullscreen').onclick=toggleFullscreen;
 for(const ev of ['fullscreenchange','webkitfullscreenchange'])document.addEventListener(ev,()=>{if(!fullscreenOn()&&immersiveOn())setImmersive(false);});
 $('settings').onclick=()=>{pausedBeforeSettings=state.paused;state.paused=true;updateSettings();dialog('settings-modal',true);gameAudio.stopSpeech();};$('close-settings').onclick=()=>{dialog('settings-modal',false);state.paused=pausedBeforeSettings;gameAudio.update();};for(const[id,key]of [['hint-toggle','hints'],['voice-toggle','voice'],['motion-toggle','reduced']])$(id).onclick=()=>{state[key]=!state[key];updateSettings();if(key==='hints')renderWord();if(key==='voice'&&!state.voice)gameAudio.stopSpeech();};
-scene.addEventListener('pointerdown',e=>{const now=performance.now();
- if(now-lastTap<430&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<40){lastTap=0;toggleFullscreen();}
+scene.addEventListener('pointerdown',e=>{const now=performance.now(),box=scene.getBoundingClientRect();
+ if(tapScene(e.clientX-box.left,e.clientY-box.top)){lastTap=0;return;}
+ if(now-lastTap<430&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<40&&allowDoubleTap()){lastTap=0;toggleFullscreen();}
  else{lastTap=now;lastTapX=e.clientX;lastTapY=e.clientY;}
  if(['home','inside','arrival'].includes(state.mode)){state.dragging=true;dragX=e.clientX;scene.setPointerCapture(e.pointerId);}});scene.addEventListener('pointermove',e=>{if(!state.dragging)return;state.angle-=(e.clientX-dragX)*.007;if(state.mode==='inside')state.angle=Math.max(-.5,Math.min(.5,state.angle));dragX=e.clientX;});for(const event of ['pointerup','pointercancel','lostpointercapture'])scene.addEventListener(event,()=>state.dragging=false);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(['launch','flight','sun'].includes(state.mode)&&$('settings-modal').hidden)setPause(true);gameAudio.stopSpeech();}lastFrame=performance.now();});
-document.addEventListener('keydown',e=>{const modal=[...document.querySelectorAll('.modal-shade')].find(el=>!el.hidden);if(modal){if(e.key==='Tab'){const buttons=[...modal.querySelectorAll('button:not([disabled]),a[href]')],first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}if(e.key==='Escape'){if(modal.id==='map-modal')dialog('map-modal',false);else if(modal.id==='system-modal')dialog('system-modal',false);else if(modal.id==='settings-modal')$('close-settings').click();else setPause(false);}return;}if(/^[a-zæøå]$/i.test(e.key)){inputLetter(e.key.toUpperCase());}else if(e.key==='Escape')setPause(true);});
+document.addEventListener('keydown',e=>{if(keyScene(e))return;const modal=[...document.querySelectorAll('.modal-shade')].find(el=>!el.hidden);if(modal){if(e.key==='Tab'){const buttons=[...modal.querySelectorAll('button:not([disabled]),a[href]')],first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}if(e.key==='Escape'){if(modal.id==='map-modal')dialog('map-modal',false);else if(modal.id==='system-modal')dialog('system-modal',false);else if(modal.id==='settings-modal')$('close-settings').click();else setPause(false);}return;}if(/^[a-zæøå]$/i.test(e.key)){inputLetter(e.key.toUpperCase());}else if(e.key==='Escape')setPause(true);});
 scene.addEventListener('webglcontextlost',e=>{e.preventDefault();state.paused=true;gameAudio.stopSpeech();gameAudio.update();$('fallback').hidden=false;});scene.addEventListener('webglcontextrestored',()=>location.reload());
 // Deterministic small 3D world: no downloads, trackers, fonts or external assets.
 const trees=Array.from({length:28},(_,i)=>{const a=i*2.39996,r=4.6+(i%5)*.45;return {x:Math.cos(a)*r,z:Math.sin(a)*r,s:.66+(i%4)*.14};}).filter(t=>!(t.z>2&&Math.abs(t.x)<4));
 const stars=Array.from({length:95},(_,i)=>({x:Math.sin(i*73.7)*27,y:Math.cos(i*91.3)*16,z:-6-(i%12)*2.5,s:.018+(i%3)*.012}));
 function character(t){d('box',[0,.52,0],[.22,.33,.16],'#efb749');d('sphere',[0,1.09,0],[.31,.32,.29],'#f6d1a8');d('sphere',[0,1.21,-.08],[.33,.25,.28],'#77523c');d('sphere',[.28,1.08,-.09],[.12,.18,.12],'#77523c');d('sphere',[-.28,1.08,-.09],[.12,.18,.12],'#77523c');d('sphere',[-.105,1.11,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,1.11,.267],[.035,.043,.018],'#1a2a3e');d('box',[0,1.01,.284],[.065,.018,.012],'#c5766c');for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],'#34426d');d('sphere',[x,.015,.06],[.12,.07,.17],'#f6ede0');}d('box',[-.34,.59,0],[.09,.24,.09],'#efb749',[0,0,-.3]);d('sphere',[-.4,.36,0],[.10,.10,.10],'#f6d1a8');d('box',[.36,.8,0],[.08,.24,.09],'#efb749',[0,0,-.65+Math.sin(t*3)*.15]);d('sphere',[.5,.96,0],[.10,.10,.10],'#f6d1a8');}
-function rocket(t,fire=false,burning=0,lying=false){const paint=shipPaint(rewards,state.shipColor),white=burning?'#796960':paint.body,orange=burning?'#51444b':paint.accent;d('cylinder',[0,.9,0],[.48,1.08,.48],white);d('cone',[0,2.3,0],[.48,.48,.48],orange);d('cylinder',[0,.05,0],[.5,.16,.5],'#526d80');d('cylinder',[0,-.26,0],[.26,.18,.26],'#2a3a56');d('sphere',[0,1.62,.44],[.3,.3,.08],'#d6aa58');d('sphere',[0,1.62,.50],[.225,.225,.08],'#3b718d');d('sphere',[-.06,1.70,.568],[.062,.084,.02],'#b8eeec',[],.3);if(state.mode!=='home'&&(state.mode!=='launch'||state.launchTime>=2)){d('sphere',[0,1.59,.575],[.13,.14,.025],'#f4cfa7');d('sphere',[-.045,1.62,.599],[.017,.021,.008],'#22304b');d('sphere',[.045,1.62,.599],[.017,.021,.008],'#22304b');}if(rewards.graffiti&&!burning)renderer.decal(sofiaGraffiti,lying?[0,.64,.505]:[0,.95,.507],lying?[1.5,.8]:[.92,.49],lying?[0,0,Math.PI/2]:[0,0,0]);if(rewards.gold&&!burning)d('gem',[0,2.93,0],[.28,.38,.28],'#cdf5ff',[0,state.reduced?.6:t*1.5,0],.55);for(const x of [-1,1])d('box',[x*.48,.09,0],[.16,.55,.22],orange,[0,0,-x*.27]);d('box',[0,.1,-.45],[.19,.5,.13],orange);if(fire){if(rewards.rainbow&&!burning){const colors=['#ff6389','#ffa35c','#ffe36b','#80e18b','#64dce9','#7e9aff','#c28eff'];for(let i=0;i<7;i++)for(let k=0;k<7;k++){const wave=state.reduced?0:Math.sin(t*5-k*.6)*.06;d('box',[(i-3)*.09+wave,-.85-k*.42,.05],[.049,.23,.06],colors[i],[],1);}}if(rewards.gold&&!burning){const cash=['#ffd94f','#7fd48d','#ffe27a'];for(let i=0;i<14;i++){const k=((state.reduced?.4:t*.45)+i*.0715)%1,y=-.8-k*3.3,side=i%2?1:-1,sway=side*(.22+k*.85)+Math.sin(i*2.3+t*2.1)*.12,spin=state.reduced?.6:t*3.2+i;if(i%3)d('cylinder',[sway,y,.14],[.15,.022,.15],cash[i%3],[Math.PI/2,spin,.45*side],.45);else d('box',[sway,y,.14],[.17,.014,.1],cash[i%3],[spin*.5,spin,.3*side],.3);}}const n=state.reduced?1:1+.12*Math.sin(t*35);const boost=Math.min(2.4,Math.max(0,state.speed-1));const f=(.75+Math.min(3,state.speed)*.35+boost*.7)*n;d('cone',[0,-.62-f*.35,0],[.24+boost*.055,f*.6,.24+boost*.055],boost>.3?'#69dfe9':'#ff9747',[Math.PI,0,0],1);d('cone',[0,-.58-f*.23,.01],[.16+boost*.02,f*.4,.16+boost*.02],boost>.3?'#d4ffff':'#ffdc75',[Math.PI,0,0],1);}}
-function homeScene(t,launch=0){const a=state.angle,aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=aspect<.85?23:aspect<1.3?20:18;renderer.begin([Math.sin(a)*dist+Math.cos(a)*8,10,Math.cos(a)*dist-Math.sin(a)*8],[0,.5,0],'#7faeb3');d('sphere',[0,-1.4,0],[7.3,1.1,6.25],'#3e7470');d('cylinder',[0,-.47,0],[7.25,.22,6.2],'#74a77f');d('cylinder',[2.6,-.17,.2],[1.8,.07,1.8],'#b3bab1');d('ring',[2.6,-.08,.2],[.86,.86,.86],'#ecebc6');d('box',[.1,-.15,1.3],[2.8,.035,.52],'#c0af87',[0,.18,0]);
+function rocket(t,fire=false,burning=0,lying=false,pilot=true){const paint=shipPaint(rewards,state.shipColor),white=burning?'#796960':paint.body,orange=burning?'#51444b':paint.accent;d('cylinder',[0,.9,0],[.48,1.08,.48],white);d('cone',[0,2.3,0],[.48,.48,.48],orange);d('cylinder',[0,.05,0],[.5,.16,.5],'#526d80');d('cylinder',[0,-.26,0],[.26,.18,.26],'#2a3a56');d('sphere',[0,1.62,.44],[.3,.3,.08],'#d6aa58');d('sphere',[0,1.62,.50],[.225,.225,.08],'#3b718d');d('sphere',[-.06,1.70,.568],[.062,.084,.02],'#b8eeec',[],.3);if(pilot&&state.mode!=='home'&&(state.mode!=='launch'||state.launchTime>=2)){d('sphere',[0,1.59,.575],[.13,.14,.025],'#f4cfa7');d('sphere',[-.045,1.62,.599],[.017,.021,.008],'#22304b');d('sphere',[.045,1.62,.599],[.017,.021,.008],'#22304b');}if(rewards.graffiti&&!burning)renderer.decal(sofiaGraffiti,lying?[0,.64,.505]:[0,.95,.507],lying?[1.5,.8]:[.92,.49],lying?[0,0,Math.PI/2]:[0,0,0]);if(rewards.gold&&!burning)d('gem',[0,2.93,0],[.28,.38,.28],'#cdf5ff',[0,state.reduced?.6:t*1.5,0],.55);for(const x of [-1,1])d('box',[x*.48,.09,0],[.16,.55,.22],orange,[0,0,-x*.27]);d('box',[0,.1,-.45],[.19,.5,.13],orange);if(fire){if(rewards.rainbow&&!burning){const colors=['#ff6389','#ffa35c','#ffe36b','#80e18b','#64dce9','#7e9aff','#c28eff'];for(let i=0;i<7;i++)for(let k=0;k<7;k++){const wave=state.reduced?0:Math.sin(t*5-k*.6)*.06;d('box',[(i-3)*.09+wave,-.85-k*.42,.05],[.049,.23,.06],colors[i],[],1);}}if(rewards.gold&&!burning){const cash=['#ffd94f','#7fd48d','#ffe27a'];for(let i=0;i<14;i++){const k=((state.reduced?.4:t*.45)+i*.0715)%1,y=-.8-k*3.3,side=i%2?1:-1,sway=side*(.22+k*.85)+Math.sin(i*2.3+t*2.1)*.12,spin=state.reduced?.6:t*3.2+i;if(i%3)d('cylinder',[sway,y,.14],[.15,.022,.15],cash[i%3],[Math.PI/2,spin,.45*side],.45);else d('box',[sway,y,.14],[.17,.014,.1],cash[i%3],[spin*.5,spin,.3*side],.3);}}const n=state.reduced?1:1+.12*Math.sin(t*35);const boost=Math.min(2.4,Math.max(0,state.speed-1));const f=(.75+Math.min(3,state.speed)*.35+boost*.7)*n;d('cone',[0,-.62-f*.35,0],[.24+boost*.055,f*.6,.24+boost*.055],boost>.3?'#69dfe9':'#ff9747',[Math.PI,0,0],1);d('cone',[0,-.58-f*.23,.01],[.16+boost*.02,f*.4,.16+boost*.02],boost>.3?'#d4ffff':'#ffdc75',[Math.PI,0,0],1);}}
+function homeScene(t,launch=0){const a=state.angle,aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=aspect<.85?23:aspect<1.3?20:18,ignite=state.mode==='launch'?Math.max(0,state.launchTime-2.2):0,shake=state.reduced?0:Math.min(1,ignite*2)*.09,rise=Math.min(launch,9)*.5;renderer.begin([Math.sin(a)*dist+Math.cos(a)*8+Math.sin(t*41)*shake,10+Math.cos(t*33)*shake,Math.cos(a)*dist-Math.sin(a)*8],[rise*.25,.5+rise,0],'#7faeb3');d('sphere',[0,-1.4,0],[7.3,1.1,6.25],'#3e7470');d('cylinder',[0,-.47,0],[7.25,.22,6.2],'#74a77f');d('cylinder',[2.6,-.17,.2],[1.8,.07,1.8],'#b3bab1');d('ring',[2.6,-.08,.2],[.86,.86,.86],'#ecebc6');d('box',[.1,-.15,1.3],[2.8,.035,.52],'#c0af87',[0,.18,0]);
  group([-2.25,0,-.45],[1,1,1],[0,.18,0],()=>{d('box',[0,.93,0],[1.3,1.1,1.04],'#946647');for(let i=0;i<7;i++)d('box',[0,.11+i*.29,1.05],[1.3,.014,.012],'#775139');d('box',[-.77,2.21,0],[.97,.10,1.35],'#5a3b34',[0,0,.57]);d('box',[.77,2.21,0],[.97,.10,1.35],'#5a3b34',[0,0,-.57]);d('box',[0,1.85,0],[.75,.3,1.03],'#8b5c3e');d('box',[.73,2.62,-.45],[.19,.58,.2],'#c19170');d('box',[.43,.53,1.06],[.32,.7,.055],'#493831');d('sphere',[.61,.54,1.14],[.044,.044,.02],'#f4ce6f');d('box',[-.64,1.04,1.07],[.36,.36,.035],'#ead9b8');d('box',[-.64,1.04,1.11],[.28,.28,.025],'#ffdf8d',[],.8);d('box',[-.64,1.04,1.14],[.025,.29,.025],'#b17c54');d('box',[-.64,1.04,1.14],[.29,.025,.025],'#b17c54');d('box',[.4,-.03,1.42],[.51,.12,.32],'#c6b796');});
  for(const tree of trees){group([tree.x,-.19,tree.z],[tree.s,tree.s,tree.s],[0,0,0],()=>{d('cylinder',[0,.5,0],[.13,.65,.13],'#765d46');d('cone',[0,1.12,0],[.73,.9,.73],'#386b5e');d('cone',[0,1.8,0],[.57,.78,.57],'#448770');d('cone',[0,2.36,0],[.38,.64,.38],'#5a987e');});}
  for(let i=0;i<11;i++){const x=Math.sin(i*6.2)*5,z=2.8+Math.cos(i*4)*1.8;d('sphere',[x,-.1,z],[.22,.14,.17],'#b6c4ad');}for(let i=0;i<13;i++){const x=-4.4+i*.21,z=1.9+Math.sin(i)*.3;d('sphere',[x,.0,z],[.07,.09,.07],i%2?'#ffdf83':'#e9ad87');}
- if(state.mode==='home'||state.launchTime<2){const walking=state.mode==='launch',progress=walking?Math.min(1,state.launchTime/2):0,walk=progress*progress*(3-2*progress),steps=progress*Math.PI*10,envelope=Math.sin(progress*Math.PI),wobble=walking&&!state.reduced?Math.sin(steps)*.15*envelope:0,bob=walking&&!state.reduced?Math.abs(Math.sin(steps))*.09*envelope:0,boarding=Math.max(0,(progress-.82)/.18);group([-.05+walk*2.65,bob+boarding*.45,1.85*(1-walk)],[.87,.87,.87],[0,walking?1.98:.1,wobble],()=>character(walking?0:t));}group([2.6,.44+launch,0],[.8,.8,.8],[0,0,0],()=>rocket(t,launch>0));if(launch>0)for(let i=0;i<9;i++){const a=i*2.4,r=(launch*.12+i*.07);d('sphere',[2.6+Math.cos(a)*r,.05+(i%3)*.16,Math.sin(a)*r],[.28,.20,.28],'#d7e2d3');}
+ if(state.mode==='home'||state.launchTime<2){const walking=state.mode==='launch',progress=walking?Math.min(1,state.launchTime/2):0,walk=progress*progress*(3-2*progress),steps=progress*Math.PI*10,envelope=Math.sin(progress*Math.PI),wobble=walking&&!state.reduced?Math.sin(steps)*.15*envelope:0,bob=walking&&!state.reduced?Math.abs(Math.sin(steps))*.09*envelope:0,boarding=Math.max(0,(progress-.82)/.18);group([-.05+walk*2.65,bob+boarding*.45+homeJump(),1.85*(1-walk)],[.87,.87,.87],[0,walking?1.98:.1,wobble],()=>character(walking?0:t));}const wiggle=state.reduced?0:Math.sin(t*30)*fx.wiggle*.08;group([2.6,.44+launch,0],[.8,.8,.8],[wiggle,0,wiggle],()=>rocket(t,ignite>0));fx.rocketWorld=[2.6,1.16+launch,0];if(ignite>0)for(let i=0;i<18;i++){const a=i*2.4,r=Math.min(3.4,ignite*.55+i*.08),grow=.24+Math.min(.5,ignite*.12)+(i%4)*.05;d('sphere',[2.6+Math.cos(a)*r,.05+(i%3)*.16+Math.min(.9,ignite*.1)*(i%2),Math.sin(a)*r],[grow,grow*.72,grow],i%3?'#e3ebe0':'#cad6c8');}
  // Soft, floating clouds on the horizon.
  for(const [x,y,z]of [[-9,7,-16],[7,8,-17],[1,9,-23]]){d('sphere',[x,y,z],[1.9,.5,.7],'#c4ded6');d('sphere',[x-.4,y+.35,z],[.9,.65,.7],'#d4e6df');}}
 // Sofia's own room: her name on the wall and a display case with every world she has visited.
 function insideScene(t){const a=Math.max(-.5,Math.min(.5,state.angle)),aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=aspect<.85?12.6:aspect<1.35?10.8:aspect<2.4?9.4:7.6;
- renderer.begin([Math.sin(a)*dist,2.35,Math.cos(a)*dist],[0,1.5,-.9],'#241a18');
+ renderer.begin([Math.sin(a)*dist,2.35,Math.cos(a)*dist],[0,1.5,-.9],'#241a18');room(t);
+ group([1.7,0,2.05],[.95,.95,.95],[0,-.34+(state.reduced?0:Math.sin(t*.6)*.1),0],()=>character(t));}
+function room(t){
  d('box',[0,-.14,1.1],[4.4,.14,4.5],'#a9784d');for(let i=0;i<9;i++)d('box',[-3.9+i*.98,.012,1.1],[.022,.006,4.5],'#8a5c38');
  d('box',[0,1.82,-3.42],[4.4,1.96,.14],'#f0ddbc');d('box',[-4.42,1.82,-.75],[.14,1.96,2.65],'#e0cbaa');d('box',[4.42,1.82,-.75],[.14,1.96,2.65],'#e0cbaa');
  d('box',[0,.11,-3.26],[4.4,.11,.06],'#c9a882');d('box',[-4.26,.11,-.75],[.06,.11,2.65],'#c9a882');d('box',[4.26,.11,-.75],[.06,.11,2.65],'#c9a882');
@@ -383,7 +611,7 @@ function insideScene(t){const a=Math.max(-.5,Math.min(.5,state.angle)),aspect=sc
  d('box',[3.05,.84,.35],[1.05,.11,.95],'#79e4e2');d('sphere',[3.05,.92,-1.85],[.7,.2,.38],'#ffe6ef');
  // A desk with her model rocket and a lamp.
  d('box',[-3.45,1,1.25],[.78,.07,1.15],'#c99a62');for(const [x,z]of [[-4.1,.2],[-4.1,2.25],[-2.85,.2],[-2.85,2.25]])d('box',[x,.5,z],[.07,.5,.07],'#8d6144');
- group([-3.45,1.07,.45],[.3,.3,.3],[0,.9,0],()=>rocket(t));
+ group([-3.45,1.07,.45],[.3,.3,.3],[0,.9,0],()=>rocket(t,false,0,false,false));
  d('cylinder',[-3.45,1.17,2],[.09,.17,.09],'#7c8aa6');d('cone',[-3.45,1.52,2],[.32,.3,.32],'#ffd36b');d('sphere',[-3.45,1.38,2],[.13,.13,.13],'#fff3c4',[],1);
  // The name on the wall, painted with the same graffiti as the rocket.
  renderer.decal(sofiaGraffiti,[0,2.94,-3.27],[2.94,1.47]);
@@ -392,31 +620,340 @@ function insideScene(t){const a=Math.max(-.5,Math.min(.5,state.angle)),aspect=sc
  for(const [i,p]of BODIES.entries()){const x=-2.4+(i%5)*1.2,y=i<5?1.78:1.18,s=.15+(p.size-2)*.085,seen=state.visited.has(p.id);
   if(seen){renderer.draw('globe',[x,y,-3.05],[s,s,s],'#ffffff',[0,(state.reduced?0:t*.22)+i,0],p.id==='sun'?1:0,0,PlanetArt.get(p.id));
    for(const band of PlanetArt.rings(p.id))d('ringlet',[x,y,-3.05],[s*band.r,1,s*band.r],band.color,[0,0,p.id==='uranus'?1.35:.32],.35);
-   d('ringlet',[x,y,-3.05],[s*1.75,1,s*1.75],'#ffb43d',[Math.PI/2,0,0],.45);}
+   d('ringlet',[x,y,-3.05],[s*1.75,1,s*1.75],'#ffb43d',[Math.PI/2,0,0],.45);
+   if(state.played.has(p.id))d('star',[x+s*1.25,y+s*1.2,-3.02],[.075,.075,.075],'#ffcf4a',[0,0,.2],.55);}
   else{d('sphere',[x,y,-3.06],[s*.7,s*.7,s*.7],'#413c5c');d('ringlet',[x,y,-3.05],[s*1.75,1,s*1.75],'#6f6890',[Math.PI/2,0,0],.12);}}
- group([1.7,0,2.05],[.95,.95,.95],[0,-.34+(state.reduced?0:Math.sin(t*.6)*.1),0],()=>character(t));}
+ // Reading stars from the planet game, stuck on the wall above the bed.
+ for(let i=0;i<Math.min(12,state.quizStars);i++)d('star',[4.25,3.05-Math.floor(i/4)*.62,-2.1+(i%4)*.78],[.27,.27,.27],'#ffcf4a',[0,-Math.PI/2,(i%3-1)*.2],.35+(state.reduced?0:.15*Math.sin(t*2+i)));}
 function starScene(t,flight=false){for(const s of stars){let x=s.x;if(flight)x=((s.x-state.starTravel+60)%60+60)%60-30;d(flight&&!state.reduced?'box':'sphere',[x,s.y,s.z],flight&&!state.reduced?[s.s*(1+Math.min(7,state.speed)*5),s.s*.5,s.s*.5]:[s.s,s.s,s.s],s.s>.04?'#dce6f5':'#769aab',[],1);}}
-function planet(p,t,pos=[0,0,0],scale=1){
+function planet(p,t,pos=[0,0,0],scale=1,moons=true,rot=null,spin=t*.025){
  const tilt=p.id==='uranus'?1.7:p.id==='saturn'?.46:p.id==='earth'?.409:p.id==='mars'?.44:0;
- group(pos,[scale,scale,scale],[.12,0,tilt],()=>{const sz=p.size;
- renderer.draw('globe',[0,0,0],[sz,sz*(p.id==='saturn'?.91:p.id==='jupiter'?.94:1),sz],'#ffffff',[0,t*.025,0],p.id==='sun'?1:0,0,PlanetArt.get(p.id));
+ group(pos,[scale,scale,scale],rot||[.12,0,tilt],()=>{const sz=p.size;
+ renderer.draw('globe',[0,0,0],[sz,sz*(p.id==='saturn'?.91:p.id==='jupiter'?.94:1),sz],'#ffffff',[0,spin,0],p.id==='sun'?1:0,0,PlanetArt.get(p.id));
  for(const band of PlanetArt.rings(p.id))d('ringlet',[0,0,0],[sz*band.r,1,sz*band.r],band.color,[],.35);
- if(moonModeOn()&&!p.parent)for(const m of moonsOf(p.id)){const a=(state.reduced?0:t*m.speed)+m.phase,r=sz*m.orbit;d('sphere',[Math.cos(a)*r,Math.sin(a*.7)*sz*.16,Math.sin(a)*r],[m.bead,m.bead,m.bead],m.color);}
+ if(moons&&moonModeOn()&&!p.parent)for(const m of moonsOf(p.id)){const a=(state.reduced?0:t*m.speed)+m.phase,r=sz*m.orbit;d('sphere',[Math.cos(a)*r,Math.sin(a*.7)*sz*.16,Math.sin(a)*r],[m.bead,m.bead,m.bead],m.color);}
  if(p.id==='sun'&&!state.reduced){for(let i=0;i<9;i++){const a=i*2.4+t*.018,rr=sz*1.025;d('sphere',[Math.cos(a)*rr,Math.sin(a)*rr,0],[.05,.13+.025*Math.sin(t+i),.04],'#ffd575',[0,0,a],1);}}
  });}
-function flightScene(t){const pr=Math.min(1,state.elapsed/state.total),p=state.target,boost=Math.min(1.3,Math.max(0,state.speed-1)/2);renderer.begin([0,3,20],[0,.2,0],'#080f24');starScene(t,true);const targetX=11-pr*1.8,targetScale=.3+pr*.60;if(p.parent)planet(parentOf(p),t,[targetX+3.1,2.6,-15],targetScale*1.35);planet(p,t,[targetX,-.5,-5],targetScale);if(state.origin.id!=='sun'&&pr<.3)planet(state.origin,t,[-13-pr*25,-3,-9],.8);if(state.flyby){const phase=Math.min(1,state.flybyTime/5),x=state.reduced?0:9-phase*22,scale=state.reduced?.48:.24+Math.sin(phase*Math.PI)*.45;planet(state.flyby.body,t,[x,-2.25,1],scale);}
+function flightScene(t){const pr=Math.min(1,state.elapsed/state.total),p=state.target,boost=Math.min(1.3,Math.max(0,state.speed-1)/2);
+ // The last stretch swoops the planet in close, and a very fast rocket makes the whole view tremble.
+ const near=Math.max(0,(pr-.84)/.16),approach=near*near*(3-2*near),shake=state.reduced?0:Math.min(.1,Math.max(0,state.speed-3)*.018),aspect=scene.clientWidth/Math.max(1,scene.clientHeight);
+ renderer.begin([Math.sin(t*37)*shake,3+Math.cos(t*29)*shake,20],[0,.2,0],'#080f24');starScene(t,true);const targetX=Math.min(11,Math.max(5.5,7.9*aspect))-pr*1.8-approach*2.2,targetScale=.3+pr*.60+approach*.5;if(p.parent)planet(parentOf(p),t,[targetX+3.1,2.6,-15],targetScale*1.35);planet(p,t,[targetX,-.5,-5],targetScale);if(state.origin.id!=='sun'&&pr<.3)planet(state.origin,t,[-13-pr*25,-3,-9],.8);if(state.flyby&&state.flyby.body.id!=='belt'){const phase=Math.min(1,state.flybyTime/5),x=state.reduced?0:9-phase*22,scale=state.reduced?.48:.24+Math.sin(phase*Math.PI)*.45;planet(state.flyby.body,t,[x,-2.25,1],scale);}
  const bob=state.reduced?0:Math.sin(t*2)*.17;const surge=state.rocketOffset*(state.reduced?.4:1)*(1-pr*.45),requestedRocketX=-3+pr*.8+surge,safeGap=4.2+targetScale*1.8,rocketX=Math.min(requestedRocketX,targetX-safeGap);
- group([rocketX,bob,2],[1.4,1.4,1.4],[0,0,-Math.PI/2+.09-boost*.08],()=>rocket(t,true,0,true));
+ group([rocketX,bob,2],[1.4,1.4,1.4],[0,0,-Math.PI/2+.09-boost*.08],()=>rocket(t,true,0,true));fx.rocketWorld=[rocketX+1.26,bob,2];drawFlightFx(t,rocketX,bob,boost);
  if(boost>.04&&!state.reduced){for(let i=0;i<16;i++){const x=rocketX-2-((state.starTravel*1.8+i*.87)%12),y=bob+Math.sin(i*6.17)*(1.1+boost*2.4);d('box',[x,y,1-i%3],[.18+boost*.9,.012+boost*.006,.012],rewards.gold?(i%3?'#ffd94f':'#8fd99a'):(i%3?'#79e4e2':'#ffdf70'),[],1);}if(state.boostFlash>0){for(let i=0;i<2;i++){const age=(t*2+i*.5)%1,r=.45+age*1.2;d('ring',[rocketX-1.4-age*3,bob,2],[r,1,r],i?'#ffdf70':'#79e4e2',[0,0,Math.PI/2],.7);}}}}
 function arrivalScene(t){const a=state.angle,p=state.location,dist=scene.clientWidth/Math.max(1,scene.clientHeight)<.95?20:17;renderer.begin([Math.sin(a)*dist,3,Math.cos(a)*dist],[0,0,0],'#090f27');starScene(t);if(p.parent)planet(parentOf(p),t,[-11,4.5,-21],1.25);planet(p,t);const rt=state.reduced?.3:t*.2,rx=Math.cos(rt)*5.7,rz=Math.sin(rt)*5.7;group([rx,.5,rz],[.52,.52,.52],[.1,0,-.24],()=>rocket(t,true));const effectColors={mercury:'#c9c2b7',venus:'#f0ce9e',mars:'#e5a176',jupiter:'#e9b381',saturn:'#e6d8b0',uranus:'#b9f4ee',neptune:'#7bbcec',pluto:'#d8efff'};const color=effectColors[p.id]||p.color;if(!state.reduced){for(let i=0;i<30;i++){const b=i*2.399+t*(p.id==='neptune'?.65:.13),r=p.size+.5+(i%5)*.32,y=Math.sin(i*2+t*.22)*p.size*.7;d(p.id==='pluto'?'box':'sphere',[Math.cos(b)*r,y,Math.sin(b)*r],[.025+(i%3)*.015,.03,.025],color,[t,i,t],.6);}}
  }
 function sunScene(t){renderer.begin([0,3,19],[0,0,0],'#281329');starScene(t);planet(BODIES[0],t,[3,0,-2],1.3);const s=state.sunTime;if(s<2){group([-3+.5*s,0,2],[.8,.8,.8],[0,0,-1.2],()=>rocket(t,true,s>1));}if(s>.7){for(let i=0;i<24;i++){const a=i*2.4,age=Math.min(s-.7,2.5),r=age*(.5+i%5*.23);d('box',[-2.4+Math.cos(a)*r,Math.sin(a)*r,2+Math.sin(i)*r],[.05,.09,.05],i%2?'#ffba43':'#ff7540',[s*i,s,0],1);}}
  if(s>1.6){const x=-3-(s-1.6)*1.9,y=(s-1.6)*.55;d('sphere',[x,y,3],[.55,.49,.48],'#edeadc');d('sphere',[x,y,3.42],[.28,.27,.09],'#7fe0dd');d('sphere',[x,y-.01,3.51],[.15,.16,.035],'#f5cca7');d('cone',[x+.72,y,3],[.18,.5,.18],'#89dfda',[0,0,-Math.PI/2],1);}}
-function tick(now){if(!renderer)return;const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;if(!state.paused){state.clock+=dt;if(state.mode==='launch'){const prev=Math.ceil(3-state.launchTime);state.launchTime+=dt;const n=Math.ceil(3-state.launchTime);if(n!==prev&&n>0)gameAudio.effect('countdown');if(state.launchTime>=2.6&&state.launchTime-dt<2.6)gameAudio.effect('launch');$('countdown').textContent=n>0?String(n):'';$('countdown').hidden=n<=0;if(state.launchTime>=3.7){state.mode='flight';$('countdown').hidden=true;title('UTE PÅ ROMFERD',`Mot ${state.target.name}!`,'Bokstavkraft gir ekstra fart.',state.target.type);scene.setAttribute('aria-label',`Raketten flyr fra ${state.origin.name} til ${state.target.name}.`);}}
- if(state.mode==='flight'){state.elapsed+=dt*state.speed;updateBoost(dt);updateFlybys(dt);state.starTravel+=dt*(2+state.speed*5);updateFlight();if(state.elapsed>=state.total)arrive();}if(wordDelay>0){wordDelay-=dt;if(wordDelay<=0&&['flight','launch'].includes(state.mode))newWord();}if(state.mode==='arrival')state.arrivalTime+=dt;if(state.mode==='sun'){state.sunTime+=dt;if(state.sunTime>1.6&&!state.rescueSound){state.rescueSound=true;gameAudio.effect('rescue');}if(state.sunTime>7){$('sun-flash').classList.remove('active');home(true,true);}}}
- gameAudio.update();const t=state.clock;if(state.mode==='home')homeScene(t);else if(state.mode==='inside')insideScene(t);else if(state.mode==='launch'&&state.origin.id==='earth')homeScene(t,Math.pow(Math.max(0,state.launchTime-2.5),2)*6);else if(state.mode==='launch'||state.mode==='flight')flightScene(t);else if(state.mode==='arrival')arrivalScene(t);else if(state.mode==='sun')sunScene(t);renderer.end?.();requestAnimationFrame(tick);}
+function tick(now){if(!renderer)return;const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;if(!state.paused){state.clock+=dt;if(state.mode==='launch'){const prev=Math.ceil(3-state.launchTime);state.launchTime+=dt;const n=Math.ceil(3-state.launchTime);if(n!==prev&&n>0)gameAudio.effect('countdown');if(state.launchTime>=2.6&&state.launchTime-dt<2.6)gameAudio.effect('launch');$('countdown').textContent=n>0?String(n):'AVGANG!';$('countdown').classList.toggle('go',n<=0);if(state.launchTime>=3.7){state.mode='flight';$('countdown').hidden=true;title('UTE PÅ ROMFERD',`Mot ${state.target.name}!`,'Bokstavkraft gir ekstra fart.',state.target.type);scene.setAttribute('aria-label',`Raketten flyr fra ${state.origin.name} til ${state.target.name}.`);}}
+ if(state.mode==='flight'){state.elapsed+=dt*state.speed;updateBoost(dt);updateFlybys(dt);updateFlightFx(dt);state.starTravel+=dt*(2+state.speed*5);updateFlight();if(state.elapsed>=state.total)arrive();}if(wordDelay>0){wordDelay-=dt;if(wordDelay<=0&&['flight','launch'].includes(state.mode))newWord();}if(state.mode==='arrival')state.arrivalTime+=dt;if(state.mode==='play')updatePlay(dt);if(state.mode==='quiz')updateQuiz(dt);updateFx(dt);if(state.mode==='sun'){state.sunTime+=dt;if(state.sunTime>1.6&&!state.rescueSound){state.rescueSound=true;gameAudio.effect('rescue');}if(state.sunTime>7){$('sun-flash').classList.remove('active');home(true,true);}}}
+ gameAudio.update();const t=state.clock;if(state.mode==='home')homeScene(t);else if(state.mode==='inside')insideScene(t);else if(state.mode==='launch'&&state.origin.id==='earth')homeScene(t,Math.pow(Math.max(0,state.launchTime-2.5),2)*6);else if(state.mode==='launch'||state.mode==='flight')flightScene(t);else if(state.mode==='arrival')arrivalScene(t);else if(state.mode==='play')playScene(t);else if(state.mode==='quiz')quizScene(t);else if(state.mode==='sun')sunScene(t);drawSparks();updateSpace();renderer.end?.();requestAnimationFrame(tick);}
 // Optional browser agent integration uses the exact same actions as touch controls.
 if(document.modelContext?.registerTool){for(const tool of [{name:'read_space_adventure',description:'Read current destination, journey progress and spelling prompt.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({mode:state.mode,location:state.location.name,target:state.target?.name,word:state.word,nextLetter:state.word[state.index],speed:state.speed,progress:state.total?state.elapsed/state.total:0})},{name:'start_space_journey',description:'Start a new journey to a solar-system destination from home or after arrival. Moons are only available in moon mode.',inputSchema:{type:'object',properties:{destination:{type:'string',enum:[...BODIES,...MOONS].map(p=>p.id)}},required:['destination'],additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{const p=destinations().find(p=>p.id===input.destination);if(!p||!startTrip(p))throw Error('Velg et annet reisemål når du er hjemme eller har kommet frem.');return {destination:p.name,seconds:p.id==='earth'?0:state.total};}}]){try{Promise.resolve(document.modelContext.registerTool(tool)).catch(()=>{});}catch{}}}
-updateSettings();updatePassport();requestAnimationFrame(tick);
+updateSettings();updatePassport();
+// The game loop starts at the end of house-quiz.js, the last script, once every scene and game exists.
+
+</script><script>
+/* Shared play effects: tapping things in 3D, sparkles and confetti, comets and the asteroid belt. */
+const FOCAL=1/Math.tan(.34);
+const fx={rocketWorld:[0,0,0],jump:0,wiggle:0,comet:null,cometTimer:12,cometsSeen:0,rocks:[],trail:0,space:false,nebulaKey:''};
+const sparks=[];
+const rand=(a,b)=>a+Math.random()*(b-a);
+function shade(hex,k){return '#'+rgb(hex).map(v=>Math.round(v*255*k).toString(16).padStart(2,'0')).join('');}
+// Where a point in the last drawn frame lands on the screen, in CSS pixels from the canvas corner.
+function toScreen(p){const v=renderer?.vp;if(!v)return null;const x=v[0]*p[0]+v[4]*p[1]+v[8]*p[2]+v[12],y=v[1]*p[0]+v[5]*p[1]+v[9]*p[2]+v[13],w=v[3]*p[0]+v[7]*p[1]+v[11]*p[2]+v[15];if(w<.2)return null;return {x:(x/w*.5+.5)*scene.clientWidth,y:(.5-y/w*.5)*scene.clientHeight,w};}
+function screenRadius(r,w){return r*FOCAL*scene.clientHeight/2/w;}
+// The closest thing under a finger. Small hands get generous targets.
+function pickTarget(list,x,y,at,radius,min=40){let best=null,score=1;for(const item of list){const s=toScreen(at(item));if(!s)continue;const r=Math.max(min,screenRadius(radius(item),s.w)*1.3),dist=Math.hypot(s.x-x,s.y-y)/r;if(dist<score){score=dist;best=item;}}return best;}
+
+function burst(p,colors,n=14,power=2.4,opts={}){if(state.reduced)n=Math.ceil(n/2);if(renderer?.software)n=Math.min(n,8);
+ for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,z=Math.random()*2-1,h=Math.sqrt(1-z*z),sp=power*rand(.45,1);
+  sparks.push({p:[...p],v:[Math.cos(a)*h*sp,z*sp+(opts.lift||0),Math.sin(a)*h*sp],age:0,life:(opts.life||.8)*rand(.7,1.3),color:colors[i%colors.length],size:(opts.size||.09)*rand(.6,1.4),mesh:opts.mesh||'star',gravity:opts.gravity||0,drag:opts.drag??1.8,spin:rand(-5,5),glow:opts.glow??1});}}
+// Paper confetti tumbles down; the stars keep glowing.
+function confetti(center,radius,n=40){const colors=['#ff76ba','#ffde71','#79e4e2','#ba95ff','#ff9e6e','#8fe38f'];if(state.reduced)n=Math.ceil(n/3);if(renderer?.software)n=Math.min(n,16);
+ for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,z=rand(-.2,1),h=Math.sqrt(1-z*z),sp=rand(2,4.2),star=i%4===0;
+  sparks.push({p:[center[0]+Math.cos(a)*h*radius,center[1]+z*radius,center[2]+Math.sin(a)*h*radius],v:[Math.cos(a)*h*sp,z*sp+1.5,Math.sin(a)*h*sp],age:0,life:rand(1.6,2.6),color:colors[i%colors.length],size:star?.14:.13,mesh:star?'star':'box',gravity:star?.6:2.4,drag:1.1,spin:rand(-7,7),glow:star?1:.35});}}
+function updateSparks(dt){for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.age+=dt;if(s.age>=s.life){sparks.splice(i,1);continue;}const k=Math.exp(-s.drag*dt);s.v[1]-=s.gravity*dt;for(let j=0;j<3;j++){s.v[j]*=k;s.p[j]+=s.v[j]*dt;}}if(sparks.length>420)sparks.splice(0,sparks.length-420);}
+function drawSparks(){for(const s of sparks){const k=1-s.age/s.life,z=s.size*(s.mesh==='box'?1:.35+.65*k);d(s.mesh,s.p,s.mesh==='box'?[z,z*.12,z*.7]:[z,z,z],s.color,[s.age*s.spin,s.age*s.spin*.7,s.spin],s.glow);}}
+function resetFx(){sparks.length=0;fx.comet=null;fx.rocks=[];fx.jump=0;fx.wiggle=0;}
+function updateFx(dt){updateSparks(dt);fx.jump=Math.max(0,fx.jump-dt);fx.wiggle=Math.max(0,fx.wiggle-dt*1.4);}
+function homeJump(){return fx.jump>0?Math.sin((1-fx.jump/.8)*Math.PI)*.9:0;}
+
+// Space gets a soft coloured nebula behind the HUD, tinted from where we leave towards where we go.
+function updateSpace(){const m=state.mode,on=['flight','arrival','sun'].includes(m)||(m==='launch'&&state.origin.id!=='earth')||(m==='play'&&play.space);
+ if(on!==fx.space){fx.space=on;$('app').classList.toggle('space',on);}
+ const travelling=m==='flight'||m==='launch',from=travelling?state.origin:state.location,to=travelling?state.target:state.location,key=from.id+'>'+to.id;
+ if(on&&key!==fx.nebulaKey){fx.nebulaKey=key;const neb=$('nebula');neb.style.setProperty('--neb-a',shade(from.color,.5));neb.style.setProperty('--neb-b',shade(to.color,.55));}}
+function flash(){const el=$('warp-flash');el.classList.remove('go');void el.offsetWidth;el.classList.add('go');}
+function arrivalFx(){sparks.length=0;flash();confetti([0,0,0],state.location.size+.35,46);gameAudio.effect('sparkle');}
+
+// Letters pressed on the keyboard fly up into the rocket as fuel.
+function flyLetter(letter,button){if(state.reduced)return;const key=button||[...$('keyboard').children].find(b=>b.textContent===letter),s=toScreen(fx.rocketWorld);if(!key?.animate||!s)return;
+ const from=key.getBoundingClientRect(),box=scene.getBoundingClientRect(),el=document.createElement('span');el.className='letter-fly';el.textContent=letter;el.setAttribute('aria-hidden','true');$('app').append(el);
+ const x0=from.left+from.width/2,y0=from.top+from.height/2,x1=box.left+s.x,y1=box.top+s.y,at=(x,y,sc)=>`translate(${x}px,${y}px) translate(-50%,-50%) scale(${sc})`;
+ const anim=el.animate([{transform:at(x0,y0,1),opacity:1},{transform:at((x0+x1)/2,Math.min(y0,y1)-70,1.6),opacity:1,offset:.45},{transform:at(x1,y1,.35),opacity:.25}],{duration:680,easing:'cubic-bezier(.3,.1,.3,1)'});
+ anim.onfinish=()=>{el.remove();if(['flight','launch'].includes(state.mode))burst(fx.rocketWorld,['#ffde71','#79e4e2','#ffffff'],10,2.2);};}
+
+// Comets drift by now and then; asteroid rocks tumble past in the belt between Mars and Jupiter.
+function startFlightFx(){fx.comet=null;fx.rocks=[];fx.cometTimer=rand(9,16);fx.trail=0;}
+function spawnComet(){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight),z=rand(-5,-2),half=(20-z)/FOCAL,edge=half*aspect+3;
+ fx.comet={p:[edge,rand(3.2,5.6),z],v:[-rand(3.2,4.4),-rand(.25,.55),0],edge};fx.cometTimer=rand(14,26);
+ if(!fx.cometsSeen++){notify('☄ En komet! Trykk på den!');gameAudio.say('Se, en komet! Trykk på den!',{queue:true,id:'flyby-comet'});}}
+function startBelt(){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight),colors=['#8b7a69','#a38f78','#6f655c','#b59f86','#7d6a5a'],n=state.reduced?12:renderer.software?14:28;fx.rocks=[];
+ for(let i=0;i<n;i++){const z=rand(-5,5.5),half=(20-z)/FOCAL,edge=half*aspect+2;let y=rand(-.55,.65)*half;if(z>0&&z<4&&Math.abs(y)<1.4)y+=y<0?-1.5:1.5;
+  fx.rocks.push({p:[edge+i/n*22,y,z],vx:-rand(4,6),size:rand(.25,.7),turn:rand(-2,2),spin:rand(0,6),color:colors[i%colors.length],edge});}}
+function spawnExhaust(){const boosted=state.speed>1.6,colors=rewards.rainbow?['#ff6389','#ffe36b','#64dce9','#c28eff']:rewards.gold?['#ffd94f','#fff1a8','#8fd99a']:boosted?['#bff9ff','#79e4e2','#ffffff']:['#ffd66b','#ff9f4a','#fff1c1'],p=fx.rocketWorld;
+ sparks.push({p:[p[0]-2.3+rand(-.1,.1),p[1]+rand(-.12,.12),p[2]+rand(-.12,.12)],v:[-(3+state.speed*2.2),rand(-.35,.35),rand(-.35,.35)],age:0,life:rand(.35,.6),color:colors[Math.floor(Math.random()*colors.length)],size:rand(.1,.17),mesh:'star',gravity:0,drag:.4,spin:0,glow:1});}
+function updateFlightFx(dt){const rush=.4+state.speed*.6;
+ if(fx.comet){const c=fx.comet;c.p[0]+=c.v[0]*dt*(.6+rush*.4);c.p[1]+=c.v[1]*dt;if(c.p[0]<-c.edge)fx.comet=null;}
+ else{fx.cometTimer-=dt;const pr=state.elapsed/state.total;if(fx.cometTimer<=0&&!fx.rocks.length&&pr>.05&&pr<.88)spawnComet();}
+ for(const r of fx.rocks){r.p[0]+=r.vx*dt*rush;r.spin+=dt*r.turn;}fx.rocks=fx.rocks.filter(r=>r.p[0]>-r.edge);
+ fx.trail+=dt*(state.reduced?6:renderer.software?6:18+state.speed*7);while(fx.trail>=1){fx.trail--;spawnExhaust();}}
+function drawFlightFx(t,rocketX,bob,boost){
+ if(fx.comet){const c=fx.comet,dir=norm(c.v),tail=['#c9f6ff','#9fe3ff','#7ec8ff','#8aa6ff'];for(let i=1;i<15;i++){const k=i/15,back=i*.34,r=.32*(1-k*.8);d('sphere',[c.p[0]-dir[0]*back,c.p[1]-dir[1]*back+(state.reduced?0:Math.sin(t*6+i)*.05*k),c.p[2]-.02*i],[r,r,r],tail[i%4],[],1);}d('sphere',c.p,[.42,.42,.42],'#f2fdff',[],1);}
+ for(const r of fx.rocks)d('sphere',r.p,[r.size,r.size*.74,r.size*.88],r.color,[r.spin,r.spin*.6,.4]);
+ // A glowing tunnel opens around the rocket when Sofia spells really fast.
+ if(!state.reduced&&state.speed>2.4){const n=Math.min(7,Math.floor((state.speed-2)*1.6)),colors=['#79e4e2','#ff9ed1','#ffde71','#b9a2ff'];for(let i=0;i<n;i++){const x=rocketX+7-((t*(6+state.speed*2.5)+i*2.1)%14),r=2+.35*Math.sin(i*1.7);d('ringlet',[x,bob,2],[r,1,r],colors[i%4],[0,.75,Math.PI/2],1);}}}
+function flightTargets(){return !!fx.comet||fx.rocks.length>0;}
+function tapFlight(x,y){
+ if(fx.comet&&pickTarget([fx.comet],x,y,c=>c.p,()=>.8)){const c=fx.comet;fx.comet=null;burst(c.p,['#ffffff','#c9f6ff','#79e4e2','#ffde71'],26,4);gameAudio.effect('sparkle');state.speed=accelerate(state.speed,true);triggerBoost(false);$('boost-callout').textContent='☄ KOMETKRAFT!';notify('☄ Du fanget en komet, Sofia!');gameAudio.say('Du fanget en komet!',{queue:true,id:'flyby-comet'});updateFlight();return true;}
+ const rock=pickTarget(fx.rocks,x,y,r=>r.p,r=>r.size*1.1);if(rock){fx.rocks.splice(fx.rocks.indexOf(rock),1);burst(rock.p,['#d8c3a5','#ffde71','#a88f75','#ffffff'],14,3);gameAudio.effect('pop');return true;}
+ return false;}
+
+// At home, Sofia hops when tapped and the rocket gives a little wiggle.
+function tapHome(x,y){if(pickTarget([0],x,y,()=>[-.05,.72,1.85],()=>.62)!==null){fx.jump=.8;gameAudio.effect('boing');speak(['Hei, Sofia!','Hopp og sprett!','Klar for et nytt eventyr?'][Math.floor(Math.random()*3)]);return true;}
+ if(pickTarget([0],x,y,()=>[2.6,1.3,0],()=>1)!==null){fx.wiggle=1;gameAudio.effect('pop');burst([2.6,.2,0],['#e3ebe0','#ffffff'],10,1.6,{mesh:'sphere',size:.14,glow:.4});speak('Raketten er klar! Trykk på den gule knappen for å reise.');return true;}return false;}
+function tapScene(x,y){if(state.paused)return false;if(state.mode==='play'){tapPlay(x,y);return true;}if(state.mode==='quiz'){tapQuiz(x,y);return true;}if(state.mode==='flight')return tapFlight(x,y);if(state.mode==='home')return tapHome(x,y);return false;}
+function allowDoubleTap(){return !['play','quiz'].includes(state.mode)&&!(state.mode==='flight'&&flightTargets());}
+function keyScene(e){if([...document.querySelectorAll('.modal-shade')].some(el=>!el.hidden))return false;
+ if(state.mode==='play'){if(e.key==='Escape'){endPlay();return true;}return /^[a-zæøå]$/i.test(e.key)&&keyPlay(e.key.toUpperCase());}
+ if(state.mode==='quiz'){if(e.key==='Escape'){endQuiz();return true;}const n=Number(e.key);if(n>=1&&n<=4&&$('quiz-choices').children[n-1]){$('quiz-choices').children[n-1].click();return true;}}return false;}
+
+// Sofia in a space suit for walks on other worlds. Arms reach up while she jumps.
+function astronaut(t,reach=0){const suit='#f2f3f6',wave=state.reduced?0:Math.sin(t*4)*.35;
+ d('box',[0,.55,0],[.26,.33,.19],suit);d('box',[0,.62,-.24],[.2,.26,.08],'#c9ced8');d('box',[0,.64,.2],[.11,.07,.02],'#79e4e2',[],.7);d('box',[0,.28,0],[.27,.05,.2],'#ff9ed1');
+ for(const x of [-.12,.12]){d('box',[x,.14,0],[.1,.2,.12],suit);d('sphere',[x,.02,.06],[.13,.08,.18],'#8d96a8');}
+ for(const side of [-1,1]){const ang=reach?2.75:side>0?2.2+wave:.3,L=.22,sx=side*.3,sy=.82,th=side*ang;d('box',[sx+L*Math.sin(th),sy-L*Math.cos(th),0],[.09,L,.1],suit,[0,0,th]);d('sphere',[sx+2*L*Math.sin(th),sy-2*L*Math.cos(th),0],[.1,.1,.1],'#8d96a8');}
+ d('sphere',[0,1.1,-.2],[.42,.42,.3],'#f7f8fb');d('sphere',[0,1.1,0],[.27,.28,.25],'#f6d1a8');d('sphere',[0,1.25,-.06],[.28,.16,.22],'#77523c');
+ d('sphere',[-.09,1.12,.24],[.032,.04,.016],'#1a2a3e');d('sphere',[.09,1.12,.24],[.032,.04,.016],'#1a2a3e');d('box',[0,1.03,.25],[.055,.016,.01],'#c5766c');
+ d('ringlet',[0,1.1,.1],[.36,1,.36],'#79e4e2',[Math.PI/2,0,0],.6);d('sphere',[-.15,1.26,.22],[.04,.04,.02],'#ffffff',[],1);}
+// Round, bright letter badges for the letter storm, painted once per letter and colour.
+const tileCache=new Map();
+function letterTile(ch,color){const key=ch+color;if(tileCache.has(key))return tileCache.get(key);const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+ g.fillStyle='#1b2446';g.beginPath();g.arc(64,64,61,0,Math.PI*2);g.fill();g.fillStyle=color;g.beginPath();g.arc(64,64,53,0,Math.PI*2);g.fill();g.fillStyle='#ffffff4d';g.beginPath();g.ellipse(46,38,24,13,-.5,0,Math.PI*2);g.fill();
+ g.font='900 74px "Arial Black",system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.lineWidth=10;g.strokeStyle='#1b2446';g.strokeText(ch,64,70);g.fillStyle='#ffffff';g.fillText(ch,64,70);tileCache.set(key,c);return c;}
+
+</script><script>
+/* Something fun on every world: short tap games that count up and cannot be lost. */
+const play={def:null,body:null,kind:null,count:0,goal:0,done:false,doneTime:0,space:true,time:0,items:[],view:{hw:6,hh:4.5},center:[0,1,0]};
+const NUMBER_WORDS=['null','én','to','tre','fire','fem','seks','sju','åtte','ni','ti'];
+// A fixed camera that always fits a stage of w × h world units, in landscape and portrait alike.
+function stage(w,h,look,bg,rise=.14){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight),half=Math.max(h/2,w/2/aspect),dist=half*FOCAL,sway=state.reduced?0:Math.sin(play.time*.25)*.25;
+ play.view={hw:half*aspect,hh:half};renderer.begin([look[0]+sway,look[1]+dist*rise,look[2]+dist],look,bg);}
+// Ground for the worlds we can stand on: a wide, gently curved plain with darker patches.
+const SPOTS=Array.from({length:16},(_,i)=>[Math.sin(i*7.13)*7.5,-7+((i*3.71)%10.5),.22+(i%4)*.16]);
+function groundY(x,z){return -6+6*Math.sqrt(Math.max(0,1-(x/30)**2-((z+1)/20)**2));}
+function surface(t,{sky,ground,dark,hills,stars=false}){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight);stage(aspect<1?9:11,6.6,[0,1.1,0],sky,.32);if(stars)starScene(t);
+ d('sphere',[0,-6,-1],[30,6,20],ground);for(const [x,z,r] of SPOTS)d('cylinder',[x,groundY(x,z)+.005,z],[r,.02,r*.8],dark);
+ if(hills)for(const [x,s] of [[-11,5],[-3,6.5],[6,5.5],[14,6]])d('sphere',[x,groundY(x,-15)-.2,-15],[s,s*.14,1.6],hills);}
+function parkedRocket(t,x,z){group([x,.36,z],[.7,.7,.7],[0,-.3,0],()=>rocket(t,false,0,false,false));}
+
+function startPlay(){const p=state.location,def=playFor(p);if(state.mode!=='arrival'||!def)return;gameAudio.stopSpeech();resetFx();
+ Object.assign(play,{def,body:p,kind:PLAY_KINDS[def.kind],count:0,goal:def.goal,done:false,doneTime:0,time:0,items:[],space:!['rover','snowman','hop'].includes(def.kind),center:[0,1,0]});
+ state.mode='play';state.angle=0;play.kind.start();showConsole('play');$('play-title').textContent=`${def.icon} ${def.title}`;$('play-task').textContent=def.task;$('play-again').hidden=true;$('play-done').textContent='Tilbake';
+ $('world-hint').hidden=true;$('scene-caption').hidden=true;title(p.parent?'MÅNELEK':'PLANETLEK',def.title,def.task,`${def.icon} ${p.name}`);renderPlayProgress();
+ scene.setAttribute('aria-label',`${def.title} på ${p.name}. ${def.task}`);tone(520,.1);gameAudio.say(def.intro,{id:'fact-play'});}
+function endPlay(){if(state.mode!=='play')return;gameAudio.stopSpeech();resetFx();showArrival();tone(300,.08);}
+function renderPlayProgress(){const def=play.def,box=$('play-progress'),word=$('play-word'),letters=def.kind==='letters';word.hidden=!letters;box.hidden=letters;
+ if(letters){word.replaceChildren();[...def.word].forEach((ch,i)=>{const s=document.createElement('span');s.className='slot'+(i<play.count?' done':i===play.count&&!play.done?' current':'');s.textContent=ch;word.append(s);});word.setAttribute('aria-label',`${def.word}. ${play.count} av ${def.word.length} bokstaver.`);return;}
+ box.replaceChildren();for(let i=0;i<play.goal;i++){const s=document.createElement('span');s.className='play-dot'+(i<play.count?' got':'');s.textContent=def.icon;box.append(s);}box.setAttribute('aria-label',`${play.count} av ${play.goal}`);}
+// One more caught, counted out loud in Norwegian. words=false keeps quiet, a string says something else.
+function score(p,words){if(play.done)return;play.count++;burst(p,['#ffde71','#ffffff','#79e4e2','#ff9ed1'],16,3);renderPlayProgress();const said=words===false?'':words||NUMBER_WORDS[play.count]+'!';
+ if(play.count>=play.goal)return finishPlay(said);if(said)gameAudio.say(said,{id:'letter-count'});}
+function finishPlay(said){const p=play.body,first=!state.played.has(p.id);play.done=true;play.doneTime=0;state.played.add(p.id);saveProgress();renderPlayProgress();
+ confetti(play.center,1.6,64);gameAudio.effect('fanfare');notify('⭐ Du klarte det, Sofia!');if(said)gameAudio.say(said,{id:'letter-count'});gameAudio.say(play.def.outro,{queue:true,id:'fact-play'});
+ $('play-task').textContent=first&&!p.parent?`Du klarte det! ${p.name} får en gullstjerne i rommet ditt ⭐`:'Du klarte det! ⭐';$('play-again').hidden=false;$('play-done').textContent='Ferdig';
+ title('HURRA, SOFIA!','Du klarte det!',play.def.title.includes(p.name)?play.def.title:`${play.def.title} · ${p.name}`,'⭐ '+p.name);}
+function updatePlay(dt){play.time+=dt;if(play.done)play.doneTime+=dt;play.kind.update(dt);}
+function playScene(t){play.kind.draw(t);}
+function tapPlay(x,y){if(play.done){confetti(play.center,1.2,18);gameAudio.effect('sparkle');return;}play.kind.tap(x,y);}
+function keyPlay(letter){return !play.done&&!!play.kind.key?.(letter);}
+$('play-here').onclick=startPlay;$('play-done').onclick=endPlay;$('play-again').onclick=()=>{state.mode='arrival';startPlay();};
+$('play-speak').onclick=()=>gameAudio.say(play.done?play.def.outro:play.def.intro,{force:true,id:'fact-play'});
+
+// Each moon's ground carries its own look: Europa's cracks, Io's volcano spots, icy stripes on Enceladus and Triton.
+const MARKS=Array.from({length:10},(_,i)=>({x:Math.sin(i*5.3)*6,z:-5.5+((i*2.9)%8),a:i*1.1,len:1.6+(i%3)*.9}));
+function moonGround(p){for(const m of MARKS){const y=groundY(m.x,m.z)+.012;if(p.style==='cracks')d('box',[m.x,y,m.z],[m.len,.012,.035],'#a8714d',[0,m.a,0]);
+ else if(p.style==='spots')d('cylinder',[m.x,y,m.z],[.3+(m.len-1.6)*.2,.015,.24],['#e0662c','#3b1e14','#fff1a0'][Math.round(m.a*3)%3]);
+ else if(p.style==='stripes')d('box',[m.x,y,m.z],[m.len,.012,.06],'#8fbfdb',[0,.4+(m.a%.6),0]);
+ else if(p.style==='haze')d('cylinder',[m.x,y,m.z],[.7,.012,.4],'#3d2a18');}}
+const PUFF=[[0,0,.62,'#fff5dc'],[.55,-.1,.46,'#f7e2b5'],[-.55,-.1,.48,'#f7e2b5'],[.25,.35,.42,'#fffaf0'],[-.25,.3,.4,'#fffaf0']];
+const SNOW=[{r:.55,at:[0,.5,0]},{r:.42,at:[0,1.28,0]},{r:.31,at:[0,1.9,0]},{kind:'eyes',at:[0,1.97,.27]},{kind:'nose',at:[0,1.88,.45]},{kind:'hat',at:[0,2.2,0]}];
+const PLAY_KINDS={
+ // Merkur: meteors rain down. Tapped ones turn to stardust; the rest leave new craters.
+ meteors:{
+  start(){play.craters=[];play.spawn=.5;play.core=[0,-4.4,-1];play.R=play.body.size*1.5;play.center=[0,0,0];},
+  spawn(){const {hw,hh}=play.view,c=play.core,p=[rand(-hw*.8,hw*.8),hh+.8,rand(-.5,1)],aim=[c[0]+rand(-2.2,2.2),c[1]+play.R*.9,c[2]],way=sub(aim,p),sp=Math.hypot(...way)/rand(3.3,4.3);play.items.push({p,v:norm(way).map(v=>v*sp),spin:rand(0,6),size:rand(.32,.42)});},
+  update(dt){play.spawn-=dt;if(!play.done&&play.spawn<=0&&play.items.length<3){this.spawn();play.spawn=rand(.9,1.6);}const c=play.core;
+   for(const m of [...play.items]){for(let k=0;k<3;k++)m.p[k]+=m.v[k]*dt;m.spin+=dt*3;if(Math.hypot(...sub(m.p,c))<play.R+.15){play.items.splice(play.items.indexOf(m),1);play.craters.push({n:norm(sub(m.p,c)),size:rand(.22,.36)});if(play.craters.length>18)play.craters.shift();burst(m.p,['#ffb347','#ff7a3d','#fff1c1'],12,2.2,{mesh:'sphere',size:.12});gameAudio.effect('thud');}}},
+  draw(t){stage(12,9,[0,0,0],'#0a0c1f');starScene(t);const c=play.core;planet(play.body,0,c,1.5,false);
+   for(const cr of play.craters){d('sphere',c.map((v,i)=>v+cr.n[i]*(play.R-.24)),[cr.size*1.35,cr.size*1.35,cr.size*1.35],'#cfc6ba');d('sphere',c.map((v,i)=>v+cr.n[i]*(play.R-.1)),[cr.size,cr.size,cr.size],'#4a4540');}
+   for(const m of play.items){const back=norm(m.v).map(v=>-v);for(let i=1;i<7;i++){const r=m.size*(1-i/8);d('sphere',m.p.map((v,k)=>v+back[k]*i*.28),[r,r,r],i<3?'#ffe08a':i<5?'#ff9a3d':'#e0552f',[],1);}d('sphere',m.p,[m.size,m.size*.85,m.size*.9],'#6b5b4d',[m.spin,m.spin*.7,0]);}},
+  tap(x,y){const m=pickTarget(play.items,x,y,m=>m.p,m=>m.size*1.6);if(!m)return;play.items.splice(play.items.indexOf(m),1);burst(m.p,['#ffde71','#ffffff','#ffb347'],18,3.2);gameAudio.effect('pop');score(m.p);}},
+ // Venus: puffy clouds drift across the planet. Tap to blow them away.
+ clouds:{
+  start(){play.core=[0,-.2,-3];play.center=[0,0,0];play.spawnT=0;for(let i=0;i<5;i++)this.spawn(true);},
+  spawn(anywhere){const {hw,hh}=play.view;play.items.push({p:[anywhere?rand(-hw*.8,hw*.8):-hw-2,rand(-hh*.6,hh*.5),rand(.6,2)],vx:rand(.7,1.2),phase:rand(0,6),size:rand(.85,1.15)});},
+  update(dt){const {hw}=play.view;for(const c of play.items){c.p[0]+=c.vx*dt;if(c.p[0]>hw+2.5)c.p[0]=-hw-2.5;}if(!play.done&&play.items.length<5&&(play.spawnT+=dt)>.8){play.spawnT=0;this.spawn(false);}},
+  draw(t){stage(12,9,[0,0,0],'#120d1c');starScene(t);planet(play.body,t,play.core,1.3,false);for(const c of play.items){const y=c.p[1]+(state.reduced?0:Math.sin(t*.9+c.phase)*.15),s=c.size;for(const [dx,dy,r,col] of PUFF)d('sphere',[c.p[0]+dx*s,y+dy*s,c.p[2]+(dy>0?.05:0)],[r*s,r*s*.82,r*s*.8],col,[],.25);}},
+  tap(x,y){const c=pickTarget(play.items,x,y,c=>c.p,c=>c.size*.9);if(!c)return;play.items.splice(play.items.indexOf(c),1);burst(c.p,['#fff4d6','#f6dca6','#ffffff'],16,2.4,{mesh:'sphere',size:.2,glow:.4,life:.7});gameAudio.swoosh(.45,.07);gameAudio.effect('pop');score(c.p);}},
+ // Mars: a little rover drives around. Tapped stones hop up into its cargo bay.
+ rover:{
+  start(){play.a=0;play.cargo=0;play.spawnT=0;for(let i=0;i<3;i++)this.spawn();},
+  spawn(){const lim=Math.min(4.4,play.view.hw*.8);let x=0,z=0;for(let i=0;i<24;i++){x=rand(-lim,lim);z=rand(-1.3,2.3);if(Math.hypot(x+3.4,z+1.4)>1.7&&Math.hypot(x+2.2,z+.5)>1&&!play.items.some(s=>Math.hypot(s.p[0]-x,s.p[2]-z)<1.3))break;}
+   play.items.push({p:[x,groundY(x,z)+.13,z],flying:false,k:0,shine:rand(0,6),color:['#8c4a2f','#a0583a','#6e3a26'][Math.floor(rand(0,3))]});},
+  at(){return [Math.cos(play.a)*2.9,0,Math.sin(play.a)*1.3+.3];},
+  update(dt){play.a+=dt*(state.reduced?.18:.32);const r=this.at();play.center=[r[0],1,r[2]];
+   for(const s of [...play.items]){if(!s.flying)continue;s.k=Math.min(1,s.k+dt/.8);const to=[r[0],.9,r[2]];s.p=s.from.map((v,i)=>v+(to[i]-v)*s.k+(i===1?Math.sin(s.k*Math.PI)*2.2:0));if(s.k>=1){play.items.splice(play.items.indexOf(s),1);play.cargo++;gameAudio.effect('thud');score(to);}}
+   if(!play.done&&play.items.filter(s=>!s.flying).length<3&&(play.spawnT+=dt)>.9){play.spawnT=0;this.spawn();}},
+  draw(t){surface(t,{sky:'#d8a27c',ground:'#b35c38',dark:'#8e4428',hills:'#9c4b2c'});d('sphere',[-8,8,-26],[.6,.6,.6],'#fff4e2',[],1);parkedRocket(t,-3.4,-1.4);group([-2.2,0,-.5],[.85,.85,.85],[0,.25,0],()=>astronaut(t));
+   const r=this.at(),heading=Math.atan2(-Math.cos(play.a)*1.3,-Math.sin(play.a)*2.9);
+   group([r[0],0,r[2]],[.62,.62,.62],[0,heading,0],()=>{d('box',[0,.62,0],[.85,.16,.5],'#e9e4d8');for(const x of [-.62,0,.62])for(const z of [-.58,.58])d('cylinder',[x,.25,z],[.24,.08,.24],'#3a3a42',[Math.PI/2,0,0]);d('box',[-.2,.82,0],[.62,.03,.62],'#2f4f8f');
+    d('cylinder',[.55,1.05,-.2],[.04,.3,.04],'#cfcac0');d('box',[.62,1.42,-.2],[.16,.1,.15],'#e9e4d8');d('sphere',[.79,1.44,-.27],[.05,.05,.05],'#1b2a44');d('sphere',[.79,1.44,-.13],[.05,.05,.05],'#1b2a44');d('cylinder',[-.6,1.1,.35],[.015,.3,.015],'#cfcac0');d('sphere',[-.6,1.42,.35],[.05,.05,.05],'#ff6a4d',[],1);
+    for(let i=0;i<play.cargo;i++)d('sphere',[-.45+(i%3)*.24,.93+Math.floor(i/3)*.14,-.12+(i%2)*.22],[.13,.1,.13],'#8c4a2f');});
+   for(const s of play.items){d('sphere',s.p,[.28,.2,.26],s.color,[0,s.shine,0]);if(!s.flying){d('gem',[s.p[0],s.p[1]+.42+(state.reduced?0:Math.sin(t*3+s.shine)*.08),s.p[2]],[.1,.16,.1],'#fff6c4',[0,t*2,0],1);d('ringlet',[s.p[0],s.p[1]-.1,s.p[2]],[.46,1,.46],'#ffde71',[],1);}}
+   // A dust devil wanders across the plain.
+   if(!state.reduced){const dx=Math.sin(t*.08)*6,dz=-3.5,y0=groundY(dx,dz);for(let i=0;i<30;i++){const h=i*.065,a=t*5+i*1.9,rr=.06+h*.32,z=.035+h*.012;d('sphere',[dx+Math.cos(a)*rr,y0+h,dz+Math.sin(a)*rr],[z,z,z],i%2?'#e2b590':'#c98a62');}}},
+  tap(x,y){const s=pickTarget(play.items.filter(s=>!s.flying),x,y,s=>s.p,()=>.45);if(!s)return;s.flying=true;s.k=0;s.from=[...s.p];gameAudio.effect('boing');}},
+ // Jupiter: count the four big moons as they go round.
+ moons:{
+  start(){play.core=[0,0,-3];play.R=play.body.size*.95;play.center=[0,1,0];play.items=moonsOf('jupiter').map((m,i)=>({m,r:4.4+i*.85,a:i*1.9+.6,speed:.3-i*.045,size:[.5,.5,.62,.56][i],n:0,p:[0,0,0]}));},
+  update(dt){for(const o of play.items){o.a+=dt*o.speed*(state.reduced?.5:1);o.p=[Math.cos(o.a)*o.r,.3+Math.sin(o.a)*o.r*.16,play.core[2]+Math.sin(o.a)*o.r*.55];}},
+  // A moon behind Jupiter cannot be seen, so it cannot be tapped either.
+  hidden(o){return o.p[2]<play.core[2]&&Math.hypot(o.p[0]-play.core[0],o.p[1]-play.core[1])<play.R+o.size*.5;},
+  draw(t){stage(14.5,9,[0,0,-1],'#07091c');starScene(t);planet(play.body,t,play.core,.95,false);
+   for(const o of play.items){renderer.draw('globe',o.p,[o.size,o.size,o.size],'#ffffff',[0,t*.2,0],0,0,PlanetArt.get(o.m.id));
+    if(o.n){d('ringlet',o.p,[o.size*1.5,1,o.size*1.5],'#ffcf4a',[Math.PI/2,0,0],1);renderer.decal(letterTile(String(o.n),'#ffb43d'),[o.p[0],o.p[1]+o.size+.55,o.p[2]],[.8,.8]);}
+    else if(!state.reduced&&!this.hidden(o))d('ringlet',o.p,[o.size*1.35,1,o.size*1.35],'#ffffff',[Math.PI/2,0,0],.3+.3*Math.sin(t*4));}},
+  tap(x,y){const o=pickTarget(play.items.filter(o=>!this.hidden(o)),x,y,o=>o.p,o=>o.size*1.2);if(!o)return;if(o.n){gameAudio.effect('pop');gameAudio.say(o.m.name+'!',{id:'letter-moon'});return;}
+   o.n=play.count+1;gameAudio.note(o.n-1);score(o.p,`${NUMBER_WORDS[o.n]}! ${o.m.name}!`);}},
+ // Saturn: ice glitters in the rings. Catch the sparkly pieces.
+ ice:{
+  start(){play.core=[0,-.3,-2.5];play.scale=1.15;play.rot=[.42,0,.28];play.center=[0,1,0];play.spawnT=0;play.items=Array.from({length:renderer.software?24:48},()=>({a:rand(0,Math.PI*2),rr:rand(1.28,2.15),y:rand(-.03,.03),size:rand(.05,.12),sparkle:false,glint:rand(0,6),p:null}));},
+  update(dt){const m=M.model(play.core,[play.scale,play.scale,play.scale],play.rot),s=play.body.size;
+   for(const o of play.items){o.a+=dt*.16/o.rr;const l=[Math.cos(o.a)*o.rr*s,o.y*s,Math.sin(o.a)*o.rr*s];o.p=[0,1,2].map(i=>m[i]*l[0]+m[4+i]*l[1]+m[8+i]*l[2]+m[12+i]);if(o.sparkle&&o.p[2]<play.core[2]-.5)o.sparkle=false;}
+   if(!play.done&&play.items.filter(o=>o.sparkle).length<3&&(play.spawnT+=dt)>.5){play.spawnT=0;const front=play.items.filter(o=>!o.sparkle&&o.p[2]>play.core[2]+1);if(front.length)front[Math.floor(rand(0,front.length))].sparkle=true;}},
+  draw(t){stage(14,8.5,[0,0,-1],'#080a1c');starScene(t);planet(play.body,t,play.core,play.scale,false,play.rot);
+   for(const o of play.items){if(!o.p)continue;if(o.sparkle){const k=1+.25*Math.sin(t*6+o.glint);d('gem',o.p,[.3*k,.44*k,.3*k],'#e8fbff',[0,t*2,0],1);d('star',[o.p[0],o.p[1],o.p[2]+.05],[.34*k,.34*k,.34*k],'#bdf3ff',[0,0,t],1);d('ringlet',o.p,[.6*k,1,.6*k],'#9fe8ff',[Math.PI/2,0,0],1);}else d('box',o.p,[o.size,o.size*.8,o.size],'#dfe6ea',[o.glint,o.a,0],.2);}},
+  tap(x,y){const o=pickTarget(play.items.filter(o=>o.sparkle),x,y,o=>o.p,()=>.4);if(!o)return;o.sparkle=false;burst(o.p,['#e8fbff','#9fe8ff','#ffffff'],16,2.6);gameAudio.effect('sparkle');score(o.p);}},
+ // Uranus: it may rain diamonds deep inside. Catch them as they fall; each one plays a note.
+ diamonds:{
+  start(){play.core=[0,-2.2,-4.5];play.center=[0,0,0];play.spawnT=0;},
+  update(dt){const {hw,hh}=play.view;play.spawnT-=dt;if(!play.done&&play.spawnT<=0&&play.items.length<5){play.items.push({p:[rand(-hw*.8,hw*.8),hh+.7,rand(0,1.5)],vy:-rand(1.05,1.45),sway:rand(0,6),spin:rand(0,6),color:['#e8fbff','#ffc2e6','#c8b6ff','#b6f5ff','#fff3b0'][Math.floor(rand(0,5))]});play.spawnT=rand(.7,1.15);}
+   for(const g of play.items){g.p[1]+=g.vy*dt;g.p[0]+=Math.sin(play.time*1.3+g.sway)*dt*.35;g.spin+=dt*2;}play.items=play.items.filter(g=>g.p[1]>-hh-1.2);},
+  draw(t){stage(12,9,[0,0,0],'#060c1e');starScene(t);planet(play.body,t,play.core,1.2,false);
+   for(const g of play.items){d('gem',g.p,[.34,.48,.34],g.color,[0,g.spin,0],.55);if(!state.reduced){const k=.5+.5*Math.sin(t*5+g.sway),at=[g.p[0]+.18,g.p[1]+.3,g.p[2]+.3];d('box',at,[.18*k,.02,.02],'#ffffff',[],1);d('box',at,[.02,.18*k,.02],'#ffffff',[],1);}}},
+  tap(x,y){const g=pickTarget(play.items,x,y,g=>g.p,()=>.5);if(!g)return;play.items.splice(play.items.indexOf(g),1);burst(g.p,['#ff6389','#ffe36b','#64dce9','#c28eff','#ffffff'],18,3);gameAudio.note(play.count);score(g.p);}},
+ // Neptun: the wind has blown the letters away. Catch N-E-P-T-U-N in order.
+ letters:{
+  start(){const word=play.def.word,colors=['#ff76ba','#ffb347','#3fc6c3','#9b7bff','#58c26b','#f2b200','#ff7f50'],set=[...new Set(word),...['A','O'].slice(0,renderer.software?1:2)];play.core=[0,-.6,-5];play.center=[0,0,0];
+   play.items=set.map((ch,i)=>({ch,color:colors[i%colors.length],x0:rand(0,18),speed:rand(.9,1.3),phase:rand(0,6),shake:0,p:[0,0,0]})).sort(()=>Math.random()-.5);play.items.forEach((o,i)=>o.row=i);
+   play.streaks=Array.from({length:18},()=>({x0:rand(0,30),y:rand(-4,4),z:rand(-2,1.5),len:rand(.8,2),speed:rand(5,8)}));$('play-task').textContent='Finn '+word[0]+'!';},
+  update(dt){const {hw,hh}=play.view,span=hw*2+3,n=play.items.length;for(const o of play.items){o.shake=Math.max(0,o.shake-dt);const x=-hw-1.5+((o.x0+play.time*o.speed*(state.reduced?.6:1))%span);o.p=[x+Math.sin(o.shake*40)*o.shake*.5,(-.62+1.24*(o.row+.5)/n)*hh*.9+Math.sin(play.time*1.2+o.phase)*.3,1+(o.row%3)*.35];}},
+  draw(t){stage(13,8.4,[0,0,0],'#050b22');starScene(t);planet(play.body,t,play.core,1.05,false);const {hw}=play.view,span=hw*2+6;
+   if(!state.reduced)for(const s of play.streaks)d('box',[-hw-3+((s.x0+t*s.speed)%span),s.y,s.z],[s.len,.018,.018],'#bfe3ff',[],.8);
+   const next=play.def.word[play.count];for(const o of play.items){if(state.hints&&!play.done&&o.ch===next)d('ringlet',[o.p[0],o.p[1],o.p[2]-.05],[.74,1,.74],'#ffde71',[Math.PI/2,0,0],1);renderer.decal(letterTile(o.ch,o.color),o.p,[1.25,1.25]);}},
+  tap(x,y){const o=pickTarget(play.items,x,y,o=>o.p,()=>.62);if(o)this.pick(o);},
+  key(ch){const o=play.items.find(o=>o.ch===ch);if(o)this.pick(o);return !!o;},
+  pick(o){const word=play.def.word,next=word[play.count];
+   if(o.ch===next){gameAudio.letter(o.ch,play.count+1===play.goal?word:'');burst(o.p,[o.color,'#ffffff','#ffde71'],16,3);score(o.p,false);if(!play.done)$('play-task').textContent='Bra! Finn '+word[play.count]+'!';return;}
+   o.shake=.4;gameAudio.effect('oops');gameAudio.say(`Det er ${LETTER_NAMES[o.ch]||o.ch}. Finn ${LETTER_NAMES[next]||next}!`,{id:'letter-hint'});$('play-task').textContent=`Det er ${o.ch}. Finn ${next}!`;}},
+ // Pluto: build a snowman, one glittering piece at a time.
+ snowman:{
+  start(){play.base=[1.3,0,.4];play.center=[1.3,1.4,.4];play.flakes=Array.from({length:renderer.software?14:40},()=>({p:[rand(-7,7),rand(0,8),rand(-4,3)],v:rand(.25,.5)}));this.spawn();},
+  spawn(){const i=play.count;if(i>=SNOW.length)return;const lim=Math.min(4.2,play.view.hw*.8);let x=0,z=0;for(let k=0;k<24;k++){x=rand(-lim,lim);z=rand(-1,2.2);if(Math.hypot(x-play.base[0],z-play.base[2])>1.6&&Math.hypot(x+3.4,z+1.4)>1.6&&Math.hypot(x+.4,z-.9)>1)break;}
+   const part=SNOW[i],lift=part.r?part.r:part.kind==='hat'?.1:.06;play.items=[{i,p:[x,groundY(x,z)+lift,z],flying:false,k:0}];},
+  update(dt){for(const f of play.flakes){f.p[1]-=f.v*dt;if(f.p[1]<0)f.p[1]+=8;}const it=play.items[0];
+   if(it?.flying){it.k=Math.min(1,it.k+dt/.75);const to=play.base.map((v,i)=>v+SNOW[it.i].at[i]);it.p=it.from.map((v,i)=>v+(to[i]-v)*it.k+(i===1?Math.sin(it.k*Math.PI)*1.6:0));if(it.k>=1){play.items=[];gameAudio.effect('thud');score(to);if(!play.done)this.spawn();}}},
+  part(i,p,t,lying){const s=SNOW[i];if(s.r){d('sphere',p,[s.r,s.r*.95,s.r],'#f4f7fb');if(i===1&&!lying)for(const y of [.12,-.12])d('sphere',[p[0],p[1]+y,p[2]+s.r*.96],[.045,.045,.03],'#2b2b33');return;}
+   if(s.kind==='eyes'){for(const x of [-.1,.1])d('sphere',[p[0]+x,p[1],p[2]],[.05,.05,.04],'#1d1d25');return;}
+   if(s.kind==='nose'){d('cone',p,[.06,.2,.06],'#ff8a2a',lying?[0,0,Math.PI/2]:[Math.PI/2,0,0]);return;}
+   d('cylinder',p,[.36,.03,.36],'#20222c');d('cylinder',[p[0],p[1]+.2,p[2]],[.23,.2,.23],'#20222c');d('cylinder',[p[0],p[1]+.07,p[2]],[.235,.045,.235],'#e0445a');},
+  draw(t){surface(t,{sky:'#070a1c',ground:'#d9cdbf',dark:'#b8a594',stars:true});
+   // Pluto's bright heart on the plain, the big moon Charon overhead and a far-away Sun.
+   group([2.4,groundY(2.4,-3.8)+.02,-3.8],[1.7,1,1.7],[0,0,0],()=>{for(const x of [-.424,.424])d('cylinder',[x,0,-.424],[.6,.02,.6],'#f7f2ea');d('box',[0,.001,0],[.6,.02,.6],'#f7f2ea',[0,Math.PI/4,0]);});
+   d('cylinder',[-4.8,groundY(-4.8,-3.6)+.005,-3.6],[2.2,.02,.9],'#7d4f40');renderer.draw('globe',[7,3.1,-24],[2.6,2.6,2.6],'#ffffff',[0,t*.02,0],0,0,PlanetArt.get('charon'));
+   d('sphere',[-2,4.2,-30],[.3,.3,.3],'#fffbe8',[],1);d('box',[-2,4.2,-30],[.9,.03,.03],'#fffbe8',[],1);d('box',[-2,4.2,-30],[.03,.9,.03],'#fffbe8',[],1);
+   parkedRocket(t,-3.6,-1.2);group([-.4,0,.9],[.85,.85,.85],[0,.4,0],()=>astronaut(t));
+   for(let i=0;i<play.count;i++)this.part(i,play.base.map((v,k)=>v+SNOW[i].at[k]),t,false);
+   if(play.done){for(const side of [-1,1])d('box',[play.base[0]+side*.62,1.45,play.base[2]],[.36,.03,.03],'#6b4a33',[0,0,side*(.5+(state.reduced?0:.15*Math.sin(t*3)))]);}
+   const it=play.items[0];if(it){this.part(it.i,[it.p[0],it.p[1]+(it.flying||state.reduced?0:Math.abs(Math.sin(t*3))*.15),it.p[2]],t,!it.flying);if(!it.flying){d('ringlet',[it.p[0],groundY(it.p[0],it.p[2])+.03,it.p[2]],[.7,1,.7],'#79e4e2',[],1);d('gem',[it.p[0],it.p[1]+.75,it.p[2]],[.1,.16,.1],'#ffffff',[0,t*2,0],1);}}
+   for(const f of play.flakes)d('sphere',f.p,[.035,.035,.035],'#ffffff',[],1);},
+  tap(x,y){const it=play.items[0];if(!it||it.flying)return;if(!pickTarget([it],x,y,o=>o.p,()=>.6))return;it.flying=true;it.k=0;it.from=[...it.p];gameAudio.effect('boing');}},
+ // Every moon: weak gravity, so Sofia can leap all the way up to the stars.
+ hop:{
+  start(){play.sofia={x:0,y:0,x0:0,x1:0,k:1,peak:1,target:null};play.queued=null;play.spawnT=0;play.flag=0;play.center=[0,1.5,0];for(let i=0;i<3;i++)this.spawn();},
+  spawn(){const lim=Math.min(4.2,play.view.hw*.78);let x=0;for(let k=0;k<24;k++){x=rand(-lim,lim);if(Math.abs(x-play.sofia.x)>1&&Math.abs(x+3.4)>.8&&!play.items.some(s=>Math.abs(s.p[0]-x)<1.3))break;}play.items.push({p:[x,rand(2.5,3.6),rand(-.3,.4)],phase:rand(0,6)});},
+  jump(star){const s=play.sofia;s.x0=s.x;s.x1=star.p[0];s.k=0;s.peak=Math.max(.9,star.p[1]-1.45);s.target=star;gameAudio.effect('boing');},
+  update(dt){const s=play.sofia;for(const st of play.items)if(st!==s.target)st.p[1]+=Math.sin(play.time*1.5+st.phase)*dt*.12;
+   if(s.k<1){s.k=Math.min(1,s.k+dt/1.7);s.x=s.x0+(s.x1-s.x0)*s.k;s.y=4*s.peak*s.k*(1-s.k);
+    if(s.target&&s.k>=.5){const st=s.target;s.target=null;play.items.splice(play.items.indexOf(st),1);gameAudio.effect('sparkle');score(st.p);}
+    if(s.k>=1){s.y=0;burst([s.x,.1,.2],['#c9c4bb','#e8e4dc'],10,1.2,{mesh:'sphere',size:.12,glow:.3,life:.9});const q=play.queued;play.queued=null;if(q&&play.items.includes(q)&&!play.done)this.jump(q);}}
+   if(!play.done&&play.items.length<3&&(play.spawnT+=dt)>.8){play.spawnT=0;this.spawn();}if(play.done)play.flag=Math.min(1,play.flag+dt*.8);play.center=[s.x,1.5,.2];},
+  draw(t){const p=play.body;surface(t,{sky:'#04060f',ground:shade(p.color,.9),dark:shade(p.color,.66),stars:true});planet(parentOf(p),t,[6.5,2.9,-24],1.3,false);moonGround(p);parkedRocket(t,-3.4,-1.5);
+   const s=play.sofia,flying=s.k<1;group([s.x,s.y,.2],[.9,.9,.9],[0,flying?(s.x1>s.x0?.5:-.5):0,0],()=>astronaut(t,flying?1:0));
+   for(const st of play.items){d('star',st.p,[.36,.36,.36],'#ffd84a',[0,state.reduced?0:Math.sin(t*2+st.phase)*.6,0],.7);if(!state.reduced)d('ringlet',st.p,[.55+.08*Math.sin(t*4+st.phase),1,.55],'#fff3b0',[Math.PI/2,0,0],1);}
+   if(play.flag>0){const top=2.2*play.flag;d('cylinder',[-2.2,top/2,-.4],[.035,top/2,.035],'#dcdcdc');d('box',[-1.72,top-.3,-.4],[.46,.28,.02],'#ff76ba',[0,0,state.reduced?0:Math.sin(t*2)*.04]);renderer.decal(sofiaGraffiti,[-1.72,top-.3,-.37],[.86,.43]);}},
+  tap(x,y){const st=pickTarget(play.items,x,y,s=>s.p,()=>.5);if(!st||st===play.sofia.target)return;if(play.sofia.k<1)play.queued=st;else this.jump(st);}}
+};
+
+</script><script>
+/* Planetspillet: a planet floats up in Sofia's room, and she reads the names to find the right one. */
+const quiz={round:null,score:0,tries:0,locked:false,recent:[],pop:0,happy:0,spin:0,wait:0,done:false,doneTime:0};
+const QUIZ_GOAL=5;
+// The first sentence of each fact makes a short clue: «Jupiter er den største planeten!»
+function clueOf(p){return (p.fact.match(/^[^.!]*[.!]/)||[p.fact])[0];}
+function startQuiz(){if(!['inside','quiz'].includes(state.mode))return;gameAudio.stopSpeech();resetFx();state.mode='quiz';Object.assign(quiz,{score:0,recent:[],done:false,doneTime:0,wait:0});
+ showConsole('quiz');$('quiz-again').hidden=true;$('world-hint').hidden=true;title('PLANETSPILLET','Hva heter denne?','Les navnene, og trykk på det riktige!','🔭 Lesespill');
+ scene.setAttribute('aria-label','Planetspillet. En planet svever midt i rommet. Hvilket navn er riktig?');renderQuizStars();nextQuiz(true);}
+function endQuiz(){if(state.mode!=='quiz')return;gameAudio.stopSpeech();enterHouse();}
+function nextQuiz(first=false){quiz.round=quizRound(state.quizCorrect,quiz.recent);quiz.recent=[quiz.round.answer.id,...quiz.recent].slice(0,3);Object.assign(quiz,{tries:0,locked:false,pop:0,happy:0,spin:0});
+ $('quiz-question').textContent='Hva heter denne?';$('quiz-feedback').textContent='';const box=$('quiz-choices');box.replaceChildren();box.classList.toggle('many',quiz.round.choices.length>2);
+ for(const p of quiz.round.choices){const b=document.createElement('button');b.className='quiz-choice';b.dataset.planet=p.id;b.setAttribute('aria-label',p.word);const head=document.createElement('span');head.className='first';head.textContent=p.word[0];b.append(head,p.word.slice(1));b.onclick=()=>answerQuiz(p,b);box.append(b);}
+ gameAudio.effect('pop');gameAudio.say(first?'Hva heter denne, Sofia? Les navnene, og trykk på det riktige!':'Hva heter denne?',{id:'fact-quiz',queue:!first});}
+function renderQuizStars(){const box=$('quiz-stars');box.replaceChildren();for(let i=0;i<QUIZ_GOAL;i++){const s=document.createElement('span');s.className=i<quiz.score?'got':'';s.textContent=i<quiz.score?'★':'☆';box.append(s);}box.setAttribute('aria-label',`${quiz.score} av ${QUIZ_GOAL} riktige`);}
+function answerQuiz(p,btn){if(quiz.locked||quiz.done||state.mode!=='quiz'||btn.disabled)return;const a=quiz.round.answer;
+ if(p.id===a.id){quiz.locked=true;quiz.happy=1;quiz.score++;state.quizCorrect++;btn.classList.add('right');for(const b of $('quiz-choices').children)if(b!==btn)b.disabled=true;
+  confetti([0,1.8,-.6],.8,30);gameAudio.effect('correct');renderQuizStars();saveProgress();$('quiz-feedback').textContent=`Ja! Det er ${a.name}! ${clueOf(a)}`;
+  if(quiz.score>=QUIZ_GOAL)return finishQuiz(a);gameAudio.say(`Ja! Det er ${a.name}! ${clueOf(a)}`,{id:'fact-quiz'});quiz.wait=3.2;return;}
+ // A wrong name is read out loud, so every tap teaches a word. After two misses the first letter lights up.
+ quiz.tries++;btn.disabled=true;btn.classList.add('wrong');gameAudio.effect('oops');const hint=quiz.tries>=2;
+ if(hint)[...$('quiz-choices').children].find(b=>b.dataset.planet===a.id)?.classList.add('hint');
+ $('quiz-feedback').textContent=hint?`Der står det ${p.word}. Finn navnet som begynner på ${a.word[0]}!`:`Der står det ${p.word}. Prøv igjen!`;
+ gameAudio.say(hint?`Der står det ${p.name}. Finn navnet som begynner på ${LETTER_NAMES[a.word[0]]}!`:`Der står det ${p.name}. Prøv igjen!`,{id:'fact-quiz'});}
+function finishQuiz(a){quiz.done=true;quiz.doneTime=0;state.quizStars++;saveProgress();updatePassport();confetti([0,1.8,-.6],1.3,70);gameAudio.effect('fanfare');
+ $('quiz-question').textContent='Du fikk en lesestjerne! ⭐';$('quiz-feedback').textContent=`Du leste ${QUIZ_GOAL} navn. Stjernen henger på veggen over senga.`;$('quiz-again').hidden=false;
+ title('HURRA, SOFIA!','Du er en planetleser!','Stjernen henger på veggen over senga.',`⭐ ${state.quizStars} ${state.quizStars===1?'lesestjerne':'lesestjerner'}`);
+ gameAudio.say(`Ja! Det er ${a.name}! Du leste fem navn, Sofia! Du fikk en lesestjerne. Den henger på veggen over senga di.`,{id:'fact-quiz'});}
+function updateQuiz(dt){quiz.pop=Math.min(1,quiz.pop+dt*1.8);quiz.spin+=dt*quiz.happy*7;quiz.happy=Math.max(0,quiz.happy-dt*.45);if(quiz.done)quiz.doneTime+=dt;
+ if(quiz.wait>0&&(quiz.wait-=dt)<=0)nextQuiz();}
+// Tapping the floating planet only makes it spin: the name has to be read.
+function tapQuiz(x,y){if(pickTarget([0],x,y,()=>[0,1.8,-.6],()=>.75)!==null){quiz.happy=Math.max(quiz.happy,.5);gameAudio.effect('pop');}}
+const QUIZ_VIEW={saturn:[.45,.3],uranus:[.3,1.45]};
+function quizScene(t){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=Math.max(1.45,1.75/aspect)*FOCAL,look=[0,1.8,-.6];let eye=[state.reduced?0:Math.sin(t*.3)*.12,2.15,look[2]+dist],at=look;
+ // After the fifth name the camera glides back so Sofia sees her new star on the wall.
+ if(quiz.done){const k=Math.min(1,quiz.doneTime/1.6),e=k*k*(3-2*k),a=-.45,far=aspect<.85?12.6:aspect<1.35?10.8:aspect<2.4?9.4:7.6,eye2=[Math.sin(a)*far,2.35,Math.cos(a)*far],at2=[.6,1.7,-1.2];eye=eye.map((v,i)=>v+(eye2[i]-v)*e);at=at.map((v,i)=>v+(at2[i]-v)*e);}
+ renderer.begin(eye,at,'#241a18');room(t);
+ d('cylinder',[0,.2,-.6],[.46,.2,.46],'#39406a');d('cylinder',[0,.41,-.6],[.38,.02,.38],'#79e4e2',[],1);
+ if(!state.reduced)for(let i=0;i<4;i++){const k=(t*.45+i/4)%1,r=.38+k*.25;d('ringlet',[0,.45+k*.75,-.6],[r,1,r],'#79e4e2',[],1);}
+ group([-1.45,0,-1],[.8,.8,.8],[0,.6,0],()=>character(t));
+ const p=quiz.round?.answer;if(!p)return;const k=quiz.pop-1,grow=1+2.70158*k*k*k+1.70158*k*k,size=(p.id==='saturn'?.5:p.id==='uranus'?.55:p.id==='sun'?.72:.64)/p.size*grow,view=QUIZ_VIEW[p.id],tilt={earth:.409,mars:.44}[p.id]||0,hop=quiz.happy>0&&!state.reduced?Math.abs(Math.sin(quiz.happy*9))*.2:0;
+ // The planet rocks gently round its best-known face: Africa and Europe, the Red Spot, Pluto's heart.
+ planet(p,t,[0,1.8+hop,-.6],Math.max(.01,size),false,[view?view[0]:.25,quiz.spin,view?view[1]:tilt],state.reduced?0:Math.sin(t*.35)*.5);
+ if(!state.reduced)for(let i=0;i<5;i++){const a=t*.8+i*1.26,r=.95;d('star',[Math.cos(a)*r,1.8+Math.sin(a*1.3)*.25,-.6+Math.sin(a)*r*.5],[.05,.05,.05],'#ffe9a8',[0,0,a],1);}}
+$('open-quiz').onclick=startQuiz;$('quiz-again').onclick=startQuiz;$('quiz-done').onclick=endQuiz;
+$('quiz-speak').onclick=()=>gameAudio.say(quiz.done?'Du fikk en lesestjerne!':'Hva heter denne? Les navnene, og trykk på det riktige!',{force:true,id:'fact-quiz'});
+// The last script is in: every scene and game exists, so the loop can start.
+requestAnimationFrame(tick);
 
 </script></body></html>

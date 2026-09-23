@@ -17,3 +17,87 @@
 .arrival-console .arrival-reward{font-size:14px;color:var(--yellow);margin-top:8px;line-height:1.4}.arrival-reward::before{content:'✦ ';color:var(--yellow)}
 @media(max-height:620px) and (min-width:561px){.home-console p{display:none}.home-console h2,.inside-console h2{font-size:20px;margin-bottom:4px}.inside-console p{font-size:13px;max-width:430px}.moon-toggle{display:inline-block;vertical-align:middle;margin:8px 12px 0 0;padding:7px 12px;font-size:12px;min-height:36px}.planet-card.moon-card{min-height:92px}.planet-card.moon-card canvas{height:38px}.color-choice{display:inline-flex;vertical-align:middle;align-items:center;gap:11px;margin-top:8px}.color-choice-label{display:none}.color-swatches{gap:8px}.swatch{width:34px;height:34px;border-radius:11px}}
 @media(max-width:370px){.brand small{display:none}.brand b{font-size:17px}.brand{gap:9px}.top-actions{gap:5px}}
+
+/* Space glows: a drifting nebula behind the HUD and a white flash when the rocket arrives. */
+.nebula{position:absolute;inset:-12%;pointer-events:none;z-index:1;opacity:0;mix-blend-mode:screen;transition:opacity 1.2s;background:radial-gradient(38% 34% at 22% 30%,var(--neb-a,#2a2560),transparent 72%),radial-gradient(44% 40% at 78% 64%,var(--neb-b,#123e5a),transparent 72%),radial-gradient(26% 22% at 58% 18%,#3a1d4a,transparent 70%);animation:nebula-drift 48s ease-in-out infinite alternate}
+.space .nebula{opacity:calc(.5 + var(--boost-strength,0) * .35)}
+.warp-flash{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle at 60% 50%,#fff 0,#dff9ffcc 30%,#79e4e200 70%)}
+.warp-flash.go{animation:warp .7s ease-out}
+.countdown.go{font-size:78px;color:#ff9ed1;letter-spacing:2px;animation:go-pop .45s ease-out}
+.letter-fly{position:fixed;left:0;top:0;z-index:30;pointer-events:none;font-size:36px;font-weight:900;color:var(--yellow);text-shadow:0 0 16px #ffde71,0 3px 0 #1b2446;will-change:transform}
+@keyframes nebula-drift{from{transform:translate(-3%,-2%) scale(1)}to{transform:translate(3%,2%) scale(1.08)}}
+@keyframes warp{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
+@keyframes go-pop{from{transform:translate(-50%,-50%) scale(.5)}to{transform:translate(-50%,-50%) scale(1)}}
+
+/* The pink play button waits on every world with a game. */
+.play-btn{display:block;margin-top:14px;min-height:58px;border-radius:19px;background:linear-gradient(135deg,#ffb3dc,#ff76ba);color:#3a1030;font-weight:900;font-size:19px;padding:14px 24px;box-shadow:0 5px 0 #b8457f;animation:play-pulse 1.8s ease-in-out infinite}
+@keyframes play-pulse{0%,100%{box-shadow:0 5px 0 #b8457f,0 0 0 0 #ff76ba70}60%{box-shadow:0 5px 0 #b8457f,0 0 0 14px #ff76ba00}}
+.play-console{padding-top:16px;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.play-row{display:flex;align-items:center;gap:22px}
+.play-copy{flex:1;min-width:0}
+.play-copy h2{font-size:22px;margin:0 0 5px;letter-spacing:-.4px}
+.play-copy p{margin:0;color:#d6dbee;font-size:16px;line-height:1.4}
+.play-progress{display:flex;flex-wrap:wrap;gap:3px;max-width:380px;justify-content:center}
+.play-dot{font-size:27px;line-height:1.1;opacity:.3;filter:grayscale(1)}
+.play-dot.got{opacity:1;filter:none;animation:dot-pop .35s ease-out}
+.play-word{justify-content:center}
+.play-actions{display:flex;align-items:center;gap:10px}
+@keyframes dot-pop{from{transform:scale(1.7)}to{transform:scale(1)}}
+
+/* Planetspillet: big, readable name cards. */
+.quiz-console{padding-top:16px;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.quiz-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.quiz-head h2{margin:0;font-size:24px;letter-spacing:-.4px}
+.quiz-stars{margin-left:auto;font-size:28px;letter-spacing:3px;color:#ffffff38;white-space:nowrap}
+.quiz-stars .got{color:var(--yellow);text-shadow:0 0 12px #ffde7199}
+.quiz-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quiz-choice{min-height:78px;border-radius:20px;background:#fff8e6;color:#1c2940;font-size:36px;font-weight:900;letter-spacing:4px;box-shadow:0 6px 0 #c9b98f;padding:8px 10px;overflow:hidden;text-overflow:ellipsis}
+.quiz-choice:hover{background:#fffdf4}
+.quiz-choice .first{display:inline-block}
+.quiz-choice.hint .first{color:#e2457f;text-shadow:0 0 14px #ff9ed1;animation:hint-bounce .9s ease-in-out infinite}
+.quiz-choice.right{background:#8fe3a8;box-shadow:0 6px 0 #4fa56a;animation:right-pop .4s ease-out}
+.quiz-choice.right::after{content:' ✓'}
+.quiz-choice.wrong{background:#5d5170;color:#ffffffb0;box-shadow:0 3px 0 #2d2640;animation:shake .25s}
+.quiz-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px}
+.quiz-foot .feedback{margin:0;font-size:16px;flex:1}
+.quiz-buttons{display:flex;gap:10px}
+@keyframes hint-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes right-pop{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+@media(min-width:700px){.quiz-choices{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}}
+
+@media(max-width:760px){.play-copy h2{font-size:19px}
+.play-copy p{font-size:14px}
+.play-dot{font-size:23px}
+.quiz-choice{font-size:30px;min-height:68px;letter-spacing:3px}
+.quiz-head h2{font-size:21px}
+.quiz-stars{font-size:24px}
+}
+@media(max-width:560px){.play-row{flex-direction:column;align-items:stretch;gap:10px}
+.play-copy{text-align:center}
+.play-actions{justify-content:space-between}
+.play-actions .primary,.play-actions .secondary{flex:1}
+.play-btn{width:100%;font-size:17px}
+.quiz-choice{font-size:26px;min-height:62px;letter-spacing:2px}
+.quiz-foot{flex-direction:column;align-items:stretch;gap:10px}
+.quiz-buttons>*{flex:1}
+.inside-console .home-actions .primary,.inside-console .home-actions .secondary{width:100%}
+}
+@media(max-height:620px) and (min-width:561px){.play-copy p{font-size:13px}
+.play-dot{font-size:20px}
+.play-btn{min-height:46px;padding:9px 18px;font-size:16px;margin-top:9px}
+.quiz-console,.play-console{padding-top:10px;padding-bottom:12px}
+.quiz-head{margin-bottom:7px}
+.quiz-head h2{font-size:19px}
+.quiz-choices{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:9px}
+.quiz-choice{min-height:52px;font-size:24px}
+.quiz-foot{margin-top:7px}
+.quiz-foot .feedback{font-size:13px}
+.countdown.go{font-size:56px}
+}
+@media(max-height:620px) and (min-width:561px){.quiz-console{position:relative}
+.quiz-buttons{position:absolute;top:8px;right:max(28px,env(safe-area-inset-right))}
+.quiz-buttons>*{min-height:40px;padding:8px 16px;font-size:15px}
+.quiz-stars{margin-right:120px}
+.quiz-console:has(#quiz-again:not([hidden])) .quiz-stars{display:none}
+.quiz-foot{margin-top:5px;min-height:18px}
+}

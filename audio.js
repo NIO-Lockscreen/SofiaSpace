@@ -1,4 +1,6 @@
 /* Synthesized, gesture-unlocked sound design and bounded Norwegian speech queue. */
+// Norwegian letter names, read aloud when a letter is pressed or asked for.
+const LETTER_NAMES={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};
 class GameAudio {
  constructor(getState){this.getState=getState;this.context=null;this.master=null;this.engine=null;this.queue=[];this.current=null;this.generation=0;this.voices=[];this.synth=window.speechSynthesis;this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];const label=document.getElementById('voice-note');if(label)label.textContent=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang))?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';};this.refreshVoices();this.synth?.addEventListener('voiceschanged',this.refreshVoices);}
  unlock(){if(this.getState().muted)return;try{if(!this.context){this.context=new(window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=.65;this.master.connect(this.context.destination);}if(this.context.state==='suspended')this.context.resume().catch(()=>{});}catch{}}
@@ -15,11 +17,20 @@ class GameAudio {
  case 'sun':this.swoosh(1.2,.12,false);this.tone(95,.75,'triangle',.07,0,55);break;
  case 'rescue':[784,988,1175].forEach((f,i)=>this.tone(f,.3,'sine',.055,i*.12));break;
  case 'countdown':this.tone(420,.12,'sine',.065);break;
+ case 'pop':this.tone(520,.09,'sine',.07,0,1150);this.swoosh(.18,.03);break;
+ case 'sparkle':[1319,1568,2093].forEach((f,i)=>this.tone(f,.16,'sine',.04,i*.05));break;
+ case 'thud':this.tone(120,.3,'triangle',.08,0,48);this.swoosh(.35,.05,false);break;
+ case 'boing':this.tone(210,.42,'sine',.07,0,640);break;
+ case 'correct':[784,1047].forEach((f,i)=>this.tone(f,.24,'sine',.06,i*.11));break;
+ case 'oops':this.tone(330,.16,'sine',.04,0,260);this.tone(262,.2,'sine',.035,.12,230);break;
+ case 'fanfare':[523,659,784,1047,784,1047].forEach((f,i)=>this.tone(f,i>3?.5:.2,'triangle',.06,i*.12));this.swoosh(.9,.05);break;
  }}
+ // A cheerful five-note scale, so a row of catches plays a little tune.
+ note(i){const scale=[523,587,659,784,880];this.tone(scale[i%5]*(1+Math.floor(i/5)),.3,'sine',.06);this.tone(scale[i%5]*2*(1+Math.floor(i/5)),.22,'sine',.02,.02);}
  makeEngine(){if(this.engine||!this.context)return;const ctx=this.context,o=ctx.createOscillator(),harmonic=ctx.createOscillator(),gain=ctx.createGain();o.type='sine';harmonic.type='triangle';o.frequency.value=65;harmonic.frequency.value=130;gain.gain.value=0;o.connect(gain);harmonic.connect(gain);gain.connect(this.master);o.start();harmonic.start();this.engine={o,harmonic,gain};}
  update(){if(!this.context)return;const s=this.getState(),active=s.mode==='flight'&&!s.muted&&!s.paused;this.master.gain.setTargetAtTime(s.muted||s.paused?0:this.current?.id?.startsWith('letter')?.36:(this.current?.id?.startsWith('fact')||this.current?.id?.startsWith('flyby'))?.20:.65,this.context.currentTime,.045);if(active)this.makeEngine();if(!this.engine)return;const t=this.context.currentTime;this.engine.gain.gain.setTargetAtTime(active?.012+Math.max(0,s.speed-1)*.014:0,t,.09);this.engine.o.frequency.setTargetAtTime(62+s.speed*18,t,.1);this.engine.harmonic.frequency.setTargetAtTime(125+s.speed*35,t,.1);}
  stopSpeech(){this.generation++;this.queue=[];this.current=null;this.synth?.cancel();}
  say(text,{force=false,queue=false,id='info'}={}){const s=this.getState();if(s.muted||(!s.voice&&!force)||!this.synth||typeof SpeechSynthesisUtterance==='undefined')return;if(!queue)this.stopSpeech();if(this.queue.length>=8)this.queue.shift();this.queue.push({text,id,force});this.pump();}
- letter(letter,completedWord=''){const names={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
+ letter(letter,completedWord=''){const names=LETTER_NAMES;if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
  pump(){if(this.current||!this.queue.length)return;const s=this.getState();if(s.muted||(!s.voice&&!this.queue[0].force)||s.paused)return;const item=this.queue.shift(),u=new SpeechSynthesisUtterance(item.text),gen=this.generation;this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;const voice=this.voices.find(v=>/^(nb|no)(-|_|$)/i.test(v.lang))||this.voices.find(v=>/^nn/i.test(v.lang));if(voice)u.voice=voice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
 }

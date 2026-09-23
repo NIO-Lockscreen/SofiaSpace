@@ -22,6 +22,8 @@ class SpaceRenderer{
  for(const type of ['cone','cylinder']){a=[];for(let i=0;i<24;i++){let t=i*Math.PI/12,u=(i+1)*Math.PI/12,p=[Math.cos(t),-1,Math.sin(t)],q=[Math.cos(u),-1,Math.sin(u)],r=type==='cone'?[0,1,0]:[q[0],1,q[2]],s=[p[0],1,p[2]];tri(a,p,r,q);if(type==='cylinder'){tri(a,p,s,r);tri(a,s,[0,1,0],r);}tri(a,p,q,[0,-1,0]);}this.mesh(type,a);}
  a=[];{const g=[[0,1,0],[1,0,0],[0,0,1],[-1,0,0],[0,0,-1],[0,-1,0]];for(let i=0;i<4;i++){const b=g[1+i],c=g[1+(i+1)%4];tri(a,g[0],c,b);tri(a,g[5],b,c);}}this.mesh('gem',a);
  a=[];for(let i=0;i<96;i++){let t=i*Math.PI/48,u=(i+1)*Math.PI/48,p=[Math.cos(t),0,Math.sin(t)],q=[Math.cos(u),0,Math.sin(u)],r=q.map(v=>v*1.65),s=p.map(v=>v*1.65);tri(a,p,q,r);tri(a,p,r,s);}this.mesh('ring',a);
+ // A chunky five-pointed star facing +z, for prizes, wall stickers and sparkles.
+ a=[];{const pts=[];for(let i=0;i<10;i++){const t=Math.PI/2+i*Math.PI/5,r=i%2?.44:1;pts.push([Math.cos(t)*r,Math.sin(t)*r,0]);}for(let i=0;i<10;i++){const p=pts[i],q=pts[(i+1)%10];tri(a,[0,0,.26],p,q);tri(a,[0,0,-.26],q,p);}}this.mesh('star',a);
  a=[];for(let i=0;i<64;i++){const t=i*Math.PI/32,u=(i+1)*Math.PI/32,p=[Math.cos(t),0,Math.sin(t)],q=[Math.cos(u),0,Math.sin(u)];tri(a,p,q,q.map(v=>v*1.025));tri(a,p,q.map(v=>v*1.025),p.map(v=>v*1.025));}this.mesh('ringlet',a);
  }
  begin(eye,at,bg){const gl=this.gl,c=this.canvas,dpr=Math.min(window.devicePixelRatio||1,1.6),w=Math.round(c.clientWidth*dpr),h=Math.round(c.clientHeight*dpr);if(c.width!==w||c.height!==h){c.width=w;c.height=h;}gl.viewport(0,0,w,h);gl.clearColor(...rgb(bg),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);this.vp=M.mul(M.perspective(.68,w/Math.max(h,1),.1,180),M.look(eye,at));}
