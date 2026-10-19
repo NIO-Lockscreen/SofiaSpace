@@ -64,10 +64,11 @@ function tapFlight(x,y){
  const rock=pickTarget(fx.rocks,x,y,r=>r.p,r=>r.size*1.1);if(rock){fx.rocks.splice(fx.rocks.indexOf(rock),1);burst(rock.p,['#d8c3a5','#ffde71','#a88f75','#ffffff'],14,3);gameAudio.effect('pop');return true;}
  return false;}
 
-// At home, Sofia hops when tapped and the rocket gives a little wiggle.
+// At home, Sofia hops when tapped and the rocket gives a little wiggle. The duck quacks.
 function tapHome(x,y){if(pickTarget([0],x,y,()=>[-.05,.72,1.85],()=>.62)!==null){fx.jump=.8;gameAudio.effect('boing');speak(['Hei, Sofia!','Hopp og sprett!','Klar for et nytt eventyr?'][Math.floor(Math.random()*3)]);return true;}
+ if(duckFlying()&&pickTarget([0],x,y,()=>[2.6,1.1,0],()=>1.15)!==null){fx.wiggle=1;gameAudio.effect('quack');burst([2.6,1.6,0],['#f3f0e6','#9a9186','#ffffff'],10,1.6,{mesh:'sphere',size:.1,glow:.4});speak('Kvakk kvakk! Anda er klar. Trykk på den gule knappen for å fly.');return true;}
  if(pickTarget([0],x,y,()=>[2.6,1.3,0],()=>1)!==null){fx.wiggle=1;gameAudio.effect('pop');burst([2.6,.2,0],['#e3ebe0','#ffffff'],10,1.6,{mesh:'sphere',size:.14,glow:.4});speak('Raketten er klar! Trykk på den gule knappen for å reise.');return true;}return false;}
-function tapScene(x,y){if(state.paused)return false;if(state.mode==='play'){tapPlay(x,y);return true;}if(state.mode==='quiz'){tapQuiz(x,y);return true;}if(state.mode==='flight')return tapFlight(x,y);if(state.mode==='home')return tapHome(x,y);return false;}
+function tapScene(x,y){if(state.paused)return false;if(state.mode==='play'){tapPlay(x,y);return true;}if(state.mode==='quiz'){tapQuiz(x,y);return true;}if(state.mode==='flight')return tapFlight(x,y);if(state.mode==='home')return tapHome(x,y);if(state.mode==='inside')return tapInside(x,y);return false;}
 function allowDoubleTap(){return !['play','quiz'].includes(state.mode)&&!(state.mode==='flight'&&flightTargets());}
 function keyScene(e){if([...document.querySelectorAll('.modal-shade')].some(el=>!el.hidden))return false;
  if(state.mode==='play'){if(e.key==='Escape'){endPlay();return true;}return /^[a-zæøå]$/i.test(e.key)&&keyPlay(e.key.toUpperCase());}

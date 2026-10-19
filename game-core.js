@@ -54,7 +54,9 @@ const SHIP_COLORS = [
 ];
 // A colour with a needs field only appears once that reward is earned.
 function shipColorsFor(rewards){return SHIP_COLORS.filter(c=>!c.needs||rewards[c.needs]);}
-function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length,moons=MOONS.filter(m=>set.has(m.id)).length;return {planets,moons,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id)),moonMode:planets>=8,gold:planets>=8&&moons===MOONS.length};}
+// Every planet and every moon visited gives the gold rocket and the duck from Sofia's car game, a ship of its own.
+// Moons can only be visited in moon mode, which needs all eight planets, so both arrive with the last moon.
+function earnedRewards(visited){const set=new Set(visited);const planets=BODIES.filter(p=>p.id!=='earth'&&p.id!=='sun'&&set.has(p.id)).length,moons=MOONS.filter(m=>set.has(m.id)).length,everywhere=planets>=8&&moons===MOONS.length;return {planets,moons,graffiti:planets>=2,paint:planets>=4,palette:planets>=6,rainbow:BODIES.every(p=>set.has(p.id)),moonMode:planets>=8,gold:everywhere,duck:everywhere};}
 // Before the paint reward the rocket stays cream white; the picker only decides once it is unlocked.
 function shipPaint(rewards,choice){const open=shipColorsFor(rewards),fallback=open.find(c=>c.id===(rewards.gold?'gold':rewards.paint?'star':'classic'));return rewards.palette&&open.some(c=>c.id===choice)?open.find(c=>c.id===choice):fallback;}
 // The asteroid belt lies between Mars and Jupiter. Trips that cross it fly straight through the rocks.
@@ -80,5 +82,5 @@ function quizChoiceCount(correct){return correct<6?2:correct<20?3:4;}
 function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCount(correct),pool=BODIES.filter(p=>!recent.includes(p.id)),answer=pool[Math.floor(rand()*pool.length)%pool.length];const shuffle=list=>{const out=[...list];for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1))%(i+1);[out[i],out[j]]=[out[j],out[i]];}return out;};const others=BODIES.filter(p=>p.id!==answer.id&&(count===4||p.word[0]!==answer.word[0])),picked=[];for(const p of shuffle(others)){if(picked.length>=count-1)break;if(count===4||!picked.some(q=>q.word[0]===p.word[0]))picked.push(p);}return {answer,choices:shuffle([answer,...picked])};}
 // Undoing a reset folds the saved progress back in, so nothing found since the reset is lost either.
 function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[k])?old[k]:[]),...(Array.isArray(now?.[k])?now[k]:[])])],count=k=>(Number.isFinite(old?.[k])?old[k]:0)+(Number.isFinite(now?.[k])?now[k]:0);
- return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode};}
+ return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship};}
 if(typeof module!=='undefined')module.exports={BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};

@@ -10,7 +10,6 @@ function groundY(x,z){return -6+6*Math.sqrt(Math.max(0,1-(x/30)**2-((z+1)/20)**2
 function surface(t,{sky,ground,dark,hills,stars=false}){const aspect=scene.clientWidth/Math.max(1,scene.clientHeight);stage(aspect<1?9:11,6.6,[0,1.1,0],sky,.32);if(stars)starScene(t);
  d('sphere',[0,-6,-1],[30,6,20],ground);for(const [x,z,r] of SPOTS)d('cylinder',[x,groundY(x,z)+.005,z],[r,.02,r*.8],dark);
  if(hills)for(const [x,s] of [[-11,5],[-3,6.5],[6,5.5],[14,6]])d('sphere',[x,groundY(x,-15)-.2,-15],[s,s*.14,1.6],hills);}
-function parkedRocket(t,x,z){group([x,.36,z],[.7,.7,.7],[0,-.3,0],()=>rocket(t,false,0,false,false));}
 
 function startPlay(){const p=state.location,def=playFor(p);if(state.mode!=='arrival'||!def)return;gameAudio.stopSpeech();resetFx();
  Object.assign(play,{def,body:p,kind:PLAY_KINDS[def.kind],count:0,goal:def.goal,done:false,doneTime:0,time:0,items:[],space:!['rover','snowman','hop'].includes(def.kind),center:[0,1,0]});
@@ -70,7 +69,7 @@ const PLAY_KINDS={
   update(dt){play.a+=dt*(state.reduced?.18:.32);const r=this.at();play.center=[r[0],1,r[2]];
    for(const s of [...play.items]){if(!s.flying)continue;s.k=Math.min(1,s.k+dt/.8);const to=[r[0],.9,r[2]];s.p=s.from.map((v,i)=>v+(to[i]-v)*s.k+(i===1?Math.sin(s.k*Math.PI)*2.2:0));if(s.k>=1){play.items.splice(play.items.indexOf(s),1);play.cargo++;gameAudio.effect('thud');score(to);}}
    if(!play.done&&play.items.filter(s=>!s.flying).length<3&&(play.spawnT+=dt)>.9){play.spawnT=0;this.spawn();}},
-  draw(t){surface(t,{sky:'#d8a27c',ground:'#b35c38',dark:'#8e4428',hills:'#9c4b2c'});d('sphere',[-8,8,-26],[.6,.6,.6],'#fff4e2',[],1);parkedRocket(t,-3.4,-1.4);group([-2.2,0,-.5],[.85,.85,.85],[0,.25,0],()=>astronaut(t));
+  draw(t){surface(t,{sky:'#d8a27c',ground:'#b35c38',dark:'#8e4428',hills:'#9c4b2c'});d('sphere',[-8,8,-26],[.6,.6,.6],'#fff4e2',[],1);parkedShip(t,-3.4,-1.4);group([-2.2,0,-.5],[.85,.85,.85],[0,.25,0],()=>astronaut(t));
    const r=this.at(),heading=Math.atan2(-Math.cos(play.a)*1.3,-Math.sin(play.a)*2.9);
    group([r[0],0,r[2]],[.62,.62,.62],[0,heading,0],()=>{d('box',[0,.62,0],[.85,.16,.5],'#e9e4d8');for(const x of [-.62,0,.62])for(const z of [-.58,.58])d('cylinder',[x,.25,z],[.24,.08,.24],'#3a3a42',[Math.PI/2,0,0]);d('box',[-.2,.82,0],[.62,.03,.62],'#2f4f8f');
     d('cylinder',[.55,1.05,-.2],[.04,.3,.04],'#cfcac0');d('box',[.62,1.42,-.2],[.16,.1,.15],'#e9e4d8');d('sphere',[.79,1.44,-.27],[.05,.05,.05],'#1b2a44');d('sphere',[.79,1.44,-.13],[.05,.05,.05],'#1b2a44');d('cylinder',[-.6,1.1,.35],[.015,.3,.015],'#cfcac0');d('sphere',[-.6,1.42,.35],[.05,.05,.05],'#ff6a4d',[],1);
@@ -138,7 +137,7 @@ const PLAY_KINDS={
    group([2.4,groundY(2.4,-3.8)+.02,-3.8],[1.7,1,1.7],[0,0,0],()=>{for(const x of [-.424,.424])d('cylinder',[x,0,-.424],[.6,.02,.6],'#f7f2ea');d('box',[0,.001,0],[.6,.02,.6],'#f7f2ea',[0,Math.PI/4,0]);});
    d('cylinder',[-4.8,groundY(-4.8,-3.6)+.005,-3.6],[2.2,.02,.9],'#7d4f40');renderer.draw('globe',[7,3.1,-24],[2.6,2.6,2.6],'#ffffff',[0,t*.02,0],0,0,PlanetArt.get('charon'));
    d('sphere',[-2,4.2,-30],[.3,.3,.3],'#fffbe8',[],1);d('box',[-2,4.2,-30],[.9,.03,.03],'#fffbe8',[],1);d('box',[-2,4.2,-30],[.03,.9,.03],'#fffbe8',[],1);
-   parkedRocket(t,-3.6,-1.2);group([-.4,0,.9],[.85,.85,.85],[0,.4,0],()=>astronaut(t));
+   parkedShip(t,-3.6,-1.2);group([-.4,0,.9],[.85,.85,.85],[0,.4,0],()=>astronaut(t));
    for(let i=0;i<play.count;i++)this.part(i,play.base.map((v,k)=>v+SNOW[i].at[k]),t,false);
    if(play.done){for(const side of [-1,1])d('box',[play.base[0]+side*.62,1.45,play.base[2]],[.36,.03,.03],'#6b4a33',[0,0,side*(.5+(state.reduced?0:.15*Math.sin(t*3)))]);}
    const it=play.items[0];if(it){this.part(it.i,[it.p[0],it.p[1]+(it.flying||state.reduced?0:Math.abs(Math.sin(t*3))*.15),it.p[2]],t,!it.flying);if(!it.flying){d('ringlet',[it.p[0],groundY(it.p[0],it.p[2])+.03,it.p[2]],[.7,1,.7],'#79e4e2',[],1);d('gem',[it.p[0],it.p[1]+.75,it.p[2]],[.1,.16,.1],'#ffffff',[0,t*2,0],1);}}
@@ -154,7 +153,7 @@ const PLAY_KINDS={
     if(s.target&&s.k>=.5){const st=s.target;s.target=null;play.items.splice(play.items.indexOf(st),1);gameAudio.effect('sparkle');score(st.p);}
     if(s.k>=1){s.y=0;burst([s.x,.1,.2],['#c9c4bb','#e8e4dc'],10,1.2,{mesh:'sphere',size:.12,glow:.3,life:.9});const q=play.queued;play.queued=null;if(q&&play.items.includes(q)&&!play.done)this.jump(q);}}
    if(!play.done&&play.items.length<3&&(play.spawnT+=dt)>.8){play.spawnT=0;this.spawn();}if(play.done)play.flag=Math.min(1,play.flag+dt*.8);play.center=[s.x,1.5,.2];},
-  draw(t){const p=play.body;surface(t,{sky:'#04060f',ground:shade(p.color,.9),dark:shade(p.color,.66),stars:true});planet(parentOf(p),t,[6.5,2.9,-24],1.3,false);moonGround(p);parkedRocket(t,-3.4,-1.5);
+  draw(t){const p=play.body;surface(t,{sky:'#04060f',ground:shade(p.color,.9),dark:shade(p.color,.66),stars:true});planet(parentOf(p),t,[6.5,2.9,-24],1.3,false);moonGround(p);parkedShip(t,-3.4,-1.5);
    const s=play.sofia,flying=s.k<1;group([s.x,s.y,.2],[.9,.9,.9],[0,flying?(s.x1>s.x0?.5:-.5):0,0],()=>astronaut(t,flying?1:0));
    for(const st of play.items){d('star',st.p,[.36,.36,.36],'#ffd84a',[0,state.reduced?0:Math.sin(t*2+st.phase)*.6,0],.7);if(!state.reduced)d('ringlet',st.p,[.55+.08*Math.sin(t*4+st.phase),1,.55],'#fff3b0',[Math.PI/2,0,0],1);}
    if(play.flag>0){const top=2.2*play.flag;d('cylinder',[-2.2,top/2,-.4],[.035,top/2,.035],'#dcdcdc');d('box',[-1.72,top-.3,-.4],[.46,.28,.02],'#ff76ba',[0,0,state.reduced?0:Math.sin(t*2)*.04]);renderer.decal(sofiaGraffiti,[-1.72,top-.3,-.37],[.86,.43]);}},

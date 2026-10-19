@@ -23,6 +23,9 @@ class GameAudio {
  case 'boing':this.tone(210,.42,'sine',.07,0,640);break;
  case 'correct':[784,1047].forEach((f,i)=>this.tone(f,.24,'sine',.06,i*.11));break;
  case 'oops':this.tone(330,.16,'sine',.04,0,260);this.tone(262,.2,'sine',.035,.12,230);break;
+ // Two quacks for the duck, and a soft lullaby (the start of Brahms' Wiegenlied) when Sofia goes to bed.
+ case 'quack':[0,.24].forEach(d=>{this.tone(560,.13,'sawtooth',.035,d,330);this.tone(1120,.1,'square',.008,d,640);});break;
+ case 'lullaby':[[330,0],[330,.36],[392,.72],[330,1.3],[330,1.66],[392,2.02],[330,2.6],[392,2.96],[523,3.32],[494,3.9],[440,4.26],[440,4.62],[392,4.98]].forEach(([f,d],i)=>{this.tone(f,i===12?1.2:.62,'sine',.035,d);this.tone(f*2,.4,'sine',.008,d);});break;
  case 'fanfare':[523,659,784,1047,784,1047].forEach((f,i)=>this.tone(f,i>3?.5:.2,'triangle',.06,i*.12));this.swoosh(.9,.05);break;
  }}
  // A cheerful five-note scale, so a row of catches plays a little tune.

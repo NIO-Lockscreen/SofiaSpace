@@ -3,7 +3,7 @@ const quiz={round:null,score:0,tries:0,locked:false,recent:[],pop:0,happy:0,spin
 const QUIZ_GOAL=5;
 // The first sentence of each fact makes a short clue: «Jupiter er den største planeten!»
 function clueOf(p){return (p.fact.match(/^[^.!]*[.!]/)||[p.fact])[0];}
-function startQuiz(){if(!['inside','quiz'].includes(state.mode))return;gameAudio.stopSpeech();resetFx();state.mode='quiz';Object.assign(quiz,{score:0,recent:[],done:false,doneTime:0,wait:0});
+function startQuiz(){if(!['inside','quiz'].includes(state.mode))return;gameAudio.stopSpeech();resetFx();resetSleep();state.mode='quiz';Object.assign(quiz,{score:0,recent:[],done:false,doneTime:0,wait:0});
  showConsole('quiz');$('quiz-again').hidden=true;$('world-hint').hidden=true;title('PLANETSPILLET','Hva heter denne?','Les navnene, og trykk på det riktige!','🔭 Lesespill');
  scene.setAttribute('aria-label','Planetspillet. En planet svever midt i rommet. Hvilket navn er riktig?');renderQuizStars();nextQuiz(true);}
 function endQuiz(){if(state.mode!=='quiz')return;gameAudio.stopSpeech();enterHouse();}
