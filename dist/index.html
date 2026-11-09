@@ -635,8 +635,8 @@ scene.addEventListener('webglcontextlost',e=>{e.preventDefault();state.paused=tr
 // Deterministic small 3D world: no downloads, trackers, fonts or external assets.
 const trees=Array.from({length:28},(_,i)=>{const a=i*2.39996,r=4.6+(i%5)*.45;return {x:Math.cos(a)*r,z:Math.sin(a)*r,s:.66+(i%4)*.14};}).filter(t=>!(t.z>2&&Math.abs(t.x)<4));
 const stars=Array.from({length:95},(_,i)=>({x:Math.sin(i*73.7)*27,y:Math.cos(i*91.3)*16,z:-6-(i%12)*2.5,s:.018+(i%3)*.012}));
-// Asleep, her eyes are shut and she stops waving.
-function character(t,asleep=false){d('box',[0,.52,0],[.22,.33,.16],'#efb749');d('sphere',[0,1.09,0],[.31,.32,.29],'#f6d1a8');d('sphere',[0,1.21,-.08],[.33,.25,.28],'#77523c');d('sphere',[.28,1.08,-.09],[.12,.18,.12],'#77523c');d('sphere',[-.28,1.08,-.09],[.12,.18,.12],'#77523c');if(asleep)for(const x of [-.105,.105])d('box',[x,1.1,.272],[.05,.012,.014],'#1a2a3e');else{d('sphere',[-.105,1.11,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,1.11,.267],[.035,.043,.018],'#1a2a3e');}d('box',[0,1.01,.284],[.065,.018,.012],'#c5766c');for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],'#34426d');d('sphere',[x,.015,.06],[.12,.07,.17],'#f6ede0');}d('box',[-.34,.59,0],[.09,.24,.09],'#efb749',[0,0,-.3]);d('sphere',[-.4,.36,0],[.10,.10,.10],'#f6d1a8');if(asleep){d('box',[.34,.59,0],[.09,.24,.09],'#efb749',[0,0,.3]);d('sphere',[.4,.36,0],[.10,.10,.10],'#f6d1a8');}else{d('box',[.36,.8,0],[.08,.24,.09],'#efb749',[0,0,-.65+Math.sin(t*3)*.15]);d('sphere',[.5,.96,0],[.10,.10,.10],'#f6d1a8');}}
+// Asleep, her eyes are shut and she stops waving. Cheering (jumping on the bed), both arms are up and she laughs.
+function character(t,asleep=false,cheer=false){d('box',[0,.52,0],[.22,.33,.16],'#efb749');d('sphere',[0,1.09,0],[.31,.32,.29],'#f6d1a8');d('sphere',[0,1.21,-.08],[.33,.25,.28],'#77523c');d('sphere',[.28,1.08,-.09],[.12,.18,.12],'#77523c');d('sphere',[-.28,1.08,-.09],[.12,.18,.12],'#77523c');if(asleep)for(const x of [-.105,.105])d('box',[x,1.1,.272],[.05,.012,.014],'#1a2a3e');else{d('sphere',[-.105,1.11,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,1.11,.267],[.035,.043,.018],'#1a2a3e');}if(cheer)d('sphere',[0,1.0,.278],[.07,.05,.02],'#a94f55');else d('box',[0,1.01,.284],[.065,.018,.012],'#c5766c');for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],'#34426d');d('sphere',[x,.015,.06],[.12,.07,.17],'#f6ede0');}if(cheer){d('box',[-.36,.8,0],[.08,.24,.09],'#efb749',[0,0,.65-Math.sin(t*3)*.15]);d('sphere',[-.5,.96,0],[.10,.10,.10],'#f6d1a8');}else{d('box',[-.34,.59,0],[.09,.24,.09],'#efb749',[0,0,-.3]);d('sphere',[-.4,.36,0],[.10,.10,.10],'#f6d1a8');}if(asleep){d('box',[.34,.59,0],[.09,.24,.09],'#efb749',[0,0,.3]);d('sphere',[.4,.36,0],[.10,.10,.10],'#f6d1a8');}else{d('box',[.36,.8,0],[.08,.24,.09],'#efb749',[0,0,-.65+Math.sin(t*3)*.15]);d('sphere',[.5,.96,0],[.10,.10,.10],'#f6d1a8');}}
 function rocket(t,fire=false,burning=0,lying=false,pilot=true){const paint=shipPaint(rewards,state.shipColor),white=burning?'#796960':paint.body,orange=burning?'#51444b':paint.accent;d('cylinder',[0,.9,0],[.48,1.08,.48],white);d('cone',[0,2.3,0],[.48,.48,.48],orange);d('cylinder',[0,.05,0],[.5,.16,.5],'#526d80');d('cylinder',[0,-.26,0],[.26,.18,.26],'#2a3a56');d('sphere',[0,1.62,.44],[.3,.3,.08],'#d6aa58');d('sphere',[0,1.62,.50],[.225,.225,.08],'#3b718d');d('sphere',[-.06,1.70,.568],[.062,.084,.02],'#b8eeec',[],.3);if(pilot&&state.mode!=='home'&&(state.mode!=='launch'||state.launchTime>=2)){d('sphere',[0,1.59,.575],[.13,.14,.025],'#f4cfa7');d('sphere',[-.045,1.62,.599],[.017,.021,.008],'#22304b');d('sphere',[.045,1.62,.599],[.017,.021,.008],'#22304b');}if(rewards.graffiti&&!burning)renderer.decal(sofiaGraffiti,lying?[0,.64,.505]:[0,.95,.507],lying?[1.5,.8]:[.92,.49],lying?[0,0,Math.PI/2]:[0,0,0]);if(rewards.gold&&!burning)d('gem',[0,2.93,0],[.28,.38,.28],'#cdf5ff',[0,state.reduced?.6:t*1.5,0],.55);for(const x of [-1,1])d('box',[x*.48,.09,0],[.16,.55,.22],orange,[0,0,-x*.27]);d('box',[0,.1,-.45],[.19,.5,.13],orange);if(fire)shipFire(t,burning);}
 // The trail behind a ship, pointing down its −y: the flame, and the rainbow or the gold coins once earned. The duck's flame is soft starlight.
 function shipFire(t,burning,soft=false){if(rewards.rainbow&&!burning){const colors=['#ff6389','#ffa35c','#ffe36b','#80e18b','#64dce9','#7e9aff','#c28eff'];for(let i=0;i<7;i++)for(let k=0;k<7;k++){const wave=state.reduced?0:Math.sin(t*5-k*.6)*.06;d('box',[(i-3)*.09+wave,-.85-k*.42,.05],[.049,.23,.06],colors[i],[],1);}}if(rewards.gold&&!burning){const cash=['#ffd94f','#7fd48d','#ffe27a'];for(let i=0;i<14;i++){const k=((state.reduced?.4:t*.45)+i*.0715)%1,y=-.8-k*3.3,side=i%2?1:-1,sway=side*(.22+k*.85)+Math.sin(i*2.3+t*2.1)*.12,spin=state.reduced?.6:t*3.2+i;if(i%3)d('cylinder',[sway,y,.14],[.15,.022,.15],cash[i%3],[Math.PI/2,spin,.45*side],.45);else d('box',[sway,y,.14],[.17,.014,.1],cash[i%3],[spin*.5,spin,.3*side],.3);}}const n=state.reduced?1:1+.12*Math.sin(t*35);const boost=Math.min(2.4,Math.max(0,state.speed-1));const f=(.75+Math.min(3,state.speed)*.35+boost*.7)*n;d('cone',[0,-.62-f*.35,0],[.24+boost*.055,f*.6,.24+boost*.055],boost>.3?'#69dfe9':soft?'#ffe9a3':'#ff9747',[Math.PI,0,0],1);d('cone',[0,-.58-f*.23,.01],[.16+boost*.02,f*.4,.16+boost*.02],boost>.3?'#d4ffff':soft?'#fffbe6':'#ffdc75',[Math.PI,0,0],1);}
@@ -661,8 +661,9 @@ function room(t){
  d('box',[-4.17,2.25,1.35],[.02,.035,.94],'#a97c56');d('box',[-4.17,2.25,1.35],[.02,.72,.035],'#a97c56');
  d('cylinder',[-.5,.03,1.45],[1.6,.03,1.15],'#cf93a8');d('cylinder',[-.5,.045,1.45],[1.15,.03,.82],'#e4b3c1');
  // Sofia's bed along the right wall.
- d('box',[3.05,.34,-.5],[1.1,.34,1.8],'#b56a3c');d('box',[3.05,.74,-.5],[1.04,.13,1.74],'#f5efe2');
- bedBlanket(t);d('sphere',[3.05,.92,-1.85],[.7,.2,.38],'#ffe6ef');
+ // The mattress, blanket and pillow give a little when she lands on them jumping.
+ d('box',[3.05,.34,-.5],[1.1,.34,1.8],'#b56a3c');bedTop(()=>{d('box',[3.05,.74,-.5],[1.04,.13,1.74],'#f5efe2');
+ bedBlanket(t);d('sphere',[3.05,.92,-1.85],[.7,.2,.38],'#ffe6ef');});
  // A desk with her model rocket and a lamp.
  d('box',[-3.45,1,1.25],[.78,.07,1.15],'#c99a62');for(const [x,z]of [[-4.1,.2],[-4.1,2.25],[-2.85,.2],[-2.85,2.25]])d('box',[x,.5,z],[.07,.5,.07],'#8d6144');
  group([-3.45,1.07,.45],[.3,.3,.3],[0,.9,0],()=>rocket(t,false,0,false,false));
@@ -867,41 +868,93 @@ function sunDuck(t,s){const turn=Math.min(1,Math.max(0,(s-.9)/.6)),e=turn*turn*(
 
 </script><script>
 /* Bedtime in Sofia's room: tap the bed and she walks over, climbs in under the blanket and falls asleep.
-   Z's float up from the pillow, and a dream bubble swells over the bed with planets and comets in it. Tap again to wake her. */
-const sleep={on:false,k:0,dream:0,lastTap:-9,cometHit:-1,targets:[],eye:[0,8,10]};
+   Z's float up from the pillow, and a dream bubble swells over the bed with planets and comets in it. Tap again to wake her.
+   The first tap on the bed after the game opens is different: she jumps on the bed instead (see JUMP below). */
+// jump: seconds into the jump on the bed (-1 when she is not jumping); jumped: she has had her jump since the game opened.
+// pose: where she was drawn last; blend: the pose to glide away from after she changes her mind halfway; hop: where she flops into bed from.
+const sleep={on:false,k:0,dream:0,lastTap:-9,cometHit:-1,targets:[],eye:[0,8,10],jump:-1,jumped:false,pose:null,blend:null,hop:null,view:0};
 // Where she stands in the room, where she stops by the bed, where she lies (feet towards the room, head on the pillow)
 // and where the dream hangs, over the bed in front of the back wall.
 const BED={idle:[1.7,0,2.05],side:[1.5,0,-.6],lying:[3.05,.93,-.66],tilt:-1.32,bubble:[2.05,3.1,-1.5]};
 BED.head=[BED.lying[0],BED.lying[1]+1.035*Math.cos(BED.tilt),BED.lying[2]+1.035*Math.sin(BED.tilt)];
-const bedEase=k=>k*k*(3-2*k),bedPop=k=>k<=0?0:1+2.70158*(k-1)**3+1.70158*(k-1)**2;
+const bedEase=k=>k*k*(3-2*k),bedPop=k=>k<=0?0:1+2.70158*(k-1)**3+1.70158*(k-1)**2,bedAngle=a=>Math.atan2(Math.sin(a),Math.cos(a));
+// Jumping on the bed, once each time the game is opened: she walks over, climbs up and turns to the room, bounces seven times with her
+// arms in the air (spinning round on the highest bounce), hops down and walks back. Times in seconds; each bounce presses the mattress
+// down for the first part of it and is in the air for the rest. The next tap on the bed puts her to bed as usual.
+const JUMP={stand:[3.05,.92,-.85],face:-.25,walk:1.17,climb:.55,period:.64,press:.22,heights:[.55,.7,.85,.7,.9,1.1,.6],spin:5,down:.5,back:1.05};
+JUMP.bounce=JUMP.walk+JUMP.climb;JUMP.off=JUMP.bounce+JUMP.heights.length*JUMP.period;JUMP.home=JUMP.off+JUMP.down;JUMP.end=JUMP.home+JUMP.back;
 function mixHex(a,b,k){const x=rgb(a),y=rgb(b);return '#'+x.map((v,i)=>Math.round((v+(y[i]-v)*k)*255).toString(16).padStart(2,'0')).join('');}
 function sleepText(){return 'Sofia sover og drømmer om planeter og kometer. Trykk på en planet i drømmen, eller på senga for å vekke henne.';}
-function renderBedConsole(){$('wake-up').hidden=!sleep.on;$('open-quiz').hidden=sleep.on;$('inside-progress').textContent=sleep.on?sleepText():insideProgress();}
-// Leaving the room, starting the planet game or coming back in always finds her awake and standing.
-function resetSleep(){Object.assign(sleep,{on:false,k:0,dream:0,cometHit:-1,targets:[]});$('app').classList.remove('sleeping');renderBedConsole();}
-function goToBed(){if(state.mode!=='inside'||sleep.on)return;Object.assign(sleep,{on:true,lastTap:state.clock,cometHit:-1});$('app').classList.add('sleeping');renderBedConsole();
+function renderBedConsole(){$('wake-up').hidden=!sleep.on;$('open-quiz').hidden=sleep.on;$('inside-progress').textContent=sleep.on?sleepText():sleep.jump>=0?'Sofia hopper i senga! Trykk på senga igjen, så legger hun seg og sover.':insideProgress();}
+// Leaving the room, starting the planet game or coming back in always finds her awake and standing. Her jump stays used up.
+function resetSleep(){Object.assign(sleep,{on:false,k:0,dream:0,cometHit:-1,targets:[],jump:-1,blend:null,hop:null,view:0});$('app').classList.remove('sleeping');renderBedConsole();}
+function startJump(){if(state.mode!=='inside'||sleep.on||sleep.jump>=0)return;Object.assign(sleep,{jump:0,jumped:true,lastTap:state.clock});renderBedConsole();
+ title('HOPP OG SPRETT','Sofia hopper i senga!','Trykk på senga igjen, så legger hun seg.','🤸 Hopp, hopp!');
+ scene.setAttribute('aria-label','Sofia hopper i senga med armene i været. Trykk på senga igjen, så legger hun seg.');
+ gameAudio.say('Hopp, hopp, hopp! Sofia hopper i senga!',{id:'sleep'});}
+// The bed tapped again while she is still jumping: on the floor she carries on to bed from where she is, and on the bed she flops
+// straight down under the blanket from where she is in the air.
+function goToBed(){if(state.mode!=='inside'||sleep.on)return;let k=0;
+ if(sleep.jump>=0){const s=sleep.jump,onBed=s>=JUMP.walk&&s<JUMP.home;k=onBed?.45:s<JUMP.walk?.45*s/JUMP.walk:.45*Math.max(0,1-(s-JUMP.home)/JUMP.back);
+  if(sleep.pose){if(onBed)sleep.hop=sleep.pose;sleep.blend={...sleep.pose,at:state.clock};}sleep.jump=-1;}
+ Object.assign(sleep,{on:true,k,lastTap:state.clock,cometHit:-1});$('app').classList.add('sleeping');renderBedConsole();
  title('GOD NATT, SOFIA','Sofia sover','Hun drømmer om planeter og kometer.','💤 Sov godt');
  scene.setAttribute('aria-label','Sofia ligger i senga og sover. Over senga svever en drømmeboble med planeter og kometer.');
  gameAudio.effect('lullaby');gameAudio.say('God natt, Sofia! Sov godt, og drøm om planeter og kometer.',{id:'sleep'});}
 function wakeUp(){if(!sleep.on)return;if(sleep.dream>1.5)burst(BED.bubble,['#ece6ff','#ffde71','#79e4e2','#ffffff'],22,3);
- Object.assign(sleep,{on:false,dream:0,lastTap:state.clock,targets:[]});$('app').classList.remove('sleeping');renderBedConsole();insideTitle();
+ // She always gets up by the side of the bed, wherever she flopped in from; woken halfway, she glides over to the way out.
+ if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};
+ Object.assign(sleep,{on:false,dream:0,lastTap:state.clock,targets:[],hop:null});$('app').classList.remove('sleeping');renderBedConsole();insideTitle();
  gameAudio.effect('sparkle');gameAudio.say('God morgen, Sofia! Nå er du uthvilt og klar for nye eventyr.',{id:'sleep'});}
 // Going to bed takes about two and a half seconds, getting up a little less. The dream starts once she lies still.
-function updateSleep(dt){if(sleep.k!==(sleep.on?1:0))sleep.k=sleep.on?Math.min(1,sleep.k+dt/2.6):Math.max(0,sleep.k-dt/1.8);if(sleep.on&&sleep.k===1)sleep.dream+=dt;}
+function updateSleep(dt){if(sleep.k!==(sleep.on?1:0))sleep.k=sleep.on?Math.min(1,sleep.k+dt/2.6):Math.max(0,sleep.k-dt/1.8);if(sleep.on&&sleep.k===1)sleep.dream+=dt;
+ // While she jumps, the camera moves part of the way to the bed and back again.
+ const view=sleep.jump>=0&&sleep.jump<JUMP.home?1:0;sleep.view+=(view-sleep.view)*Math.min(1,dt*2.2);if(Math.abs(sleep.view-view)<.002)sleep.view=view;
+ if(sleep.jump<0)return;const was=sleep.jump,s=sleep.jump+=dt,past=x=>was<x&&s>=x;
+ // A boing every time she presses the mattress, sparkles at the top of the spin, and a word when she climbs down.
+ JUMP.heights.forEach((h,n)=>{if(past(JUMP.bounce+n*JUMP.period))gameAudio.effect('boing');});
+ const top=JUMP.bounce+(JUMP.spin+JUMP.press+(1-JUMP.press)/2)*JUMP.period,u=JUMP.stand;
+ if(past(top)){gameAudio.effect('sparkle');burst([u[0],u[1]+JUMP.heights[JUMP.spin]*(state.reduced?.6:1)+.8,u[2]],['#ffde71','#ff9ec4','#79e4e2','#ffffff'],16,1.8,{size:.06});}
+ if(past(JUMP.off))gameAudio.say('Det var gøy! Trykk på senga igjen når du er trøtt, Sofia.',{id:'sleep'});
+ if(s>=JUMP.end){sleep.jump=-1;renderBedConsole();insideTitle();}}
 
 // The camera glides in to the bed and the dream; dragging still turns it a little. Upright screens centre the bed,
 // wide ones leave the top left to the title, and very wide, low ones come closer.
-function bedCamera(eye,at,a,aspect){const k=bedEase(sleep.k);if(k>0){const look=[aspect<1.1?2.45:2.05,2.45,-1.2],dist=Math.max(aspect>2?6.4:8.4,2.45/(.354*aspect)),x=-.42,z=1,n=Math.hypot(x,.3,z),dir=[(x*Math.cos(a)+z*Math.sin(a))/n,.3/n,(z*Math.cos(a)-x*Math.sin(a))/n];
+function bedCamera(eye,at,a,aspect){const k=Math.max(bedEase(sleep.k),bedEase(sleep.view)*.4);if(k>0){const look=[aspect<1.1?2.45:2.05,2.45,-1.2],dist=Math.max(aspect>2?6.4:8.4,2.45/(.354*aspect)),x=-.42,z=1,n=Math.hypot(x,.3,z),dir=[(x*Math.cos(a)+z*Math.sin(a))/n,.3/n,(z*Math.cos(a)-x*Math.sin(a))/n];
  for(let i=0;i<3;i++){eye[i]+=(look[i]+dir[i]*dist-eye[i])*k;at[i]+=(look[i]-at[i])*k;}}sleep.eye=eye;}
-// Sofia herself: standing in the room, walking to the bed, hopping in, lying under the blanket with her eyes shut.
-function sleeper(t){const k=sleep.k,[i,b,l]=[BED.idle,BED.side,BED.lying],idle=-.34+(state.reduced?0:Math.sin(t*.6)*.1);
- if(k===0){group(i,[.95,.95,.95],[0,idle,0],()=>character(t));return;}
+// Sofia herself: standing in the room, walking to the bed, hopping in, lying under the blanket with her eyes shut, or jumping on the bed.
+function sleeper(t){const k=sleep.k,[i,b,l]=[BED.idle,BED.side,BED.lying],idle=-.34+(state.reduced?0:Math.sin(t*.6)*.1);let pos,rot,pose='awake';
+ if(k===0&&sleep.jump>=0)({pos,rot,pose}=jumpPose(sleep.jump,t));
+ else if(k===0){pos=i;rot=[0,idle,0];}
+ else{
  // On the way to bed she faces the bed; getting up she faces back into the room.
- const walkYaw=sleep.on?Math.atan2(b[0]-i[0],b[2]-i[2]):Math.atan2(i[0]-b[0],i[2]-b[2]);let pos,rot;
+ const walkYaw=sleep.on?Math.atan2(b[0]-i[0],b[2]-i[2]):Math.atan2(i[0]-b[0],i[2]-b[2]);
  if(k<.45){const w=bedEase(k/.45),steps=w*Math.PI*7,sway=state.reduced?0:Math.sin(steps);pos=[i[0]+(b[0]-i[0])*w,state.reduced?0:Math.abs(sway)*.07,i[2]+(b[2]-i[2])*w];rot=[0,idle+(walkYaw-idle)*bedEase(Math.min(1,w*4)),sway*.1];}
- else if(k<.8){const c=bedEase((k-.45)/.35);pos=[b[0]+(l[0]-b[0])*c,b[1]+(l[1]-b[1])*c+Math.sin(c*Math.PI)*.5,b[2]+(l[2]-b[2])*c];rot=[BED.tilt*c,walkYaw*(1-c),0];}
+ // Hopping in from the side of the bed, or flopping down from where she was jumping on it.
+ else if(k<.8){const c=bedEase((k-.45)/.35),h=sleep.on&&sleep.hop,from=h?h.pos:b,yaw=h?bedAngle(h.rot[1]):walkYaw;pos=[from[0]+(l[0]-from[0])*c,from[1]+(l[1]-from[1])*c+Math.sin(c*Math.PI)*.5,from[2]+(l[2]-from[2])*c];rot=[BED.tilt*c,yaw*(1-c),0];}
  else{pos=l;rot=[BED.tilt,0,0];}
- group(pos,[.95,.95,.95],rot,()=>character(t,sleep.on&&k>=.8));}
+ if(sleep.on&&k>=.8)pose='asleep';}
+ // After a change of mind halfway she glides from where she was over a third of a second, instead of jumping there.
+ const f=sleep.blend;if(f){const e=bedEase(Math.min(1,(state.clock-f.at)/.3));if(e<1){pos=pos.map((v,j)=>f.pos[j]+(v-f.pos[j])*e);rot=rot.map((v,j)=>f.rot[j]+bedAngle(v-f.rot[j])*e);}else sleep.blend=null;}
+ sleep.pose={pos,rot};group(pos,[.95,.95,.95],rot,()=>character(t,pose==='asleep',pose==='cheer'));}
+// How far the mattress is pressed down (0 to .22 of its thickness) as she lands on it jumping.
+const jumpPress=f=>f<JUMP.press?Math.sin(f/JUMP.press*Math.PI)*.22:0;
+function bedSquash(){const s=sleep.jump-JUMP.bounce;return sleep.k>0||s<0||s>=JUMP.off-JUMP.bounce?0:jumpPress(s/JUMP.period%1);}
+// Draws the top of the bed squashed towards the bed frame (y .61) while it is pressed down.
+function bedTop(draw){const q=bedSquash();if(q<=0)return draw();group([0,.61,0],[1,1-q,1],[0,0,0],()=>group([0,-.61,0],[1,1,1],[0,0,0],draw));}
+// Where she is s seconds into her jump on the bed, which way she faces, and whether her arms are up ('cheer').
+function jumpPose(s,t){const [i,b,u]=[BED.idle,BED.side,JUMP.stand],idle=-.34+(state.reduced?0:Math.sin(t*.6)*.1),toBed=Math.atan2(b[0]-i[0],b[2]-i[2]),toRoom=Math.atan2(i[0]-b[0],i[2]-b[2]),
+ arc=(p,q,c,h)=>[p[0]+(q[0]-p[0])*c,p[1]+(q[1]-p[1])*c+Math.sin(c*Math.PI)*h,p[2]+(q[2]-p[2])*c],
+ // Walking there and back is the same walk as going to bed and getting up: w is how far she is from her spot towards the bed.
+ walk=(w,yaw)=>{const sway=state.reduced?0:Math.sin(w*Math.PI*7);return {pos:[i[0]+(b[0]-i[0])*w,state.reduced?0:Math.abs(sway)*.07,i[2]+(b[2]-i[2])*w],rot:[0,idle+(yaw-idle)*bedEase(Math.min(1,w*4)),sway*.1],pose:'awake'};};
+ if(s<JUMP.walk)return walk(bedEase(s/JUMP.walk),toBed);
+ if(s<JUMP.bounce){const c=bedEase((s-JUMP.walk)/JUMP.climb);return {pos:arc(b,u,c,.6),rot:[0,toBed+(JUMP.face-toBed)*c,0],pose:c>.5?'cheer':'awake'};}
+ if(s<JUMP.off){const n=Math.floor((s-JUMP.bounce)/JUMP.period),f=(s-JUMP.bounce)/JUMP.period-n;
+  if(f<JUMP.press)return {pos:[u[0],u[1]-.26*jumpPress(f),u[2]],rot:[0,JUMP.face,0],pose:'cheer'};
+  const a=(f-JUMP.press)/(1-JUMP.press),spin=n===JUMP.spin&&!state.reduced?bedEase(a)*Math.PI*2:0;
+  return {pos:[u[0],u[1]+JUMP.heights[n]*(state.reduced?.6:1)*4*a*(1-a),u[2]],rot:[state.reduced?0:Math.sin(a*Math.PI*2)*.08,JUMP.face+spin,0],pose:'cheer'};}
+ if(s<JUMP.home){const c=bedEase((s-JUMP.off)/JUMP.down);return {pos:arc(u,b,c,.45),rot:[0,JUMP.face+(toRoom-JUMP.face)*c,0],pose:'awake'};}
+ return walk(bedEase(Math.max(0,1-(s-JUMP.home)/JUMP.back)),toRoom);}
 // The blanket lies at the foot end by day and is pulled up to her chin at night, rising and falling as she breathes.
 function bedBlanket(t){const c=bedEase(Math.max(0,(sleep.k-.75)/.25)),breathe=c&&!state.reduced?Math.sin(t*1.5)*.012*c:0,z0=-.6-.7*c,top=.95+.25*c+breathe;
  d('box',[3.05,(.73+top)/2,(z0+1.3)/2],[1.05,(top-.73)/2,(1.3-z0)/2],'#79e4e2');if(c>0)d('box',[3.05,top-.03,z0+.06],[1.07,.05*c,.09],'#f5efe2');}
@@ -944,12 +997,12 @@ function dreamBubble(t){const g0=sleep.dream,B=BED.bubble,h=BED.head;sleep.targe
    if(s>.01){group(at,[s,s,s],[0,Math.PI/2,0],()=>duck(t,{fly:true,rider:true}));sleep.targets.push({p:world(at),r:.25*grow,duck:true});}}}
  });}
 function bedScene(t){sleeper(t);if(sleep.on&&sleep.k===1){dreamBubble(t);zzz(t);}else sleep.targets=[];}
-// Taps in the room: on the bed to sleep and wake, and on the planets, comets and duck in the dream.
+// Taps in the room: on the bed to jump (the first time), sleep and wake, and on the planets, comets and duck in the dream.
 function tapInside(x,y){if(state.clock-sleep.lastTap<.6)return true;
  const hit=sleep.targets.length?pickTarget(sleep.targets,x,y,o=>o.p,o=>o.r,34):null;
  if(hit){burst(hit.p,['#ffde71','#ffffff','#79e4e2','#ece6ff'],12,1.6,{size:.06});
   if(hit.comet!==undefined){sleep.cometHit=hit.comet;gameAudio.effect('sparkle');speak('En komet!');}else if(hit.duck){gameAudio.effect('quack');speak('Kvakk kvakk!');}else{gameAudio.effect('pop');speak(hit.body.name);}return true;}
- if(pickTarget([[3.05,.9,-1.6],[3.05,.9,-.5],[3.05,.9,.6]],x,y,p=>p,()=>.75)){if(sleep.on)wakeUp();else goToBed();return true;}
+ if(pickTarget([[3.05,.9,-1.6],[3.05,.9,-.5],[3.05,.9,.6]],x,y,p=>p,()=>.75)){if(sleep.on)wakeUp();else if(!sleep.jumped)startJump();else goToBed();return true;}
  return false;}
 $('wake-up').onclick=wakeUp;
 
