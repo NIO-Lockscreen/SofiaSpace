@@ -100,3 +100,34 @@ const fresh={visited:['earth'],played:[],quizStars:0,quizCorrect:0,shipColor:'st
 assert.deepEqual([...back.visited].sort(),[...before.visited].sort());assert.equal(back.quizStars,3);assert.equal(back.quizCorrect,17);
 assert.deepEqual(mergeSaves(fresh,{visited:'nonsense',quizStars:'x'}).visited,['earth']);assert.equal(mergeSaves(fresh,null).quizStars,0);
 console.log('Passed: undoing a reset restores every place, star and setting, adds what was found since, and ignores a damaged copy.');
+
+// Tooth brushing stars are kept by an undo too, added to what was brushed since.
+assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);assert.equal(mergeSaves(fresh,before).brushed,0);
+// Tooth brushing (teeth.js, 23 November 2026): toothpaste first, every tooth needs a few seconds of brushing however fast the brush goes,
+// the germs let go, the hint blinks when Sofia is stuck, a tap on the cup rinses, and the game says it is done exactly once.
+{const ctx=vm.createContext({Math,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;',ctx);
+ const said=[],sounds=[],steps=[];let done=0,clock=0;const canvas={clientWidth:1024,clientHeight:510};
+ const game=ctx.createToothGame({canvas,say:t=>said.push(t),sound:n=>sounds.push(n),onStep:s=>steps.push(s),onDone:()=>done++});
+ const run=(sec,fn)=>{for(let i=0;i<Math.round(sec*60);i++){fn&&fn(clock);game.update(1/60);clock+=1/60;}};
+ game.start({seed:7,loop:false});assert.equal(game.step,'paste');assert.equal(game.teeth.length,16);assert.ok(game.teeth.every(t=>t.dirt>=.6&&!t.clean));
+ assert.equal(game.teeth.filter(t=>t.germ).length,6);for(const row of ['up','down'])assert.ok(game.teeth.some(t=>t.row===row&&t.kind==='molar'&&t.germ),'a germ on a back tooth in the '+row+' row');
+ const L=game.layout(),C=game.teeth.map(t=>game.centre(t));
+ for(const t of game.teeth){const r=game.rect(t);assert.ok(r.x>L.cx-L.a&&r.x+r.w<L.cx+L.a&&r.w>20&&r.h>20,'every tooth inside the mouth and big enough to see');}
+ game.press(L.cx,L.cy);assert.equal(game.step,'paste');assert.match(said.at(-1),/tuben/,'a tap beside the tube asks for toothpaste');
+ game.press(L.tube.x,L.tube.y);assert.ok(sounds.includes('squeeze'));run(1.6);assert.equal(game.step,'brush');assert.ok(game.brush.paste>.9,'toothpaste on the brush');
+ run(6);assert.ok(said.some(t=>/blinker/.test(t)),'stuck: the dirtiest tooth blinks and the voice says so');
+ run(2,c=>game.move(L.cx+Math.sin(c*20)*80,L.cy));assert.ok(game.teeth.every(t=>t.dirt>=.6),'no finger on the brush, no brushing');
+ const front=game.teeth.findIndex(t=>t.row==='up'&&t.kind==='central');let at=-1;game.press(C[front].x,C[front].y);
+ run(6,c=>{game.move(C[front].x+(Math.round(c*60)%2?70:-70),C[front].y);if(at<0&&game.teeth[front].clean)at=c;});game.release();
+ assert.ok(at-clock+6>2&&at-clock+6<5,'wild scrubbing still takes about four seconds a tooth ('+(at-clock+6).toFixed(2)+' s)');
+ // A child brushing back and forth over three teeth at a time, two strokes a second: all clean in well under a minute.
+ const t0=clock;for(const row of [0,1])for(const [i,j] of [[0,2],[2,5],[5,7]]){const a=C[row*8+i],b=C[row*8+j];game.press(a.x,a.y);const s0=clock;
+  while(clock-s0<8&&!game.teeth.slice(row*8+i,row*8+j+1).every(t=>t.clean))run(1/60,c=>{const k=(Math.sin((c-s0)*Math.PI*4)+1)/2;game.move(a.x+(b.x-a.x)*k,a.y+(b.y-a.y)*k);});game.release();}
+ assert.equal(game.cleanCount(),16,'every tooth clean');assert.equal(game.step,'rinse');assert.ok(clock-t0<45,'brushed in '+(clock-t0).toFixed(1)+' s');console.log('  (a child brushing three teeth at a time: '+(clock-t0).toFixed(1)+' s)');
+ assert.ok(game.teeth.every(t=>!t.germ||t.germ.gone),'all the germs gone');assert.equal(sounds.filter(n=>n==='pop').length,6);assert.equal(sounds.filter(n=>n==='ding').length,16);assert.ok(said.includes('Hade, bakterie!'));
+ game.press(L.cx,L.cy);assert.equal(game.step,'rinse');game.press(L.cup.x,L.cup.y-L.cup.h*.4);run(2.1);assert.equal(game.step,'done');assert.equal(done,0);
+ run(4);assert.equal(done,1,'done after the smile');run(3);assert.equal(done,1,'and only once');assert.deepEqual(steps,['paste','brush','rinse','done']);
+ game.stop();assert.equal(game.step,'idle');game.press(L.tube.x,L.tube.y);assert.equal(game.step,'idle');
+ // Three taps anywhere also put toothpaste on, so a five-year-old cannot get stuck there.
+ game.start({seed:3,loop:false});for(let i=0;i<3;i++)game.press(10,10);run(1.6);assert.equal(game.step,'brush');}
+console.log('Passed: tooth brushing with toothpaste first, about four seconds a tooth however wild the brushing, germs that let go, a blinking hint, rinsing, done once, and brushing stars kept by undo.');

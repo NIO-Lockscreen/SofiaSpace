@@ -72,6 +72,7 @@ function tapScene(x,y){if(state.paused)return false;if(state.mode==='play'){tapP
 function allowDoubleTap(){return !['play','quiz'].includes(state.mode)&&!(state.mode==='flight'&&flightTargets());}
 function keyScene(e){if([...document.querySelectorAll('.modal-shade')].some(el=>!el.hidden))return false;
  if(state.mode==='play'){if(e.key==='Escape'){endPlay();return true;}return /^[a-zæøå]$/i.test(e.key)&&keyPlay(e.key.toUpperCase());}
+ if(state.mode==='teeth'){if(e.key==='Escape'){stopBrushing();return true;}return false;}
  if(state.mode==='quiz'){if(e.key==='Escape'){endQuiz();return true;}const n=Number(e.key);if(n>=1&&n<=4&&$('quiz-choices').children[n-1]){$('quiz-choices').children[n-1].click();return true;}}return false;}
 
 // Sofia in a space suit for walks on other worlds. Arms reach up while she jumps.

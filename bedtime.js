@@ -16,7 +16,7 @@ const JUMP={stand:[3.05,.92,-.85],face:-.25,walk:1.17,climb:.55,period:.64,press
 JUMP.bounce=JUMP.walk+JUMP.climb;JUMP.off=JUMP.bounce+JUMP.heights.length*JUMP.period;JUMP.home=JUMP.off+JUMP.down;JUMP.end=JUMP.home+JUMP.back;
 function mixHex(a,b,k){const x=rgb(a),y=rgb(b);return '#'+x.map((v,i)=>Math.round((v+(y[i]-v)*k)*255).toString(16).padStart(2,'0')).join('');}
 function sleepText(){return 'Sofia sover og drømmer om planeter og kometer. Trykk på en planet i drømmen, eller på senga for å vekke henne.';}
-function renderBedConsole(){$('wake-up').hidden=!sleep.on;$('open-quiz').hidden=sleep.on;$('inside-progress').textContent=sleep.on?sleepText():sleep.jump>=0?'Sofia hopper i senga! Trykk på senga igjen, så legger hun seg og sover.':insideProgress();}
+function renderBedConsole(){$('wake-up').hidden=!sleep.on;$('open-quiz').hidden=sleep.on;$('inside-progress').textContent=sleep.on?sleepText():sleep.jump>=0?'Sofia hopper i senga! Trykk på senga igjen, så legger hun seg og sover.':insideProgress();if(typeof renderRoutine==='function')renderRoutine();}
 // Leaving the room, starting the planet game or coming back in always finds her awake and standing. Her jump stays used up.
 function resetSleep(){Object.assign(sleep,{on:false,k:0,dream:0,cometHit:-1,targets:[],jump:-1,blend:null,hop:null,view:0});$('app').classList.remove('sleeping');renderBedConsole();}
 function startJump(){if(state.mode!=='inside'||sleep.on||sleep.jump>=0)return;Object.assign(sleep,{jump:0,jumped:true,lastTap:state.clock});renderBedConsole();
@@ -127,9 +127,9 @@ function dreamBubble(t){const g0=sleep.dream,B=BED.bubble,h=BED.head;sleep.targe
   if(rewards.duck){const f=(g0%11)/5.5;if(f<1){const x=-1.05+2.1*f,s=.15*bedEase(Math.max(0,Math.min(1,(1-Math.abs(x)/1.05)*3))),at=[x,-.12+Math.sin(f*Math.PI*2)*.1,.12];
    if(s>.01){group(at,[s,s,s],[0,Math.PI/2,0],()=>duck(t,{fly:true,rider:true}));sleep.targets.push({p:world(at),r:.25*grow,duck:true});}}}
  });}
-function bedScene(t){sleeper(t);if(sleep.on&&sleep.k===1){dreamBubble(t);zzz(t);}else sleep.targets=[];}
+function bedScene(t){if(!mealSofia(t))sleeper(t);if(sleep.on&&sleep.k===1){dreamBubble(t);zzz(t);}else sleep.targets=[];}
 // Taps in the room: on the bed to jump (the first time), sleep and wake, and on the planets, comets and duck in the dream.
-function tapInside(x,y){if(state.clock-sleep.lastTap<.6)return true;
+function tapInside(x,y){if(tapMeal(x,y))return true;if(state.clock-sleep.lastTap<.6)return true;
  const hit=sleep.targets.length?pickTarget(sleep.targets,x,y,o=>o.p,o=>o.r,34):null;
  if(hit){burst(hit.p,['#ffde71','#ffffff','#79e4e2','#ece6ff'],12,1.6,{size:.06});
   if(hit.comet!==undefined){sleep.cometHit=hit.comet;gameAudio.effect('sparkle');speak('En komet!');}else if(hit.duck){gameAudio.effect('quack');speak('Kvakk kvakk!');}else{gameAudio.effect('pop');speak(hit.body.name);}return true;}
