@@ -1450,8 +1450,16 @@ function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<
  if(b>=.1&&b<.52&&meal.food>=0)d('sphere',[tip[0],tip[1]+.02,tip[2]],[.04,.03,.035],FOODS[meal.food].color);}
 // The backpack on her back with its straps over her shoulders, and the tube from its side round to the button on her tummy, drops running down it.
 const TUBE=[[.17,.35,-.25],[.34,.42,-.08],[.3,.44,.2],[.07,.47,.18]];
+// A flat band from a to b: hw wide along x, hd thick (on the front it lies flat on her shirt, over the shoulder flat on top),
+// a little longer than the gap so the pieces meet at the corners.
+function band(a,b,hw,hd,color){const v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],len=Math.hypot(...v)||1e-6;d('box',[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[hw,len/2+.012,hd],color,[Math.atan2(v[2],v[1]),0,-Math.asin(Math.max(-1,Math.min(1,v[0]/len)))]);}
+// Each strap lies on her body all the way: up from the bag, flat over the shoulder, down the front of her shirt, and round her side
+// under the arm to the bottom of the bag. (Strap ends that stopped on her chest looked like two dark dots there.)
 function wornBag(t,light){group(BAG_ON,[1,1,1],[0,Math.PI,0],()=>pegBag(t,{worn:true,light}));
- for(const x of [-1,1]){limb([x*.12,.77,-.3],[x*.17,.86,-.06],.025,'#1c1c22');limb([x*.17,.86,-.06],[x*.15,.6,.17],.025,'#1c1c22');}}
+ const c='#1c1c22',top=.862,front=.172,side=.234;
+ for(const x of [-1,1]){band([x*.13,.74,-.185],[x*.16,top,-.165],.035,.012,c);band([x*.16,top,-.165],[x*.16,top,.165],.035,.012,c);
+  band([x*.16,top,front],[x*.16,.5,front],.035,.012,c);band([x*.16,.5,front],[x*side,.42,.06],.025,.025,c);
+  band([x*side,.42,.06],[x*side,.38,-.13],.012,.035,c);band([x*side,.38,-.13],[x*.16,.34,-.19],.025,.025,c);}}
 function pegTube(t,grow,flow){const n=16,on=Math.max(0,Math.min(1,grow));let prev=bez(TUBE,0);for(let i=1;i<=n;i++){const u=i/n*on,p=bez(TUBE,u);limb(prev,p,.017,'#c8b4f0','cylinder');prev=p;}
  if(on>=1){d('cylinder',[.07,.47,.175],[.035,.015,.035],'#9a7fd8',[Math.PI/2,0,0]);if(flow)for(let i=0;i<7;i++){const u=((state.reduced?0:t*.42)+i/7)%1;d('sphere',bez(TUBE,u),[.024,.024,.024],'#fff3d2',[],1);}}}
 // Her pose at each step of the meal: where she is, which way she faces, and what she does with her arms, legs, mouth and the backpack.
