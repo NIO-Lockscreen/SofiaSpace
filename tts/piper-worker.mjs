@@ -11,7 +11,7 @@ const BASE = new URL('./', import.meta.url);
 const FILES = {
   config: ['no_NO-talesyntese-medium.onnx.json', 6256],
   espeakWasm: ['espeak-nb.wasm', 303108],
-  espeakData: ['espeak-nb.data', 715048],
+  espeakData: ['espeak-nb.data', 714955],
   ortWasm: ['ort-wasm-simd-threaded.wasm', 14848852],
   graph: ['no_NO-talesyntese-medium.graph.onnx', 752472],
   weights: ['no_NO-talesyntese-medium.weights.f16', 31241856],

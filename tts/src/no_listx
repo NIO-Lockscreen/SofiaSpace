@@ -2,6 +2,8 @@
 // espeak-ng (nb) legger trykket på første stavelse i nesten alle ord. Disse følger vanlig bokmål.
 // Format: ord, tab, espeak-fonemer (' = hovedtrykk, , = bitrykk). Bygges inn i tts/espeak-nb.data
 // med tts/build-espeak.sh. Vanlige småord (igjen, også, velkommen) står urørt: stemmen har lært dem.
+// Hvert ord er prøvd med NB-Whisper (med og uten retting, tre opplesninger hver). Ganymedes og asteroide(beltet) ble
+// tatt ut igjen: der forsto NB-Whisper espeaks egen uttale bedre.
 
 // Navn
 sofia	sU'fi:A
@@ -12,7 +14,6 @@ neptun	nEpt'u-:n
 europa	aUR'u:pA
 phobos	f'u:bOs
 deimos	d'aImOs
-ganymedes	gAnym'e:d@s
 callisto	kA'lIstU
 titan	tIt'A:n
 enceladus	Ens'e:lAdu-s
@@ -40,9 +41,6 @@ meteorer	me:te'u:R@R
 meteorene	me:te'u:R@na#
 krater	kR'A:t@R
 kratere	kR'A:t@Ra#
-asteroide	Ast@RU'i:da#
-asteroider	Ast@RU'i:d@R
-asteroidebeltet	Ast@RU'i:da#,bElt@
 astronaut	AstRU'naUt
 astronauter	AstRU'naUt@R
 rakett	RA'kEt:
