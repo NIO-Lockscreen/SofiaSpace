@@ -90,4 +90,27 @@ function bedTap(jumped,r){return !jumped||r<BED_JUMP_AGAIN?'jump':'sleep';}
 // Sofia wears a Santa hat all through December (24 November 2026, santaHat in sofia.js), from the device's own calendar. force (true or false, from ?jul=1 or
 // ?jul=0 in the address) decides instead, so the hat can be seen on any day.
 function santaSeason(date=new Date(),force=null){return force==null?date.getMonth()===11:!!force;}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};
+// Where the brushing stars go once the chart's ten places are full (24 November 2026): there is no limit. Star 11 and on spill out of the chart onto the
+// wall it hangs on, the nearest places first, until that wall is full (two rounds of places, the second in the gaps of the first); then onto the room's
+// other walls the same way, the nearest to the chart first (as if the walls were unfolded round the corners); then round after round in the gaps, a
+// little smaller each time, the chart's wall first, for as long as she brushes.
+// walls: the first is the chart's; each {o: a corner, u: the direction along it, v: up, w, h: its size in metres, at(u,v): where a place is on the unfolded
+// walls, as [x, y] with the chart's wall as it is, skip: [[u0,u1,v0,v1],...] what is on the wall already}. from: the chart's middle, [x, y]. gap: metres
+// between places in a round; r: a star's size in the first round. Returns n places {p: [x,y,z], wall, round, size, colour (0..4), spin}.
+function brushStarSpots(n,{walls,from,gap=.4,r=.12}){
+ const hash=(...k)=>{let h=0;for(const v of k)h=Math.sin(h*12.9898+v*78.233+.5)*43758.5453;return h-Math.floor(h);};
+ // The places of one round on every wall, each with its distance from the chart over the unfolded walls.
+ const places=round=>{const off=[[0,0],[.5,.5],[.5,0],[0,.5]][round]||[hash(round,1),hash(round,2)],size=r*([1,.85,.75,.75][round]??.68),list=[];
+  walls.forEach((w,wi)=>{const m=size*1.2;
+   for(let i=0;(i+off[0]-.5)*gap<=w.w;i++)for(let j=0;(j+off[1]-.5)*gap<=w.h;j++){
+    const u=(i+off[0])*gap+(hash(round,wi,i,j,3)-.5)*gap*.3,v=(j+off[1])*gap+(hash(round,wi,i,j,4)-.5)*gap*.3;
+    if(u<m||u>w.w-m||v<m||v>w.h-m||(w.skip||[]).some(([u0,u1,v0,v1])=>u>u0-m&&u<u1+m&&v>v0-m&&v<v1+m))continue;
+    const [x,y]=w.at(u,v);list.push({u,v,wi,round,size,d:Math.hypot(x-from[0],y-from[1])});}});
+  return list;};
+ const out=[],near=(a,b)=>a.d-b.d,take=list=>{for(const c of list){if(out.length>=n)return;const w=walls[c.wi];
+  out.push({p:[0,1,2].map(k=>w.o[k]+w.u[k]*c.u+w.v[k]*c.v),wall:c.wi,round:c.round,size:c.size,colour:Math.floor(hash(c.u*31,c.v*17,c.round)*5),spin:hash(c.v*13,c.u*7,c.round)*Math.PI*2});}};
+ // The chart's wall full first (rounds 0 and 1 together), then the other walls, then each round after on every wall, the chart's wall first.
+ const first=[...places(0),...places(1)];take(first.filter(c=>!c.wi).sort(near));take(first.filter(c=>c.wi).sort(near));
+ for(let round=2,empty=0;out.length<n&&empty<4;round++){const list=places(round);empty=list.length?0:empty+1;take(list.sort((a,b)=>(a.wi?1:0)-(b.wi?1:0)||a.d-b.d));}
+ return out;}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};

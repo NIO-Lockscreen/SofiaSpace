@@ -200,6 +200,23 @@ console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 %
 }
 console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
 
+// The brushing stars after the chart (24 November 2026): no limit. Star 11 and on fill the chart's wall first, the nearest places first, then the other
+// walls, then the gaps round after round; never on the name, the case, the chart, the bed, the reading stars, the window or the desk; the same every time.
+{const {brushStarSpots}=require('./game-core.js'),src=fs.readFileSync('routines.js','utf8'),walls=eval(src.match(/const BRUSH_WALLS=(\[[\s\S]*?\]\]\}\]);/)[1]),from=[2.85,2.98];
+ assert.deepEqual(brushStarSpots(0,{walls,from}),[]);
+ const t0=performance.now(),many=brushStarSpots(5000,{walls,from}),ms=performance.now()-t0;assert.equal(many.length,5000,'no limit');assert.ok(ms<500,'quick: '+ms.toFixed(0)+' ms for 5000');
+ assert.deepEqual(brushStarSpots(300,{walls,from}),many.slice(0,300),'the same places every time, and more stars only add to them');
+ const onBack=many.findIndex(s=>s.wall!==0);assert.ok(onBack>60,'the chart\'s wall is filled first: '+onBack+' stars');assert.ok(many.slice(onBack,onBack+100).every(s=>s.wall!==0),'then the other walls');
+ assert.ok(many[onBack].wall===1,'round the corner from the chart first (the right wall)');assert.ok(many.slice(0,onBack).every(s=>s.round<2)&&many.at(-1).round>6,'two rounds on the chart\'s wall, then many more');
+ const d=s=>Math.hypot(s.p[0]-from[0],s.p[1]-from[1]);for(let i=1;i<onBack;i++)assert.ok(d(many[i])>=d(many[i-1])-1e-9,'nearest the chart first');
+ const keys=new Set(many.map(s=>s.p.map(v=>v.toFixed(3)).join()));assert.equal(keys.size,many.length,'no two in the same place');
+ for(const s of many){const w=walls[s.wall],u=[0,1,2].reduce((a,k)=>a+(s.p[k]-w.o[k])*w.u[k],0),v=s.p[1]-w.o[1],m=s.size;
+  assert.ok(u>=m&&u<=w.w-m&&v>=m&&v<=w.h-m,'on its wall');for(const [u0,u1,v0,v1] of w.skip)assert.ok(!(u>u0-m&&u<u1+m&&v>v0-m&&v<v1+m),'clear of what is on the wall');
+  assert.ok(s.colour>=0&&s.colour<5&&s.size>.07&&s.size<=.12);}
+ for(let i=1;i<many.length;i++)if(many[i].round>many[i-1].round)assert.ok(many[i].size<=many[i-1].size+1e-9,'a little smaller each round');
+ assert.ok(/const brushStarsOnWall=\(\)=>Math\.max\(0,state\.brushed-10\);/.test(src),'after the ten on the chart');
+ console.log(`Passed: brushing stars without limit: ${onBack} fill the chart's wall first (the nearest first), then the right and left walls, then the gaps (5000 in ${ms.toFixed(0)} ms), clear of everything on the walls.`);}
+
 // Sofia's look (sofia.js): her curls frame her face without covering her eyes or eyebrows, the ringlets in front hang beside her face, the long hair at
 // the back is tucked away while the PEG backpack is on, and with calmer effects she does not blink. Every script is in the page, the build and the server.
 {const draws=[],faces=[],g2d=new Proxy({},{get:()=>()=>({addColorStop(){}})});

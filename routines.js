@@ -57,11 +57,37 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  if(!drinkPose()?.held)group(MEAL.cup,[.95,.95,.95],[0,0,0],glassOfWater);
  // the backpack on the floor by the table, the light off
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
- // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes.
+ // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes. After ten they go on the walls (brushWall).
  const [hx,hy,hz]=MEAL.chart;d('box',[hx,hy,hz],[.78,.5,.02],'#fffaf0');d('box',[hx,hy+.38,hz+.02],[.78,.12,.012],'#79e4e2');
  d('sphere',[hx-.55,hy+.03,hz+.04],[.15,.17,.03],'#ffffff');for(const x of [-.07,.07])d('sphere',[hx-.55+x,hy-.13,hz+.04],[.06,.08,.03],'#ffffff');
  for(let i=0;i<10;i++){const x=hx-.25+(i%5)*.23,y=hy+.1-Math.floor(i/5)*.3,on=i<Math.min(10,state.brushed);
-  if(on)d('star',[x,y,hz+.04],[.1,.1,.1],'#79e4e2',[0,0,(i%3-1)*.2],.35+(state.reduced?0:.15*Math.sin(t*2+i)));else d('sphere',[x,y,hz+.03],[.06,.06,.01],'#e8e0d0');}}
+  if(on)d('star',[x,y,hz+.04],[.1,.1,.1],'#79e4e2',[0,0,(i%3-1)*.2],.35+(state.reduced?0:.15*Math.sin(t*2+i)));else d('sphere',[x,y,hz+.03],[.06,.06,.01],'#e8e0d0');}
+ brushWall(t);}
+// ---- The brushing stars after the chart (24 November 2026): no limit ----
+// Star 11 and on spill out of the chart over the back wall, the nearest places first, until it is full; then over the right wall (round the corner from the
+// chart) and the left wall; then round after round in the gaps, a little smaller each time (brushStarSpots in game-core.js). They keep clear of the name,
+// the case with the planets, the chart, the bed, the reading stars, the window and the desk. In turquoise like the chart's, gold, pink, lilac and pale yellow.
+// All but the newest are one mesh per colour (built again only when a star is added), so a wall with thousands still draws quickly; the newest twinkles.
+const BRUSH_COLOURS=['#79e4e2','#ffcf4a','#ff8fbd','#b9a3ff','#fff3c4'];
+const BRUSH_WALLS=[
+ {o:[-4.28,0,-3.245],u:[1,0,0],v:[0,1,0],n:[0,0,1],yaw:0,w:8.56,h:3.7,at:(u,v)=>[u-4.28,v],skip:[[0,8.56,0,.3],[2.73,5.83,2.12,3.75],[.98,7.58,.68,2.28],[6.3,7.96,2.43,3.53]]},
+ {o:[4.245,0,-3.28],u:[0,0,1],v:[0,1,0],n:[-1,0,0],yaw:-Math.PI/2,w:5.18,h:3.7,at:(u,v)=>[4.28+u,v],skip:[[0,5.18,0,.3],[.83,4.73,0,1.3],[.83,3.88,1.45,3.4]]},
+ {o:[-4.245,0,1.9],u:[0,0,-1],v:[0,1,0],n:[1,0,0],yaw:Math.PI/2,w:5.18,h:3.7,at:(u,v)=>[-4.28-(5.18-u),v],skip:[[0,5.18,0,.3],[0,1.7,1.35,3.15],[0,1.9,0,1.9]]}];
+const brushStarsOnWall=()=>Math.max(0,state.brushed-10);
+let brushBuilt={n:-1,spots:[]};
+function brushWall(t){const n=brushStarsOnWall();
+ if(n!==brushBuilt.n){const spots=brushStarSpots(n,{walls:BRUSH_WALLS,from:[MEAL.chart[0],MEAL.chart[1]]}),data=BRUSH_COLOURS.map(()=>[]),pts=[];
+  for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,r=i%2?.44:1;pts.push([Math.cos(a)*r,Math.sin(a)*r]);}
+  // the same star as the engine's 'star' mesh, turned onto its wall
+  const tri=(out,a,b,c)=>{const n=norm(cross(sub(b,a),sub(c,a)));for(const p of [a,b,c])out.push(...p,...n);};
+  for(const s of spots.slice(0,-1)){const w=BRUSH_WALLS[s.wall],c=Math.cos(s.spin),sn=Math.sin(s.spin),out=data[s.colour],
+    P=(x,y,z)=>{const X=(x*c-y*sn)*s.size,Y=(x*sn+y*c)*s.size,Z=z*s.size;return [0,1,2].map(k=>s.p[k]+w.u[k]*X+w.v[k]*Y+w.n[k]*Z);};
+   // the back half faces the wall and is never seen; only WebGL gets it (the software renderer would only throw it away)
+   for(let i=0;i<10;i++){const p=pts[i],q=pts[(i+1)%10];tri(out,P(0,0,.26),P(p[0],p[1],0),P(q[0],q[1],0));if(!renderer.software)tri(out,P(0,0,-.26),P(q[0],q[1],0),P(p[0],p[1],0));}}
+  BRUSH_COLOURS.forEach((c,k)=>renderer.setMesh('brushStars'+k,data[k]));brushBuilt={n,spots};}
+ BRUSH_COLOURS.forEach((c,k)=>{if(renderer.meshes['brushStars'+k])renderer.draw('brushStars'+k,[0,0,0],[1,1,1],c,[0,0,0],.3);});
+ const s=brushBuilt.spots.at(-1);if(s)d('star',s.p,[s.size,s.size,s.size],BRUSH_COLOURS[s.colour],[0,BRUSH_WALLS[s.wall].yaw,s.spin],.4+(state.reduced?0:.25*Math.sin(t*3)));}
+
 const bagOnFloor=()=>!(meal.kind==='peg'&&MEAL_STEPS.peg.indexOf(meal.step)>=1&&MEAL_STEPS.peg.indexOf(meal.step)<=7);
 const spoonInHand=()=>meal.kind==='spoon'&&['eat','full'].includes(meal.step);
 // How much food is left in the bowl (1 full, 0 empty): a spoonful leaves the bowl as the spoon scoops it up, before it reaches her mouth.
@@ -205,11 +231,14 @@ const TEETH_TEXT={paste:['Tannkrem først','Trykk på tuben, så kommer det tann
 function startBrushing(){if(state.mode!=='inside'||mealBusy())return;
  if(!toothGame)toothGame=createToothGame({canvas:$('teeth'),reduced:()=>state.reduced,skin:SOFIA.skin,hair:SOFIA.hair,say:text=>gameAudio.say(text,{id:'teeth'}),
   sound:(name,i)=>name==='ding'?gameAudio.note(i||0):name==='done'?gameAudio.effect('fanfare'):name==='tap'?gameAudio.effect('oops'):gameAudio.effect(name),
-  onStep:step=>{const [h,p]=TEETH_TEXT[step]||['Tannpuss',''];$('teeth-title').textContent=h;$('teeth-tip').textContent=p;},onDone:brushed});
+  onStep:step=>{const [h,p]=step==='done'&&state.brushed>=10?['Så rene tenner!','Du pusset kjempebra. Stjernen kommer på veggen.']:TEETH_TEXT[step]||['Tannpuss',''];$('teeth-title').textContent=h;$('teeth-tip').textContent=p;},onDone:brushed});
  state.mode='teeth';state.dragging=false;showConsole('teeth');$('teeth').hidden=false;$('app').classList.add('brushing');$('world-hint').hidden=true;
  scene.setAttribute('aria-label','Tannpuss. Sofias munn er vid åpen. Puss alle tennene til de skinner.');tone(520,.08);toothGame.start();}
-function brushed(){state.brushed++;saveProgress();progressChanged();stopBrushing();notify('🪥 En ny stjerne på tannpusskartet!');
- gameAudio.say(`Så flink du er, Sofia! Nå har du ${state.brushed} ${state.brushed===1?'stjerne':'stjerner'} på tannpusskartet.`,{id:'teeth'});}
+// After ten the chart is full, and the stars go on the walls (brushWall).
+function brushed(){state.brushed++;saveProgress();progressChanged();stopBrushing();const n=state.brushed;
+ notify(n<=10?'🪥 En ny stjerne på tannpusskartet!':n===11?'🪥 Kartet er fullt! Nå kommer stjernene på veggen.':'🪥 En ny stjerne på veggen!');
+ gameAudio.say(n<=10?`Så flink du er, Sofia! Nå har du ${n} ${n===1?'stjerne':'stjerner'} på tannpusskartet.`:n===11?'Så flink du er, Sofia! Tannpusskartet er fullt, så nå kommer stjernene på veggen. Nå har du 11 stjerner!'
+  :`Så flink du er, Sofia! Nå har du ${n} stjerner på veggene.`,{id:'teeth'});}
 // Back to the room (the «Tilbake» button, Esc, or clean teeth). quiet: when the room itself is reset, nothing to say.
 function stopBrushing(quiet=false){if(!toothGame||!toothGame.running&&state.mode!=='teeth'){$('app').classList.remove('brushing');return;}toothGame.stop();$('teeth').hidden=true;$('app').classList.remove('brushing');
  if(state.mode==='teeth'){state.mode='inside';showConsole('inside');$('world-hint').hidden=false;insideTitle();if(!quiet)gameAudio.stopSpeech();}}
