@@ -3,6 +3,7 @@
 import * as ort from './ort.wasm.bundle.min.mjs';
 import createEspeak from './espeak-nb.mjs';
 import { textToIdSentences, normalize, trimSilence } from './piper-core.mjs';
+import { womanVoice } from './voice-shift.mjs';
 
 const VERSION = new URL(import.meta.url).searchParams.get('v') || '1';
 const CACHE = 'sofia-tts-' + VERSION;
@@ -127,7 +128,9 @@ async function synthesize(ids, lengthScale) {
   const tensor = out[session.outputNames[0]];
   const audio = new Float32Array(tensor.data); // egen kopi som kan overføres til hovedtråden
   for (const t of Object.values(out)) t.dispose?.();
-  return trimSilence(normalize(audio), config.audio?.sample_rate || 22050);
+  // «Talesyntese» er en mannsstemme; voice-shift.mjs gjør den om til en damestemme (24. november 2026).
+  const sr = config.audio?.sample_rate || 22050;
+  return womanVoice(trimSilence(normalize(audio), sr), sr);
 }
 
 async function work() {

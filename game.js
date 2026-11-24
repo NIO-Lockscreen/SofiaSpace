@@ -2,7 +2,8 @@
 const $=id=>document.getElementById(id),earth=BODIES.find(p=>p.id==='earth');
 let renderer;try{renderer=new SpaceRenderer($('scene'));}catch(e){$('fallback').hidden=false;console.error(e);}
 // Valget av stemme huskes på enheten for seg, så en nullstilling av fremgangen ikke rører det.
-const VOICE_KEY='sofias-romreise-stemme-v1';
+// v2 (24. november 2026): alle begynner med den nye stemmen på igjen, også de som slo den av mens den ikke virket.
+const VOICE_KEY='sofias-romreise-stemme-v2';
 const state={mode:'home',origin:earth,location:earth,target:null,selected:BODIES[4],elapsed:0,total:0,speed:1,word:'',index:0,wordNumber:0,wordLocked:false,paused:false,launchTime:0,arrivalTime:0,sunTime:0,angle:0,dragging:false,muted:false,hints:true,voice:true,neural:(()=>{try{return localStorage.getItem(VOICE_KEY)!=='enhet';}catch{return true;}})(),reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,visited:new Set(['earth']),shipColor:SHIP_COLORS[0].id,moonMode:true,clock:0,boostHold:0,boostFlash:0,rocketOffset:0,starTravel:0,rescueSound:false,route:[],passedCount:0,flyby:null,flybyTime:0,flybyQueue:[],played:new Set(),quizStars:0,quizCorrect:0,ship:'rocket',brushed:0};
 const PROGRESS_KEY='sofias-romreise-progress-v1';
 const BACKUP_KEY='sofias-romreise-backup-v1';

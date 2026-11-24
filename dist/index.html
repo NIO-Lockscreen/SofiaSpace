@@ -473,27 +473,38 @@ const PlanetArt=(()=>{
 })();
 
 </script><script>
-/* Norsk nevral stemme: Piper «talesyntese» (Nasjonalbiblioteket, CC0) som kjører i en Web Worker (tts/piper-worker.mjs).
+/* Norsk nevral stemme: Piper «talesyntese» (Nasjonalbiblioteket, CC0) som kjører i en Web Worker (tts/piper-worker.mjs), gjort om til en
+   damestemme i arbeideren (tts/voice-shift.mjs, 24. november 2026).
    Første gang lastes ca. 48 MB ned (modell 32 MB, ONNX Runtime 15 MB, norsk espeak-ng 1 MB). Senere ligger filene i
    Cache Storage. Klippene som allerede er laget, huskes i minnet, så bokstavene kommer med en gang. */
-const PIPER_VERSION='1',PIPER_GUARD='sofias-romreise-stemme-starter';
+// PIPER_VERSION hører til filene i Cache Storage (en ny verdi laster ned 48 MB på nytt); PIPER_CODE til koden i arbeideren.
+const PIPER_VERSION='1',PIPER_CODE='2',PIPER_GUARD='sofias-romreise-stemme-starter';
 class PiperVoice{
- constructor(base='tts/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=22050;this.worker=null;this.jobs=new Map();this.seq=0;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';}
+ constructor(base='tts/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=22050;this.worker=null;this.jobs=new Map();this.seq=0;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.guardFrom=null;
+  // Lukkes eller skjules siden mens stemmen starter, er det ingen krasj: da telles det ikke (24. november 2026). Kommer siden tilbake før stemmen er klar, telles det igjen.
+  const away=()=>{if(this.guardFrom!=null)this.unguard();},back=()=>{if(this.starting&&this.guardFrom==null)this.guard(true);};
+  try{globalThis.addEventListener?.('pagehide',away);globalThis.document?.addEventListener?.('visibilitychange',()=>document.hidden?away():back());}catch{}}
  static supported(){try{return typeof Worker==='function'&&typeof WebAssembly==='object'&&typeof BigInt64Array==='function'&&typeof caches!=='undefined'&&!!(window.AudioContext||window.webkitAudioContext);}catch{return false;}}
  get ready(){return this.status==='ready';}
  onChange(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
  set(status){this.status=status;for(const fn of this.listeners)try{fn(this);}catch{}}
- // Ble siden borte mens stemmen startet sist (typisk: for lite minne på en eldre iPad), startes den ikke av seg selv igjen.
- static crashedBefore(){try{return !!localStorage.getItem(PIPER_GUARD);}catch{return false;}}
- guard(on){try{on?localStorage.setItem(PIPER_GUARD,String(Date.now())):localStorage.removeItem(PIPER_GUARD);}catch{}}
+ // Ble siden borte mens stemmen startet (typisk: for lite minne på en eldre iPad), telles det. Først etter to slike ganger på rad startes den ikke
+ // av seg selv igjen (slå «Ny norsk stemme» av og på for å prøve). Før 24. november 2026 holdt én gang, også når siden bare ble lukket mens stemmen
+ // startet, og da måtte stemmen slås av og på før den virket igjen. Et gammelt merke (et tidspunkt) teller som én gang.
+ static crashes(){try{const v=JSON.parse(localStorage.getItem(PIPER_GUARD)||'0');return v&&typeof v==='object'?Math.max(0,+v.n||0):v?1:0;}catch{return 0;}}
+ static crashedBefore(){return PiperVoice.crashes()>=2;}
+ guard(on){try{if(on){if(this.guardFrom==null)this.guardFrom=PiperVoice.crashes();localStorage.setItem(PIPER_GUARD,JSON.stringify({n:this.guardFrom+1,at:Date.now()}));}else{this.guardFrom=null;localStorage.removeItem(PIPER_GUARD);}}catch{}}
+ unguard(){try{this.guardFrom?localStorage.setItem(PIPER_GUARD,JSON.stringify({n:this.guardFrom,at:Date.now()})):localStorage.removeItem(PIPER_GUARD);}catch{}this.guardFrom=null;}
  load({force=false}={}){if(this.status==='loading'||this.status==='ready')return;if(!PiperVoice.supported())return this.set('unsupported');if(!force&&PiperVoice.crashedBefore()){this.error='crash';return this.set('failed');}this.progress=0;this.error='';
-  try{this.worker=new Worker(this.base+'piper-worker.mjs?v='+PIPER_VERSION,{type:'module'});}catch(err){return this.fail(err);}
+  try{this.worker=new Worker(this.base+'piper-worker.mjs?v='+PIPER_VERSION+'&c='+PIPER_CODE,{type:'module'});}catch(err){return this.fail(err);}
   this.worker.onmessage=e=>this.message(e.data||{});this.worker.onerror=e=>{e.preventDefault?.();this.fail(e.message||'worker');};this.set('loading');this.worker.postMessage({type:'init'});}
- fail(err){this.error=String(err?.message||err||'');this.guard(false);try{this.worker?.terminate();}catch{}this.worker=null;for(const job of this.jobs.values())job.fail();this.jobs.clear();this.set('failed');}
+ // Feiler stemmen (nettet borte midt i nedlastingen, en arbeider som stoppet opp), prøves den igjen av seg selv, to ganger, etter 20 og 40 sekunder.
+ fail(err){this.error=String(err?.message||err||'');this.starting=false;this.guard(false);try{this.worker?.terminate();}catch{}this.worker=null;for(const job of this.jobs.values())job.fail();this.jobs.clear();this.set('failed');
+  if(this.error!=='crash'&&this.retries<2){clearTimeout(this.retryTimer);this.retryTimer=setTimeout(()=>{if(this.status==='failed')this.load({force:true});},20000*++this.retries);}}
  message(m){const job=m.id!=null?this.jobs.get(m.id):null;switch(m.type){
   case 'progress':this.progress=m.value;this.set('loading');break;
-  case 'starting':this.guard(true);break;
-  case 'ready':this.guard(false);this.sampleRate=m.sampleRate||22050;this.loadMs=m.ms;this.progress=1;this.set('ready');break;
+  case 'starting':this.starting=true;if(!globalThis.document?.hidden)this.guard(true);break;
+  case 'ready':this.starting=false;this.guard(false);this.sampleRate=m.sampleRate||22050;this.loadMs=m.ms;this.progress=1;this.set('ready');break;
   case 'failed':this.fail(m.message);break;
   case 'chunk':if(job){job.chunks.push(m.pcm);job.onchunk?.(m.pcm);}break;
   case 'done':if(job){this.jobs.delete(m.id);this.remember(job.key,job.chunks);job.finished=true;job.ondone?.();}break;
@@ -526,19 +537,21 @@ class GameAudio {
   this.neural=typeof PiperVoice==='function'&&PiperVoice.supported()?new PiperVoice():null;
   this.neural?.onChange(n=>{if(n.ready&&!this.warmed){this.warmed=true;n.prewarm([...new Set(Object.values(LETTER_NAMES))],{lengthScale:LETTER_PACE});}this.updateVoiceNote();});
   this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);
-  this.stallMs=8000;this.stalls=0;this.hiddenAt=0;document.addEventListener?.('visibilitychange',()=>{if(document.hidden)this.hiddenAt=Date.now();});}
+  this.stallMs=8000;this.stalls=0;this.hiddenAt=0;document.addEventListener?.('visibilitychange',()=>{if(document.hidden)this.hiddenAt=Date.now();});
+  // Hvert trykk vekker lyden igjen. iOS kan sette Web Audio på pause («interrupted») etter en samtale, en annen app eller enhetens stemme.
+  for(const type of ['pointerdown','keydown'])document.addEventListener?.(type,()=>this.unlock(),true);}
  // Start nedlastingen av den nye stemmen litt etter oppstart, når 3D-scenen har fått lastet ferdig.
  startNeural(delay=2500){if(!this.neural)return;clearTimeout(this.neuralTimer);this.neuralTimer=setTimeout(()=>{if(this.getState().neural!==false&&!navigator.connection?.saveData)this.neural.load();},delay);}
  neuralOn(){return !!this.neural?.ready&&this.getState().neural!==false;}
  updateVoiceNote(){const label=document.getElementById('voice-note');if(!label)return;const n=this.neural,on=this.getState?.().neural!==false,device=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang));
-  label.textContent=on&&n?.ready?'Den nye norske stemmen er klar. Den lages her på enheten (Piper «talesyntese» fra Nasjonalbiblioteket) og virker også uten nett.'
+  label.textContent=on&&n?.ready?'Den nye norske stemmen er klar: en damestemme som lages her på enheten (Piper «talesyntese» fra Nasjonalbiblioteket, gjort lysere), og som virker også uten nett.'
   :on&&n?.status==='loading'?(n.progress>=1?'Den nye norske stemmen gjøres klar … Imens leser enheten med sin egen stemme.':`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 48 MB, bare første gang). Imens leser enheten med sin egen stemme.`)
   :on&&n?.status==='failed'&&n.error==='crash'?'Den nye stemmen ble ikke startet, fordi siden stoppet sist den lastet (kanskje for lite minne). Slå «Ny norsk stemme» av og på for å prøve igjen.'
   :on&&n?.status==='failed'&&n.error==='stalled'?'Den nye stemmen stoppet opp, så enhetens egen stemme leser resten av tiden. Last siden på nytt for å prøve den igjen.'
   :on&&n?.status==='failed'?'Den nye stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke den nye stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :device?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';}
- unlock(){if(this.getState().muted)return;try{if(!this.context){this.context=new(window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=.65;this.master.connect(this.context.destination);}if(this.context.state==='suspended')this.context.resume().catch(()=>{});}catch{}}
+ unlock(){if(this.getState().muted)return;try{if(!this.context){this.context=new(window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=.65;this.master.connect(this.context.destination);}if(this.context.state!=='running'&&this.context.state!=='closed')this.context.resume?.().catch?.(()=>{});}catch{}}
  tone(freq=500,length=.12,shape='sine',volume=.065,delay=0,endFreq=freq){if(this.getState().muted||this.getState().paused)return;this.unlock();if(!this.context)return;const ctx=this.context,o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=shape;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,endFreq),t+length);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+length+.03);o.onended=()=>{o.disconnect();g.disconnect();};}
  swoosh(duration=.5,strength=.06,up=true){if(this.getState().muted||this.getState().paused)return;this.unlock();if(!this.context)return;const ctx=this.context,t=ctx.currentTime,buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();source.buffer=buffer;filter.type='bandpass';filter.Q.value=.7;filter.frequency.setValueAtTime(up?180:1600,t);filter.frequency.exponentialRampToValueAtTime(up?2500:160,t+duration);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(strength,t+duration*.2);gain.gain.exponentialRampToValueAtTime(.0001,t+duration);source.connect(filter);filter.connect(gain);gain.connect(this.master);source.start(t);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};}
  effect(name){switch(name){
@@ -581,7 +594,12 @@ class GameAudio {
  say(text,{force=false,queue=false,id='info'}={}){const s=this.getState();if(s.muted||(!s.voice&&!force)||(!this.neuralOn()&&(!this.synth||typeof SpeechSynthesisUtterance==='undefined')))return;if(!queue)this.stopSpeech();if(this.queue.length>=8)this.queue.shift();this.queue.push({text,id,force});this.pump();}
  letter(letter,completedWord=''){const names=LETTER_NAMES;if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
  pump(){if(this.current||!this.queue.length)return;const s=this.getState();if(s.muted||(!s.voice&&!this.queue[0].force)||s.paused)return;const item=this.queue.shift(),gen=this.generation;
-  if(this.neuralOn()&&this.context?.state==='running')this.speakNeural(item,gen);else this.speakDevice(item,gen);}
+  if(!this.neuralOn()||!this.context)return this.speakDevice(item,gen);
+  if(this.context.state==='running')return this.speakNeural(item,gen);
+  // Står lyden på pause (iOS), vekkes den først. Våkner den innen et øyeblikk, leser den nye stemmen; ellers leser enhetens stemme.
+  const cur={...item,waking:true};this.current=cur;let settled=false;
+  const go=()=>{if(settled)return;settled=true;if(gen!==this.generation||this.current!==cur)return;this.current=null;this.context.state==='running'&&this.neuralOn()?this.speakNeural(item,gen):this.speakDevice(item,gen);};
+  try{this.context.resume?.().then?.(go,go);}catch{}setTimeout(go,this.wakeMs??350);}
  speakDevice(item,gen){if(!this.synth||typeof SpeechSynthesisUtterance==='undefined'){this.current=null;return this.pump();}const u=new SpeechSynthesisUtterance(item.text);this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;if(this.deviceVoice)u.voice=this.deviceVoice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
  // Setningene spilles etter hverandre i Web Audio så snart de er laget, med en liten pause mellom.
  speakNeural(item,gen){const ctx=this.context,job=this.neural.speak(item.text,{lengthScale:item.id.startsWith('letter')?LETTER_PACE:TALK_PACE}),cur={...item,job,sources:[],end:0,done:false,timer:0,since:Date.now()};this.current=cur;
@@ -606,7 +624,8 @@ class GameAudio {
 const $=id=>document.getElementById(id),earth=BODIES.find(p=>p.id==='earth');
 let renderer;try{renderer=new SpaceRenderer($('scene'));}catch(e){$('fallback').hidden=false;console.error(e);}
 // Valget av stemme huskes på enheten for seg, så en nullstilling av fremgangen ikke rører det.
-const VOICE_KEY='sofias-romreise-stemme-v1';
+// v2 (24. november 2026): alle begynner med den nye stemmen på igjen, også de som slo den av mens den ikke virket.
+const VOICE_KEY='sofias-romreise-stemme-v2';
 const state={mode:'home',origin:earth,location:earth,target:null,selected:BODIES[4],elapsed:0,total:0,speed:1,word:'',index:0,wordNumber:0,wordLocked:false,paused:false,launchTime:0,arrivalTime:0,sunTime:0,angle:0,dragging:false,muted:false,hints:true,voice:true,neural:(()=>{try{return localStorage.getItem(VOICE_KEY)!=='enhet';}catch{return true;}})(),reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,visited:new Set(['earth']),shipColor:SHIP_COLORS[0].id,moonMode:true,clock:0,boostHold:0,boostFlash:0,rocketOffset:0,starTravel:0,rescueSound:false,route:[],passedCount:0,flyby:null,flybyTime:0,flybyQueue:[],played:new Set(),quizStars:0,quizCorrect:0,ship:'rocket',brushed:0};
 const PROGRESS_KEY='sofias-romreise-progress-v1';
 const BACKUP_KEY='sofias-romreise-backup-v1';

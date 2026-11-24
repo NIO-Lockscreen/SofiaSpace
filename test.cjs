@@ -182,13 +182,21 @@ console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 %
  jobs[1].onchunk(new Float32Array(300));voice.stopSpeech();assert.ok(jobs[1].cancelled);assert.ok(stopped.includes(started.at(-1)),'stopping cuts the sound at once');assert.equal(voice.current,null);
  voice.say('Hei, Sofia!');jobs[2].onerror();assert.equal(said.at(-1).text,'Hei, Sofia!','the device voice takes over when the new voice fails');
  voice.stopSpeech();prefs.neural=false;voice.say('Med enhetens stemme');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Med enhetens stemme','the setting turns the new voice off');
- prefs.neural=true;ctx.state='suspended';voice.stopSpeech();voice.say('Før første trykk');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Før første trykk','before sound is unlocked the device voice reads');
+ prefs.neural=true;voice.context=null;voice.stopSpeech();voice.say('Før første trykk');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Før første trykk','before the first touch (no sound yet) the device voice reads');voice.context=ctx;
  voice.stopSpeech();prefs.muted=true;voice.say('Stille');assert.equal(said.at(-1).text,'Før første trykk','nothing when muted');
  // A worker the browser stopped without an error: after a short wait the device voice reads, and two stalls turn the new voice off.
  prefs.muted=false;ctx.state='running';voice.stallMs=15;voice.say('Ingen svar');const stuck=jobs.at(-1);assert.equal(stuck.text,'Ingen svar');
  setTimeout(()=>{assert.ok(stuck.cancelled);assert.equal(said.at(-1).text,'Ingen svar','the device voice reads after a stall');assert.equal(voice.neural.status,'ready');
   voice.neural.fail=reason=>{voice.neural.failedWith=reason;};voice.stopSpeech();voice.say('Igjen ingen svar');
-  setTimeout(()=>{assert.equal(said.at(-1).text,'Igjen ingen svar');assert.equal(voice.neural.failedWith,'stalled','two stalls in a row switch the new voice off');console.log('Passed: a silent worker never blocks the speech queue: the device voice takes over after a stall.');},60);},60);
+  setTimeout(()=>{assert.equal(said.at(-1).text,'Igjen ingen svar');assert.equal(voice.neural.failedWith,'stalled','two stalls in a row switch the new voice off');console.log('Passed: a silent worker never blocks the speech queue: the device voice takes over after a stall.');
+   // iOS puts Web Audio on pause ('interrupted', 'suspended'): a touch wakes it, and the new voice waits a moment for it instead of giving way to the device voice.
+   voice.stallMs=8000;voice.stalls=0;let resumed=0;ctx.state='interrupted';ctx.resume=()=>{resumed++;ctx.state='running';return Promise.resolve();};voice.unlock();assert.equal(resumed,1,'a touch wakes interrupted sound');
+   ctx.state='interrupted';voice.stopSpeech();const n0=jobs.length,d0=said.length;voice.say('Vekket');assert.equal(jobs.length,n0,'waits for the sound to wake');
+   setTimeout(()=>{assert.equal(jobs.length,n0+1);assert.equal(jobs.at(-1).text,'Vekket','the new voice reads once the sound is awake');assert.equal(said.length,d0,'not the device voice as well');
+    ctx.state='suspended';ctx.resume=()=>new Promise(()=>{});voice.wakeMs=10;voice.stopSpeech();voice.say('Sover');
+    setTimeout(()=>{assert.equal(said.at(-1).text,'Sover','the device voice reads when the sound does not wake');assert.equal(jobs.length,n0+1);
+     ctx.state='suspended';voice.stopSpeech();voice.say('Avbrutt');voice.stopSpeech();setTimeout(()=>{assert.notEqual(said.at(-1).text,'Avbrutt','stopped while waking: nothing is read');
+      console.log('Passed: sound on pause is woken by a touch, and the new voice waits for it.');},30);},40);},10);},60);},60);
 }
 console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
 
@@ -253,6 +261,43 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.equal(vm.runInContext('PiperVoice.supported()',sandbox),true);
  piper.remember('1|be',[new Float32Array(40)]);const got=await new Promise(done=>{const job=piper.speak('be'),lens=[];job.onchunk=c=>lens.push(c.length);job.ondone=()=>done(lens);});assert.deepEqual(got,[40],'a cached clip plays without the worker');
  const failed=await new Promise(done=>{const job=piper.speak('ikke laget');job.onerror=()=>done(true);job.ondone=()=>done(false);});assert.ok(failed,'not ready and not cached: the caller falls back');
+ // The guard against a start the page did not survive (24 November 2026): one crash and the voice still starts by itself; only after two in a row it waits for
+ // the switch. Closing or hiding the page while it starts is no crash. An old mark (a time) counts as one. A failure is tried again twice, after 20 and 40 s.
+ {const store=new Map(),on={},timers=[],doc={hidden:false,addEventListener:(t,f)=>on[t]=f};
+  const sb=vm.createContext({window:{AudioContext:function(){}},Worker:class{postMessage(){}terminate(){}},WebAssembly,BigInt64Array,caches:{},queueMicrotask,document:doc,addEventListener:(t,f)=>on[t]=f,
+   setTimeout:(fn,ms)=>timers.push({fn,ms}),clearTimeout(){},localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)}});
+  vm.runInContext(fs.readFileSync('tts.js','utf8'),sb);const fresh=()=>vm.runInContext('new PiperVoice()',sb),crashes=()=>vm.runInContext('PiperVoice.crashes()',sb);
+  let v=fresh();v.load();v.message({type:'starting'});assert.equal(crashes(),1,'the page went while starting');
+  v=fresh();v.load();assert.equal(v.status,'loading','after one crash it starts again by itself');v.message({type:'starting'});assert.equal(crashes(),2);
+  v=fresh();v.load();assert.equal(v.status,'failed');assert.equal(v.error,'crash','after two in a row it waits');assert.equal(timers.length,0,'and is not tried again by itself');
+  v.load({force:true});assert.equal(v.status,'loading','the switch tries again');v.message({type:'starting'});v.message({type:'ready'});assert.equal(v.status,'ready');assert.equal(crashes(),0,'a good start clears it');
+  v=fresh();v.load();v.message({type:'starting'});on.pagehide();assert.equal(crashes(),0,'closing the page while it starts is no crash');
+  v=fresh();v.load();v.message({type:'starting'});doc.hidden=true;on.visibilitychange();assert.equal(crashes(),0,'nor is hiding it');doc.hidden=false;on.visibilitychange();assert.equal(crashes(),1,'back while still starting: it counts again');v.message({type:'ready'});
+  v=fresh();doc.hidden=true;v.load();v.message({type:'starting'});assert.equal(crashes(),0,'starting while hidden is not counted');doc.hidden=false;v.message({type:'ready'});
+  store.set('sofias-romreise-stemme-starter','1732445000000');assert.equal(crashes(),1,'an old mark counts once');v=fresh();v.load();assert.equal(v.status,'loading');store.clear();
+  v=fresh();v.load();v.fail('nett');assert.equal(timers.at(-1).ms,20000);timers.at(-1).fn();assert.equal(v.status,'loading','tried again after 20 s');v.fail('nett');assert.equal(timers.at(-1).ms,40000);timers.at(-1).fn();
+  const n=timers.length;v.fail('nett');assert.equal(timers.length,n,'twice, then it rests');}
  for(let i=0;i<9;i++)piper.remember('1|lang '+i,[new Float32Array(9e5)]);assert.ok(piper.cacheBytes<=24e6&&!piper.has('lang 0')&&piper.has('lang 8'),'the clip memory stays under 24 MB, oldest first out');
- console.log('Passed: browser phonemes identical to Python Piper for '+cases.length+' sentences, stress fixed for Sofia and the space words, emoji not read aloud, and a bounded clip cache.');
+ // The woman's voice (tts/voice-shift.mjs): a voiced sound at 120 Hz with a man's formants comes out at about 204 Hz (1.7 times) with its formants about 18 %
+ // higher, the same length and the same peak; a hiss stays a hiss; and it is quick (a few per cent of the time it takes to say).
+ {const {womanVoice,FORMANT,PITCH}=await import('./tts/voice-shift.mjs'),sr=22050,n=Math.round(1.3*sr),x=new Float32Array(n);
+  const res=(f,bw)=>{const r=Math.exp(-Math.PI*bw/sr),c=2*r*Math.cos(2*Math.PI*f/sr);return {a1:c,a2:-r*r,y1:0,y2:0};},R=[res(600,80),res(1100,90),res(2500,120)];let seed=3;const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296-.5;
+  for(let i=0;i<n;i++){let v=i<sr?(i%Math.round(sr/120)===0?1:0):rnd()*.3;for(const f of R){const y=v+f.a1*f.y1+f.a2*f.y2;f.y2=f.y1;f.y1=y;v=y;}x[i]=v;}
+  let peak=0;for(const v of x)peak=Math.max(peak,Math.abs(v));for(let i=0;i<n;i++)x[i]/=peak*1.25;
+  const t0=performance.now(),y=womanVoice(x,sr),ms=performance.now()-t0;
+  assert.equal(y.length,x.length,'the same length');const pk=a=>a.reduce((m,v)=>Math.max(m,Math.abs(v)),0);assert.ok(Math.abs(pk(y)-pk(x))<1e-6,'the same peak');
+  const period=(a,from,len)=>{const r=[];let best=0;for(let k=Math.floor(sr/500);k<sr/60;k++){let c=0,e0=0,e1=0;for(let i=from;i<from+len;i++){c+=a[i]*a[i+k];e0+=a[i]*a[i];e1+=a[i+k]*a[i+k];}r[k]=c/Math.sqrt(e0*e1);best=Math.max(best,r[k]);}
+   for(let k=Math.floor(sr/500)+1;k<sr/60-1;k++)if(r[k]>=best*.9&&r[k]>=r[k-1]&&r[k]>=r[k+1])return {hz:sr/k,r:best};return {hz:0,r:best};}; // the shortest lag near the best, not a multiple of the period
+  const before=period(x,4000,2000),after=period(y,4000,2000);assert.ok(Math.abs(before.hz-120)<3);assert.ok(Math.abs(after.hz/before.hz-PITCH)<.08,`pitch ${before.hz.toFixed(0)} -> ${after.hz.toFixed(0)} Hz`);
+  // The formants from the LPC envelope (order 14 over 0.2 s): the peaks near F1 (600 Hz) and F2 (1100 Hz).
+  const formants=(a,from,len)=>{const n=14,r=new Float64Array(n+1);for(let k=0;k<=n;k++)for(let i=from;i<from+len-k;i++){const w=i0=>.5-.5*Math.cos(2*Math.PI*(i0-from)/len);r[k]+=a[i]*w(i)*a[i+k]*w(i+k);}
+   let e=r[0];const c=new Float64Array(n+1);c[0]=1;for(let i=1;i<=n;i++){let acc=r[i];for(let j=1;j<i;j++)acc+=c[j]*r[i-j];const k=-acc/e,prev=c.slice();for(let j=1;j<i;j++)c[j]=prev[j]+k*prev[i-j];c[i]=k;e*=1-k*k;}
+   const env=f=>{let re=0,im=0;for(let j=0;j<=n;j++){re+=c[j]*Math.cos(2*Math.PI*f*j/sr);im-=c[j]*Math.sin(2*Math.PI*f*j/sr);}return 1/Math.hypot(re,im);};
+   const peak=(lo,hi)=>{let best=0,bf=0;for(let f=lo;f<=hi;f+=5){const v=env(f);if(v>best){best=v;bf=f;}}return bf;};return [peak(350,900),peak(900,1700)];};
+  // The pitch alone (formant 1) keeps the formants where they were; the woman's voice has them higher by about FORMANT.
+  const only=womanVoice(x,sr,{formant:1}),f0=formants(x,4000,4400),f1=formants(only,4000,4400),f2=formants(y,4000,4400);
+  for(let i=0;i<2;i++){assert.ok(Math.abs(f1[i]/f0[i]-1)<.1,`the pitch alone keeps F${i+1}: ${f0[i]} -> ${f1[i]} Hz`);assert.ok(Math.abs(f2[i]/f0[i]-FORMANT)<.1,`F${i+1} up about ${FORMANT}: ${f0[i]} -> ${f2[i]} Hz`);}
+  assert.ok(period(y,sr+2000,2000).r<.5,'the hiss is still a hiss');
+  assert.ok(ms<400,'quick: '+ms.toFixed(0)+' ms for 1.3 s');}
+ console.log('Passed: browser phonemes identical to Python Piper for '+cases.length+' sentences, stress fixed for Sofia and the space words, emoji not read aloud, a bounded clip cache, a crash guard that only counts real crashes (two in a row), retries, and the woman\'s voice (pitch 1.7, formants 1.18, same length).');
 })().catch(err=>{console.error(err);process.exit(1);});
