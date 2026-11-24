@@ -266,9 +266,12 @@ class SpaceRenderer{
  // A chunky five-pointed star facing +z, for prizes, wall stickers and sparkles.
  a=[];{const pts=[];for(let i=0;i<10;i++){const t=Math.PI/2+i*Math.PI/5,r=i%2?.44:1;pts.push([Math.cos(t)*r,Math.sin(t)*r,0]);}for(let i=0;i<10;i++){const p=pts[i],q=pts[(i+1)%10];tri(a,[0,0,.26],p,q);tri(a,[0,0,-.26],q,p);}}this.mesh('star',a);
  a=[];for(let i=0;i<64;i++){const t=i*Math.PI/32,u=(i+1)*Math.PI/32,p=[Math.cos(t),0,Math.sin(t)],q=[Math.cos(u),0,Math.sin(u)];tri(a,p,q,q.map(v=>v*1.025));tri(a,p,q.map(v=>v*1.025),p.map(v=>v*1.025));}this.mesh('ringlet',a);
+ // A corkscrew curl hanging from y = 0 down to y = −1, thinner towards the tip: Sofia's ringlets (24 November 2026).
+ a=[];{const turns=2.25,seg=this.software?18:44,sides=this.software?4:7,R=.5,at=(u,v)=>{const th=u*turns*Math.PI*2,w=turns*Math.PI*2*R,r=.36*(1-.5*u),N=[Math.cos(th),0,Math.sin(th)],T=norm([-Math.sin(th)*w,-1,Math.cos(th)*w]),B=cross(T,N),n=N.map((x,k)=>x*Math.cos(v)+B[k]*Math.sin(v));return [[R*N[0]+r*n[0],-u+r*n[1],R*N[2]+r*n[2]],n];};
+  for(let i=0;i<seg;i++)for(let j=0;j<sides;j++){const u0=i/seg,u1=(i+1)/seg,v0=j/sides*Math.PI*2,v1=(j+1)/sides*Math.PI*2,p=at(u0,v0),q=at(u1,v0),r=at(u1,v1),s=at(u0,v1);for(const [x,n] of [p,q,r,p,r,s])a.push(...x,...n);}}this.mesh('curl',a);
  }
  begin(eye,at,bg){const gl=this.gl,c=this.canvas,dpr=Math.min(window.devicePixelRatio||1,1.6),w=Math.round(c.clientWidth*dpr),h=Math.round(c.clientHeight*dpr);if(c.width!==w||c.height!==h){c.width=w;c.height=h;}gl.viewport(0,0,w,h);gl.clearColor(...rgb(bg),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);this.vp=M.mul(M.perspective(.68,w/Math.max(h,1),.1,180),M.look(eye,at));}
- draw(mesh,p,s,color,rotation=[0,0,0],glow=0,stripe=0,texture=null){const gl=this.gl,m=this.meshes[mesh],model=this.root?M.mul(this.root,M.model(p,s,rotation)):M.model(p,s,rotation);gl.uniform1f(this.loc.uSurface,texture?1:0);if(texture){this.surfaceCache??=new WeakMap();let tex=this.surfaceCache.get(texture);gl.activeTexture(gl.TEXTURE0);if(!tex){tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);this.surfaceCache.set(texture,tex);}else gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(this.loc.uTexture,0);}gl.bindBuffer(gl.ARRAY_BUFFER,m.b);gl.enableVertexAttribArray(this.pos);gl.enableVertexAttribArray(this.normal);gl.vertexAttribPointer(this.pos,3,gl.FLOAT,false,24,0);gl.vertexAttribPointer(this.normal,3,gl.FLOAT,false,24,12);gl.uniformMatrix4fv(this.loc.uMVP,false,M.mul(this.vp,model));gl.uniformMatrix4fv(this.loc.uModel,false,model);gl.uniform3fv(this.loc.uInvScale,s.map(v=>1/(v*v)));gl.uniform3fv(this.loc.uColor,rgb(color));gl.uniform1f(this.loc.uGlow,glow);gl.uniform1f(this.loc.uStripe,stripe);gl.drawArrays(gl.TRIANGLES,0,m.n);}
+ draw(mesh,p,s,color,rotation=[0,0,0],glow=0,stripe=0,texture=null){const gl=this.gl,m=this.meshes[mesh],model=this.root?M.mul(this.root,M.model(p,s,rotation)):M.model(p,s,rotation);gl.uniform1f(this.loc.uSurface,texture?1:0);if(texture){this.surfaceCache??=new WeakMap();let tex=this.surfaceCache.get(texture);gl.activeTexture(gl.TEXTURE0);if(!tex){tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);if(texture.mipmap){gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);}this.surfaceCache.set(texture,tex);}else gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(this.loc.uTexture,0);}gl.bindBuffer(gl.ARRAY_BUFFER,m.b);gl.enableVertexAttribArray(this.pos);gl.enableVertexAttribArray(this.normal);gl.vertexAttribPointer(this.pos,3,gl.FLOAT,false,24,0);gl.vertexAttribPointer(this.normal,3,gl.FLOAT,false,24,12);gl.uniformMatrix4fv(this.loc.uMVP,false,M.mul(this.vp,model));gl.uniformMatrix4fv(this.loc.uModel,false,model);gl.uniform3fv(this.loc.uInvScale,s.map(v=>1/(v*v)));gl.uniform3fv(this.loc.uColor,rgb(color));gl.uniform1f(this.loc.uGlow,glow);gl.uniform1f(this.loc.uStripe,stripe);gl.drawArrays(gl.TRIANGLES,0,m.n);}
 }
 
 // A software 3D fallback also works on browsers where hardware WebGL is disabled.
@@ -283,7 +286,7 @@ class SoftwareRenderer{
  end(){const w=this.canvas.width,h=this.canvas.height,ctx=this.ctx;let img=ctx.getImageData(0,0,w,h),pix=new Uint32Array(img.data.buffer),depth=new Float32Array(w*h);const pack=color=>{const c=color.startsWith('#')?rgb(color).map(v=>Math.round(v*255)):color.slice(4,-1).split(',').map(Number);return (255<<24)|(c[2]<<16)|(c[1]<<8)|c[0];};
  for(const face of this.faces){const color=pack(face.color);if(face.circle){const[x,y,z]=face.circle,r=face.r,iz=1/z;for(let yy=Math.max(0,Math.floor(y-r));yy<Math.min(h,y+r);yy++)for(let xx=Math.max(0,Math.floor(x-r));xx<Math.min(w,x+r);xx++){const id=yy*w+xx;if((xx-x)*(xx-x)+(yy-y)*(yy-y)<=r*r&&iz>depth[id]){depth[id]=iz;pix[id]=color;}}continue;}
  const[a,b,c]=face.ps,den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);if(Math.abs(den)<.001)continue;const minX=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),maxX=Math.min(w-1,Math.ceil(Math.max(a[0],b[0],c[0]))),minY=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),maxY=Math.min(h-1,Math.ceil(Math.max(a[1],b[1],c[1])));const dax=(b[1]-c[1])/den,dbx=(c[1]-a[1])/den,day=(c[0]-b[0])/den,dby=(a[0]-c[0])/den;let rowA=((b[1]-c[1])*(minX+.5-c[0])+(c[0]-b[0])*(minY+.5-c[1]))/den,rowB=((c[1]-a[1])*(minX+.5-c[0])+(a[0]-c[0])*(minY+.5-c[1]))/den;
- for(let y=minY;y<=maxY;y++,rowA+=day,rowB+=dby){let wa=rowA,wb=rowB,id=y*w+minX;for(let x=minX;x<=maxX;x++,id++,wa+=dax,wb+=dbx){const wc=1-wa-wb;if(wa>=-.00001&&wb>=-.00001&&wc>=-.00001){const iz=wa/a[2]+wb/b[2]+wc/c[2];if(iz>depth[id]){if(face.tex){const u=(wa*face.uv[0][0]/a[2]+wb*face.uv[1][0]/b[2]+wc*face.uv[2][0]/c[2])/iz,v=(wa*face.uv[0][1]/a[2]+wb*face.uv[1][1]/b[2]+wc*face.uv[2][1]/c[2])/iz,tx=Math.max(0,Math.min(face.tex.w-1,Math.floor((face.wrap?((u%1)+1)%1:u)*face.tex.w))),ty=Math.max(0,Math.min(face.tex.h-1,Math.floor(v*face.tex.h))),ti=(ty*face.tex.w+tx)*4,t=face.tex.data,alpha=t[ti+3]/255;if(alpha<.03)continue;const lighting=face.lights?(wa*face.lights[0]/a[2]+wb*face.lights[1]/b[2]+wc*face.lights[2]/c[2])/iz:1;const old=pix[id],r=Math.round(t[ti]*lighting*alpha+(old&255)*(1-alpha)),g=Math.round(t[ti+1]*lighting*alpha+((old>>>8)&255)*(1-alpha)),bcol=Math.round(t[ti+2]*lighting*alpha+((old>>>16)&255)*(1-alpha));pix[id]=(255<<24)|(bcol<<16)|(g<<8)|r;}else pix[id]=color;depth[id]=iz;}}}}}ctx.putImageData(img,0,0);}
+ for(let y=minY;y<=maxY;y++,rowA+=day,rowB+=dby){let wa=rowA,wb=rowB,id=y*w+minX;for(let x=minX;x<=maxX;x++,id++,wa+=dax,wb+=dbx){const wc=1-wa-wb;if(wa>=-.00001&&wb>=-.00001&&wc>=-.00001){const iz=wa/a[2]+wb/b[2]+wc/c[2];if(iz>depth[id]){if(face.tex){const u=(wa*face.uv[0][0]/a[2]+wb*face.uv[1][0]/b[2]+wc*face.uv[2][0]/c[2])/iz,v=(wa*face.uv[0][1]/a[2]+wb*face.uv[1][1]/b[2]+wc*face.uv[2][1]/c[2])/iz,tx=Math.max(0,Math.min(face.tex.w-1,Math.floor((face.wrap?((u%1)+1)%1:u)*face.tex.w))),ty=Math.max(0,Math.min(face.tex.h-1,Math.floor(v*face.tex.h))),ti=(ty*face.tex.w+tx)*4,t=face.tex.data,alpha=t[ti+3]/255;if(alpha<.03)continue;const lighting=face.lights?(wa*face.lights[0]/a[2]+wb*face.lights[1]/b[2]+wc*face.lights[2]/c[2])/iz:1;const old=pix[id],r=Math.round(t[ti]*lighting*alpha+(old&255)*(1-alpha)),g=Math.round(t[ti+1]*lighting*alpha+((old>>>8)&255)*(1-alpha)),bcol=Math.round(t[ti+2]*lighting*alpha+((old>>>16)&255)*(1-alpha));pix[id]=(255<<24)|(Math.min(255,bcol)<<16)|(Math.min(255,g)<<8)|Math.min(255,r);}else pix[id]=color;depth[id]=iz;}}}}}ctx.putImageData(img,0,0);}
 }
 /* Transparent painted decals, depth-tested just like the rest of the rocket. */
 SpaceRenderer.prototype.decal=function(texture,p,size,rotation=[0,0,0]){
@@ -742,12 +745,8 @@ scene.addEventListener('webglcontextlost',e=>{e.preventDefault();state.paused=tr
 // Deterministic small 3D world: no downloads, trackers, fonts or external assets.
 const trees=Array.from({length:28},(_,i)=>{const a=i*2.39996,r=4.6+(i%5)*.45;return {x:Math.cos(a)*r,z:Math.sin(a)*r,s:.66+(i%4)*.14};}).filter(t=>!(t.z>2&&Math.abs(t.x)<4));
 const stars=Array.from({length:95},(_,i)=>({x:Math.sin(i*73.7)*27,y:Math.cos(i*91.3)*16,z:-6-(i%12)*2.5,s:.018+(i%3)*.012}));
-// Asleep, her eyes are shut and she stops waving. Cheering (jumping on the bed), both arms are up and she laughs.
-// o (23 November 2026, mealtime): sit (her shins hang this far down from the seat), arms (draws her arms instead), mouth ('open', 'chew' or 'smile').
-function character(t,asleep=false,cheer=false,o={}){d('box',[0,.52,0],[.22,.33,.16],'#efb749');d('sphere',[0,1.09,0],[.31,.32,.29],'#f6d1a8');d('sphere',[0,1.21,-.08],[.33,.25,.28],'#77523c');d('sphere',[.28,1.08,-.09],[.12,.18,.12],'#77523c');d('sphere',[-.28,1.08,-.09],[.12,.18,.12],'#77523c');if(asleep)for(const x of [-.105,.105])d('box',[x,1.1,.272],[.05,.012,.014],'#1a2a3e');else{d('sphere',[-.105,1.11,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,1.11,.267],[.035,.043,.018],'#1a2a3e');}const mouth=o.mouth||(cheer?'open':'smile');if(mouth==='open')d('sphere',[0,1.0,.278],[.07,.05,.02],'#a94f55');else if(mouth==='chew')d('sphere',[0,1.005,.28],[.05,.018+(state.reduced?.006:.012*Math.abs(Math.sin(t*14))),.016],'#a94f55');else d('box',[0,1.01,.284],[.065,.018,.012],'#c5766c');
- if(o.sit)for(const x of [-.115,.115]){d('box',[x,.215,.15],[.09,.085,.16],'#34426d');d('box',[x,.215-o.sit/2,.3],[.085,o.sit/2,.09],'#34426d');d('sphere',[x,.25-o.sit,.36],[.12,.07,.17],'#f6ede0');}
- else for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],'#34426d');d('sphere',[x,.015,.06],[.12,.07,.17],'#f6ede0');}if(o.arms){o.arms();return;}if(cheer){d('box',[-.36,.8,0],[.08,.24,.09],'#efb749',[0,0,.65-Math.sin(t*3)*.15]);d('sphere',[-.5,.96,0],[.10,.10,.10],'#f6d1a8');}else{d('box',[-.34,.59,0],[.09,.24,.09],'#efb749',[0,0,-.3]);d('sphere',[-.4,.36,0],[.10,.10,.10],'#f6d1a8');}if(asleep){d('box',[.34,.59,0],[.09,.24,.09],'#efb749',[0,0,.3]);d('sphere',[.4,.36,0],[.10,.10,.10],'#f6d1a8');}else{d('box',[.36,.8,0],[.08,.24,.09],'#efb749',[0,0,-.65+Math.sin(t*3)*.15]);d('sphere',[.5,.96,0],[.10,.10,.10],'#f6d1a8');}}
-function rocket(t,fire=false,burning=0,lying=false,pilot=true){const paint=shipPaint(rewards,state.shipColor),white=burning?'#796960':paint.body,orange=burning?'#51444b':paint.accent;d('cylinder',[0,.9,0],[.48,1.08,.48],white);d('cone',[0,2.3,0],[.48,.48,.48],orange);d('cylinder',[0,.05,0],[.5,.16,.5],'#526d80');d('cylinder',[0,-.26,0],[.26,.18,.26],'#2a3a56');d('sphere',[0,1.62,.44],[.3,.3,.08],'#d6aa58');d('sphere',[0,1.62,.50],[.225,.225,.08],'#3b718d');d('sphere',[-.06,1.70,.568],[.062,.084,.02],'#b8eeec',[],.3);if(pilot&&state.mode!=='home'&&(state.mode!=='launch'||state.launchTime>=2)){d('sphere',[0,1.59,.575],[.13,.14,.025],'#f4cfa7');d('sphere',[-.045,1.62,.599],[.017,.021,.008],'#22304b');d('sphere',[.045,1.62,.599],[.017,.021,.008],'#22304b');}if(rewards.graffiti&&!burning)renderer.decal(sofiaGraffiti,lying?[0,.64,.505]:[0,.95,.507],lying?[1.5,.8]:[.92,.49],lying?[0,0,Math.PI/2]:[0,0,0]);if(rewards.gold&&!burning)d('gem',[0,2.93,0],[.28,.38,.28],'#cdf5ff',[0,state.reduced?.6:t*1.5,0],.55);for(const x of [-1,1])d('box',[x*.48,.09,0],[.16,.55,.22],orange,[0,0,-x*.27]);d('box',[0,.1,-.45],[.19,.5,.13],orange);if(fire)shipFire(t,burning);}
+// Sofia herself, character(t, asleep, cheer, o), is drawn in sofia.js.
+function rocket(t,fire=false,burning=0,lying=false,pilot=true){const paint=shipPaint(rewards,state.shipColor),white=burning?'#796960':paint.body,orange=burning?'#51444b':paint.accent;d('cylinder',[0,.9,0],[.48,1.08,.48],white);d('cone',[0,2.3,0],[.48,.48,.48],orange);d('cylinder',[0,.05,0],[.5,.16,.5],'#526d80');d('cylinder',[0,-.26,0],[.26,.18,.26],'#2a3a56');d('sphere',[0,1.62,.44],[.3,.3,.08],'#d6aa58');d('sphere',[0,1.62,.50],[.225,.225,.08],'#3b718d');d('sphere',[-.06,1.70,.568],[.062,.084,.02],'#b8eeec',[],.3);if(pilot&&state.mode!=='home'&&(state.mode!=='launch'||state.launchTime>=2))sofiaWindow([0,1.585,.578],.13);if(rewards.graffiti&&!burning)renderer.decal(sofiaGraffiti,lying?[0,.64,.505]:[0,.95,.507],lying?[1.5,.8]:[.92,.49],lying?[0,0,Math.PI/2]:[0,0,0]);if(rewards.gold&&!burning)d('gem',[0,2.93,0],[.28,.38,.28],'#cdf5ff',[0,state.reduced?.6:t*1.5,0],.55);for(const x of [-1,1])d('box',[x*.48,.09,0],[.16,.55,.22],orange,[0,0,-x*.27]);d('box',[0,.1,-.45],[.19,.5,.13],orange);if(fire)shipFire(t,burning);}
 // The trail behind a ship, pointing down its −y: the flame, and the rainbow or the gold coins once earned. The duck's flame is soft starlight.
 function shipFire(t,burning,soft=false){if(rewards.rainbow&&!burning){const colors=['#ff6389','#ffa35c','#ffe36b','#80e18b','#64dce9','#7e9aff','#c28eff'];for(let i=0;i<7;i++)for(let k=0;k<7;k++){const wave=state.reduced?0:Math.sin(t*5-k*.6)*.06;d('box',[(i-3)*.09+wave,-.85-k*.42,.05],[.049,.23,.06],colors[i],[],1);}}if(rewards.gold&&!burning){const cash=['#ffd94f','#7fd48d','#ffe27a'];for(let i=0;i<14;i++){const k=((state.reduced?.4:t*.45)+i*.0715)%1,y=-.8-k*3.3,side=i%2?1:-1,sway=side*(.22+k*.85)+Math.sin(i*2.3+t*2.1)*.12,spin=state.reduced?.6:t*3.2+i;if(i%3)d('cylinder',[sway,y,.14],[.15,.022,.15],cash[i%3],[Math.PI/2,spin,.45*side],.45);else d('box',[sway,y,.14],[.17,.014,.1],cash[i%3],[spin*.5,spin,.3*side],.3);}}const n=state.reduced?1:1+.12*Math.sin(t*35);const boost=Math.min(2.4,Math.max(0,state.speed-1));const f=(.75+Math.min(3,state.speed)*.35+boost*.7)*n;d('cone',[0,-.62-f*.35,0],[.24+boost*.055,f*.6,.24+boost*.055],boost>.3?'#69dfe9':soft?'#ffe9a3':'#ff9747',[Math.PI,0,0],1);d('cone',[0,-.58-f*.23,.01],[.16+boost*.02,f*.4,.16+boost*.02],boost>.3?'#d4ffff':soft?'#fffbe6':'#ffdc75',[Math.PI,0,0],1);}
 function homeScene(t,launch=0){const a=state.angle,aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=aspect<.85?23:aspect<1.3?20:18,ignite=state.mode==='launch'?Math.max(0,state.launchTime-2.2):0,shake=state.reduced?0:Math.min(1,ignite*2)*.09,rise=Math.min(launch,9)*.5;renderer.begin([Math.sin(a)*dist+Math.cos(a)*8+Math.sin(t*41)*shake,10+Math.cos(t*33)*shake,Math.cos(a)*dist-Math.sin(a)*8],[rise*.25,.5+rise,0],'#7faeb3');d('sphere',[0,-1.4,0],[7.3,1.1,6.25],'#3e7470');d('cylinder',[0,-.47,0],[7.25,.22,6.2],'#74a77f');d('cylinder',[2.6,-.17,.2],[1.8,.07,1.8],'#b3bab1');d('ring',[2.6,-.08,.2],[.86,.86,.86],'#ecebc6');d('box',[.1,-.15,1.3],[2.8,.035,.52],'#c0af87',[0,.18,0]);
@@ -815,7 +814,7 @@ function flightScene(t){const pr=Math.min(1,state.elapsed/state.total),p=state.t
 function arrivalScene(t){const a=state.angle,p=state.location,dist=scene.clientWidth/Math.max(1,scene.clientHeight)<.95?20:17;renderer.begin([Math.sin(a)*dist,3,Math.cos(a)*dist],[0,0,0],'#090f27');starScene(t);if(p.parent)planet(parentOf(p),t,[-11,4.5,-21],1.25);planet(p,t);const rt=state.reduced?.3:t*.2,rx=Math.cos(rt)*5.7,rz=Math.sin(rt)*5.7;orbitingShip(t,rx,rz,rt);const effectColors={mercury:'#c9c2b7',venus:'#f0ce9e',mars:'#e5a176',jupiter:'#e9b381',saturn:'#e6d8b0',uranus:'#b9f4ee',neptune:'#7bbcec',pluto:'#d8efff'};const color=effectColors[p.id]||p.color;if(!state.reduced){for(let i=0;i<30;i++){const b=i*2.399+t*(p.id==='neptune'?.65:.13),r=p.size+.5+(i%5)*.32,y=Math.sin(i*2+t*.22)*p.size*.7;d(p.id==='pluto'?'box':'sphere',[Math.cos(b)*r,y,Math.sin(b)*r],[.025+(i%3)*.015,.03,.025],color,[t,i,t],.6);}}
  }
 function sunScene(t){renderer.begin([0,3,19],[0,0,0],'#281329');starScene(t);planet(BODIES[0],t,[3,0,-2],1.3);const s=state.sunTime;if(duckFlying())sunDuck(t,s);else if(s<2){group([-3+.5*s,0,2],[.8,.8,.8],[0,0,-1.2],()=>rocket(t,true,s>1));}if(s>.7){for(let i=0;i<24;i++){const a=i*2.4,age=Math.min(s-.7,2.5),r=age*(.5+i%5*.23);d('box',[-2.4+Math.cos(a)*r,Math.sin(a)*r,2+Math.sin(i)*r],[.05,.09,.05],i%2?'#ffba43':'#ff7540',[s*i,s,0],1);}}
- if(s>1.6&&!duckFlying()){const x=-3-(s-1.6)*1.9,y=(s-1.6)*.55;d('sphere',[x,y,3],[.55,.49,.48],'#edeadc');d('sphere',[x,y,3.42],[.28,.27,.09],'#7fe0dd');d('sphere',[x,y-.01,3.51],[.15,.16,.035],'#f5cca7');d('cone',[x+.72,y,3],[.18,.5,.18],'#89dfda',[0,0,-Math.PI/2],1);}}
+ if(s>1.6&&!duckFlying()){const x=-3-(s-1.6)*1.9,y=(s-1.6)*.55;d('sphere',[x,y,3],[.55,.49,.48],'#edeadc');d('sphere',[x,y,3.42],[.28,.27,.09],'#7fe0dd');sofiaWindow([x,y-.01,3.51],.15);d('cone',[x+.72,y,3],[.18,.5,.18],'#89dfda',[0,0,-Math.PI/2],1);}}
 function tick(now){if(!renderer)return;const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;if(!state.paused){state.clock+=dt;if(state.mode==='launch'){const prev=Math.ceil(3-state.launchTime);state.launchTime+=dt;const n=Math.ceil(3-state.launchTime);if(n!==prev&&n>0)gameAudio.effect('countdown');if(state.launchTime>=2.6&&state.launchTime-dt<2.6)gameAudio.effect('launch');$('countdown').textContent=n>0?String(n):'AVGANG!';$('countdown').classList.toggle('go',n<=0);if(state.launchTime>=3.7){state.mode='flight';$('countdown').hidden=true;title('UTE PÅ ROMFERD',`Mot ${state.target.name}!`,'Bokstavkraft gir ekstra fart.',state.target.type);scene.setAttribute('aria-label',`${duckFlying()?'Anda':'Raketten'} flyr fra ${state.origin.name} til ${state.target.name}.`);}}
  if(state.mode==='flight'){state.elapsed+=dt*state.speed;updateBoost(dt);updateFlybys(dt);updateFlightFx(dt);state.starTravel+=dt*(2+state.speed*5);updateFlight();if(state.elapsed>=state.total)arrive();}if(wordDelay>0){wordDelay-=dt;if(wordDelay<=0&&['flight','launch'].includes(state.mode))newWord();}if(state.mode==='arrival')state.arrivalTime+=dt;if(state.mode==='play')updatePlay(dt);if(state.mode==='quiz')updateQuiz(dt);if(state.mode==='inside'){updateSleep(dt);updateMeal(dt);}updateFx(dt);if(state.mode==='sun'){state.sunTime+=dt;if(state.sunTime>1.6&&!state.rescueSound){state.rescueSound=true;gameAudio.effect('rescue');}if(state.sunTime>7){$('sun-flash').classList.remove('active');home(true,true);}}}
  gameAudio.update();const t=state.clock;if(state.mode==='home')homeScene(t);else if(state.mode==='inside'||state.mode==='teeth')insideScene(t);else if(state.mode==='launch'&&state.origin.id==='earth')homeScene(t,Math.pow(Math.max(0,state.launchTime-2.5),2)*6);else if(state.mode==='launch'||state.mode==='flight')flightScene(t);else if(state.mode==='arrival')arrivalScene(t);else if(state.mode==='play')playScene(t);else if(state.mode==='quiz')quizScene(t);else if(state.mode==='sun')sunScene(t);drawSparks();updateSpace();renderer.end?.();requestAnimationFrame(tick);}
@@ -824,6 +823,110 @@ if(document.modelContext?.registerTool){for(const tool of [{name:'read_space_adv
 updateSettings();updatePassport();
 if(duckNews){saveProgress();setTimeout(()=>notify('🦆 Ny overraskelse: Nå flyr du med anda!'),700);}
 // The game loop starts at the end of house-quiz.js, the last script, once every scene and game exists.
+
+</script><script>
+'use strict';
+// Sofia herself (24 November 2026), drawn after two photos of her. Big, curly, dark brown hair that is lighter towards the ends, pushed back from
+// the forehead and falling in curls past her ears to her shoulders, with a few corkscrew ringlets; strong dark eyebrows; blue-grey eyes; rosy cheeks
+// and a wide smile with her top teeth showing. She wears her raspberry jumper with the sequin butterfly on the front.
+// The face is painted on a picture wrapped round the head (one per expression, made once), so the eyes, brows and smile stay sharp up close.
+// It goes straight to renderer.draw, since d() does not pass a picture on.
+// Every scene that shows her uses this: at home, in her room, at the table, in bed, in the planet quiz, on the duck, in the space suit and behind the
+// rocket's window.
+const SOFIA={skin:'#f3caa6',hair:'#533526',hairMid:'#6d4833',hairLight:'#8c6141',hairTip:'#ab7d51',brow:'#3b2418',
+ top:'#c95f78',topDark:'#a94c63',legs:'#34426d',shoe:'#f6ede0'};
+
+// ---- The face picture ----
+// The sphere wraps the picture from +x round the front (+z) to −x, so the front of the head is a quarter of the way across. The painter works in
+// radians on the head, x to the right and y up as you look at her, and mirrors the picture so it reads the right way round on the head.
+const sofiaFaces=new Map();
+function sofiaFace(eyes='open',mouth='smile'){const key=eyes+'|'+mouth;if(sofiaFaces.has(key))return sofiaFaces.get(key);
+ const W=1024,H=512,c=document.createElement('canvas');c.width=W;c.height=H;c.mipmap=true;const g=c.getContext('2d'),R=W/(Math.PI*2);
+ g.fillStyle=SOFIA.skin;g.fillRect(0,0,W,H);g.setTransform(-R,0,0,-R,W/4,H/2);g.lineCap='round';g.lineJoin='round';
+ const ellipse=(x,y,rx,ry,fill)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=fill;g.fill();};
+ const glow=(x,y,r,color)=>{const f=g.createRadialGradient(x,y,0,x,y,r);f.addColorStop(0,color);f.addColorStop(1,color.slice(0,7)+'00');g.fillStyle=f;g.fillRect(x-r,y-r,r*2,r*2);};
+ // Rosy cheeks and a soft shade under the hairline.
+ for(const s of [-1,1])glow(s*.5,-.3,.19,'#f2848088');
+ // The eyebrows: thick and dark, a gentle arch, thickest at the inner end.
+ for(const s of [-1,1]){const ex=s*.33;g.beginPath();g.moveTo(ex-s*.115,.135);g.quadraticCurveTo(ex+s*.0,.21,ex+s*.13,.15);g.quadraticCurveTo(ex+s*.02,.175,ex-s*.115,.095);g.closePath();g.fillStyle=SOFIA.brow;g.fill();g.strokeStyle=SOFIA.brow;g.lineWidth=.02;g.stroke();}
+ // The eyes: blue-grey with a dark rim, a white sparkle, and lashes along the top. Shut, they are two soft curves with lashes.
+ for(const s of [-1,1]){const ex=s*.33,ey=-.05;
+  if(eyes==='open'){ellipse(ex,ey,.105,.12,'#fdfbf7');g.save();g.beginPath();g.ellipse(ex,ey,.105,.12,0,0,Math.PI*2);g.clip();
+   const iris=g.createRadialGradient(ex,ey-.02,.01,ex,ey-.015,.085);iris.addColorStop(0,'#b9ccd2');iris.addColorStop(.55,'#7f9caa');iris.addColorStop(1,'#465f6d');ellipse(ex,ey-.015,.082,.09,iris);
+   ellipse(ex,ey-.015,.04,.045,'#151b21');g.restore();
+   ellipse(ex-.032,ey+.03,.026,.028,'#ffffff');ellipse(ex+.03,ey-.05,.012,.012,'#ffffffcc');
+   g.beginPath();g.ellipse(ex,ey,.11,.125,0,Math.PI*.08,Math.PI*.92);g.strokeStyle='#2a1812';g.lineWidth=.03;g.stroke();
+   for(const k of [0,1]){const a=Math.PI*(s>0?.1+k*.1:.9-k*.1),x0=ex+Math.cos(a)*.11,y0=ey+Math.sin(a)*.125;g.beginPath();g.moveTo(x0,y0);g.lineTo(x0+s*(.045-k*.012),y0+.03+k*.01);g.lineWidth=.016;g.stroke();}
+   g.beginPath();g.ellipse(ex,ey,.1,.115,0,Math.PI*1.2,Math.PI*1.8);g.strokeStyle='#c99a80';g.lineWidth=.008;g.stroke();}
+  else{g.beginPath();g.moveTo(ex-.1,ey+.01);g.quadraticCurveTo(ex,ey-.085,ex+.1,ey+.01);g.strokeStyle='#2a1812';g.lineWidth=.026;g.stroke();
+   for(const k of [-1,0,1]){const x0=ex+k*.055,y0=ey-.035-(k?0:.01);g.beginPath();g.moveTo(x0,y0);g.lineTo(x0+k*.02,y0-.035);g.lineWidth=.012;g.stroke();}}}
+ // A small nose: a little shade and a curve underneath.
+ glow(0,-.24,.06,'#d9967a55');g.beginPath();g.moveTo(-.038,-.255);g.quadraticCurveTo(0,-.29,.038,-.255);g.strokeStyle='#c98668';g.lineWidth=.014;g.stroke();ellipse(-.012,-.215,.014,.01,'#ffe6d2aa');
+ // The mouth.
+ const lip='#a8404d',dark='#6f2230';
+ if(mouth==='smile'||mouth==='open'){const big=mouth==='open',top=-.375,w=big?.23:.26,low=big?-.79:-.64;
+  const path=()=>{g.beginPath();g.moveTo(-w,top+.02);g.quadraticCurveTo(0,top-(big?.03:.06),w,top+.02);g.quadraticCurveTo(w*.72,low+.06,0,low+(big?.07:.09));g.quadraticCurveTo(-w*.72,low+.06,-w,top+.02);g.closePath();};
+  path();g.fillStyle=dark;g.fill();g.save();path();g.clip();
+  ellipse(0,low+.04,w*.62,big?.11:.075,'#e06f7c');
+  g.fillStyle='#fffaf1';g.beginPath();g.moveTo(-w,top+.03);g.quadraticCurveTo(0,top-(big?.03:.06),w,top+.03);g.lineTo(w,top-.06);g.lineTo(-w,top-.06);g.closePath();g.fill();
+  g.beginPath();g.moveTo(-w*.9,top-.005);g.quadraticCurveTo(0,top-(big?.115:.135),w*.9,top-.005);g.lineTo(w*.9,top+.05);g.lineTo(-w*.9,top+.05);g.closePath();g.fill();
+  g.strokeStyle='#e6dccd';g.lineWidth=.006;for(const x of [-.13,-.045,.045,.13]){g.beginPath();g.moveTo(x,top+.02);g.lineTo(x,top-(big?.075:.095)+Math.abs(x)*.25);g.stroke();}
+  g.restore();path();g.strokeStyle=lip;g.lineWidth=.018;g.stroke();
+  for(const s of [-1,1]){g.beginPath();g.moveTo(s*(w+.005),top+.045);g.quadraticCurveTo(s*(w+.03),top+.01,s*(w+.012),top-.02);g.strokeStyle='#d89a82';g.lineWidth=.01;g.stroke();}}
+ else if(mouth.startsWith('chew')){const h=[.022,.038,.055][+mouth.slice(4)||0];ellipse(0,-.46,.085,h,'#c75966');ellipse(0,-.46,.06,h*.45,dark);}
+ else{g.beginPath();g.moveTo(-.14,-.43);g.quadraticCurveTo(0,-.51,.14,-.43);g.strokeStyle=lip;g.lineWidth=.024;g.stroke();}
+ sofiaFaces.set(key,c);return c;}
+
+// ---- The hair ----
+// Curl clumps in rings round the back and sides, wider and lighter further down, leaving the face free; the scalp under them; small curls on top;
+// corkscrew ringlets along the bottom edge and two in front of her ears. Worked out once; the head only moves them a little.
+const SOFIA_HAIR=(()=>{const hash=i=>{const x=Math.sin(i*127.1+11.7)*43758.5453;return x-Math.floor(x);},tones=[SOFIA.hair,SOFIA.hairMid,SOFIA.hairLight,SOFIA.hairTip],clumps=[],curls=[];
+ // y, radius out from the head, how many, the size of each clump, where the gap for the face starts (radians from straight ahead), and the tone.
+ const rows=[[.27,.2,6,.11,.6,0],[.17,.3,10,.125,1.05,0],[.05,.35,11,.13,1.2,1],[-.08,.38,12,.135,1.22,1],[-.2,.4,12,.135,1.15,2],[-.31,.4,12,.13,.98,2],[-.41,.36,11,.115,1.0,3]];
+ let n=0;for(const [y,r,count,size,gap,tone] of rows)for(let i=0;i<count;i++){const k=(i+.5)/count,phi=gap+(Math.PI*2-gap*2)*k,j=hash(++n),s=size*(.85+.3*hash(n+50));
+  clumps.push({p:[Math.sin(phi)*r*(.96+.08*j),y+(hash(n+90)-.5)*.05,Math.cos(phi)*r*.82-.07],s:[s,s*(.9+.2*j),s],c:tones[Math.max(0,Math.min(3,tone+(j>.68?1:j<.12?-1:0)))],ph:j*6.28,y});}
+ for(let i=0;i<9;i++){const phi=(i%2?.5:-.5)*(.35+i*.13),j=hash(i+300),r=.27;clumps.push({p:[Math.sin(phi)*r*.9,.3-i*.008+j*.03,Math.cos(phi)*r*.55-.12-i*.02],s:[.075+j*.02,.06,.075+j*.02],c:tones[j>.6?1:0],ph:j*6.28,y:.3});}
+ // Small curls along the hairline, so it is soft and curly rather than a straight edge.
+ for(let i=0;i<11;i++){const a=(i/10-.5)*2.5,j=hash(i+400),s=.042+j*.02;clumps.push({p:[Math.sin(a)*.3,.165-Math.abs(a)*.075+j*.02,Math.cos(a)*.245-.02],s:[s,s*.85,s*.8],c:tones[j>.55?1:0],ph:j*6.28,y:.16});}
+ for(let i=0;i<12;i++){const k=(i+.5)/12,phi=1.05+(Math.PI*2-2.1)*k,j=hash(i+200),r=.33;curls.push({p:[Math.sin(phi)*r,-.44-j*.05,Math.cos(phi)*r*.82-.07],len:.15+j*.07,c:j>.5?SOFIA.hairTip:SOFIA.hairLight,ph:j*6.28,tilt:Math.sin(phi)*.25});}
+ for(const s of [-1,1])curls.push({p:[s*.285,.02,.095],len:.27,c:SOFIA.hairLight,ph:s+1,tilt:s*.12,front:true});
+ return {clumps,curls};})();
+
+// Her head, centred on the origin and facing +z. o.eyes: 'open' or 'shut'; o.mouth: 'smile', 'open', 'chew' or 'rest'; o.compact keeps the hair
+// inside the space suit's helmet; o.tucked (0..1) draws the long hair at the back up out of the way of the PEG backpack. She blinks now and then.
+function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!still&&(t+1.3)%4.1<.13);
+ let mouth=o.mouth||'smile';if(mouth==='chew')mouth='chew'+(still?1:Math.min(2,Math.floor(Math.abs(Math.sin(t*14))*3)));
+ renderer.draw('sphere',[0,0,0],[.31,.32,.29],SOFIA.skin,[0,0,0],.35,0,sofiaFace(shut?'shut':'open',mouth));
+ d('sphere',[0,.055,-.045],[.336,.315,.315],SOFIA.hair);
+ const tuck=o.tucked||0;
+ for(const h of SOFIA_HAIR.clumps){if(o.compact&&h.y<-.25)continue;const back=h.p[2]<-.08&&h.y<-.12?1-tuck:1;if(back<=0)continue;const b=still?0:Math.sin(t*1.9+h.ph)*.006,sq=o.compact?.86:1;d('sphere',[h.p[0]*sq,h.p[1]+b+(1-back)*.12,h.p[2]*sq],h.s.map(v=>v*back),h.c);}
+ if(o.compact)return;
+ for(const h of SOFIA_HAIR.curls){const back=h.p[2]<-.05?1-tuck:1;if(back<=0)continue;const sway=still?0:Math.sin(t*1.6+h.ph)*.12;d('curl',h.p,[.055,h.len*back,.055],h.c,[sway*.6,(h.ph-3.1)*.3,h.tilt+sway*(h.front?.3:1)]);}}
+
+// ---- The whole of her ----
+// Asleep, her eyes are shut and she stops waving. Cheering (jumping on the bed), both arms are up and she laughs.
+// o (23 November 2026, mealtime): sit (her shins hang this far down from the seat), arms (draws her arms instead), mouth ('open', 'chew' or 'smile'),
+// bag (0..1, the PEG backpack going on her back: her long hair at the back is tucked away so the backpack shows).
+function character(t,asleep=false,cheer=false,o={}){const C=SOFIA;
+ d('box',[0,.52,0],[.22,.33,.16],C.top);d('box',[0,.215,0],[.228,.035,.168],C.topDark);sofiaButterfly(t);
+ group([0,1.09,0],[1,1,1],[0,0,0],()=>sofiaHead(t,{eyes:asleep?'shut':'open',mouth:asleep?'rest':o.mouth||(cheer?'open':'smile'),tucked:o.bag}));
+ if(o.sit)for(const x of [-.115,.115]){d('box',[x,.215,.15],[.09,.085,.16],C.legs);d('box',[x,.215-o.sit/2,.3],[.085,o.sit/2,.09],C.legs);d('sphere',[x,.25-o.sit,.36],[.12,.07,.17],C.shoe);}
+ else for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],C.legs);d('sphere',[x,.015,.06],[.12,.07,.17],C.shoe);}
+ if(o.arms){o.arms();return;}
+ const arm=(x,y,rz,hx,hy,w=.08)=>{d('box',[x,y,0],[w,.24,.09],C.top,[0,0,rz]);d('box',[x+(hx-x)*.82,y+(hy-y)*.82,0],[w+.012,.035,.1],C.topDark,[0,0,rz]);d('sphere',[hx,hy,0],[.10,.10,.10],C.skin);};
+ if(cheer)arm(-.36,.8,.65-Math.sin(t*3)*.15,-.5,.96);else arm(-.34,.59,-.3,-.4,.36,.09);
+ if(asleep)arm(.34,.59,.3,.4,.36,.09);else arm(.36,.8,-.65+Math.sin(t*3)*.15,.5,.96);}
+
+// The sequin butterfly on the front of her jumper: pink and coral wings, a golden body, and sequins that catch the light.
+// dy moves it up or down (she sits lower on the duck); z is the front of her jumper.
+function sofiaButterfly(t,dy=0,z=.162){for(const s of [-1,1]){d('sphere',[s*.058,.63+dy,z],[.06,.048,.008],'#ff8fbd',[0,0,s*.45]);d('sphere',[s*.046,.545+dy,z],[.042,.036,.008],'#f7a080',[0,0,-s*.5]);
+  for(let i=0;i<2;i++){const tw=state.reduced?.4:.25+.5*Math.max(0,Math.sin(t*2.3+i*2+s));d('sphere',[s*(.055+i*.02),.64-i*.035+dy,z+.007],[.011,.011,.005],i?'#8fe3ff':'#fff2b0',[],tw);}}
+ d('box',[0,.59+dy,z+.002],[.009,.055,.008],'#e5c46a',[],.3);}
+
+// Her face behind a round window (the rocket's, the rescue capsule's), with her curls round it. p is the middle of her face, r its radius.
+function sofiaWindow(p,r){const [x,y,z]=p,k=r/.13;d('sphere',[x,y+.012*k,z-.008*k],[r*1.32,r*1.25,.02*k],SOFIA.hair);
+ for(let i=0;i<9;i++){const a=-.5+i*(Math.PI+1)/8;d('sphere',[x+Math.cos(a)*r*1.17,y+Math.sin(a)*r*1.1,z-.004*k],[.046*k,.046*k,.02*k],i%2?SOFIA.hairLight:SOFIA.hairMid);}
+ renderer.draw('sphere',[x,y,z],[r*.95,r*1.05,r*.2],SOFIA.skin,[0,0,0],.35,0,sofiaFace());}
 
 </script><script>
 /* Shared play effects: tapping things in 3D, sparkles and confetti, comets and the asteroid belt. */
@@ -908,8 +1011,7 @@ function astronaut(t,reach=0){const suit='#f2f3f6',wave=state.reduced?0:Math.sin
  d('box',[0,.55,0],[.26,.33,.19],suit);d('box',[0,.62,-.24],[.2,.26,.08],'#c9ced8');d('box',[0,.64,.2],[.11,.07,.02],'#79e4e2',[],.7);d('box',[0,.28,0],[.27,.05,.2],'#ff9ed1');
  for(const x of [-.12,.12]){d('box',[x,.14,0],[.1,.2,.12],suit);d('sphere',[x,.02,.06],[.13,.08,.18],'#8d96a8');}
  for(const side of [-1,1]){const ang=reach?2.75:side>0?2.2+wave:.3,L=.22,sx=side*.3,sy=.82,th=side*ang;d('box',[sx+L*Math.sin(th),sy-L*Math.cos(th),0],[.09,L,.1],suit,[0,0,th]);d('sphere',[sx+2*L*Math.sin(th),sy-2*L*Math.cos(th),0],[.1,.1,.1],'#8d96a8');}
- d('sphere',[0,1.1,-.2],[.42,.42,.3],'#f7f8fb');d('sphere',[0,1.1,0],[.27,.28,.25],'#f6d1a8');d('sphere',[0,1.25,-.06],[.28,.16,.22],'#77523c');
- d('sphere',[-.09,1.12,.24],[.032,.04,.016],'#1a2a3e');d('sphere',[.09,1.12,.24],[.032,.04,.016],'#1a2a3e');d('box',[0,1.03,.25],[.055,.016,.01],'#c5766c');
+ d('sphere',[0,1.1,-.2],[.42,.42,.3],'#f7f8fb');group([0,1.1,0],[.87,.87,.87],[0,0,0],()=>sofiaHead(t,{compact:true}));
  d('ringlet',[0,1.1,.1],[.36,1,.36],'#79e4e2',[Math.PI/2,0,0],.6);d('sphere',[-.15,1.26,.22],[.04,.04,.02],'#ffffff',[],1);}
 // Round, bright letter badges for the letter storm, painted once per letter and colour.
 const tileCache=new Map();
@@ -956,12 +1058,11 @@ function duck(t,{fly=false,flap=0,fire=false,rider=false,quack=0}={}){
   if(fire)group([0,1.75,-1.65],[.9,.9,.9],[Math.PI/2,0,0],()=>shipFire(t,0,true));
  });}
 // Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z.
-function duckRider(t,fly){const skin='#f6d1a8',hair='#77523c',top='#efb749',legs='#34426d',hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
- d('box',[0,.36,0],[.22,.3,.16],top);
- for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],'#f6ede0');
+function duckRider(t,fly){const {skin,top,legs}=SOFIA,hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
+ d('box',[0,.36,0],[.22,.3,.16],top);sofiaButterfly(t,-.17);
+ for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],SOFIA.shoe);
   d('box',[s*.29,.42,.13],[.08,.2,.08],top,[-.9+hold,0,s*.15]);d('sphere',[s*.27,.3,.34],[.1,.1,.1],skin);}
- d('sphere',[0,.93,0],[.31,.32,.29],skin);d('sphere',[0,1.05,-.08],[.33,.25,.28],hair);d('sphere',[.28,.92,-.09],[.12,.18,.12],hair);d('sphere',[-.28,.92,-.09],[.12,.18,.12],hair);
- d('sphere',[-.105,.95,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,.95,.267],[.035,.043,.018],'#1a2a3e');d('box',[0,.85,.284],[.07,.02,.012],'#c5766c');}
+ group([0,.93,0],[1,1,1],[0,0,0],()=>sofiaHead(t));}
 // On the home screen: a duck on the launch pad, or the rocket. The duck flaps, tips its bill up and climbs at take-off.
 function homeShip(t,launch,ignite,wiggle){
  if(!duckFlying()){group([2.6,.44+launch,0],[.8,.8,.8],[wiggle,0,wiggle],()=>rocket(t,ignite>0));return;}
@@ -1440,9 +1541,9 @@ function mealWalk(a,b,k,yaw0,yaw1){const w=mealEase(Math.min(1,k)),dist=Math.hyp
   turnIn=mealEase(Math.min(1,k*5)),turnOut=mealEase(Math.max(0,(k-.8)/.2));let yaw=yaw0+bedAngle(go-yaw0)*turnIn;yaw+=bedAngle(yaw1-yaw)*turnOut;
  return {pos:[a[0]+(b[0]-a[0])*w,state.reduced?0:Math.abs(sway)*.07,a[2]+(b[2]-a[2])*w],rot:[0,yaw,sway*.1*(1-turnOut)]};}
 const SEATED=[MEAL.chair[0],MEAL.seat-.18,MEAL.chair[2]],SHIN=.42;
-const HAND={bowl:[.13,.52,.4],mouth:[.1,.93,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12]};
+const HAND={bowl:[.13,.52,.4],mouth:[.1,.88,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12]};
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
-function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow='#efb749',skin='#f6d1a8';
+function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
  limb([-.3,.78,0],[-.17,.52,.36],.085,yellow);d('sphere',[-.17,.52,.36],[.1,.1,.1],skin);
  const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
@@ -1480,7 +1581,8 @@ function mealPose(t){const st=meal.step,k=stepTime()<Infinity?Math.min(1,meal.s/
   if(meal.dance>=0){const c=meal.dance/1.3;P.rot=[0,state.reduced?0:mealEase(c)*Math.PI*2,0];P.pos=[s[0],(state.reduced?.4:1)*Math.sin(c*Math.PI)*.35,s[2]];P.cheer=true;}}
  return P;}
 function mealSofia(t){if(!meal.kind)return false;const P=mealPose(t);
- group(P.pos,[.95,.95,.95],P.rot,()=>{character(t,false,P.cheer,P.o);if(P.bag==='back')wornBag(t,P.light);if(P.tube>0)pegTube(t,P.tube,P.flow);});
+ const bag=P.bag==='back'?1:P.bag==='carry'?P.carry:0;
+ group(P.pos,[.95,.95,.95],P.rot,()=>{character(t,false,P.cheer,bag?{...P.o,bag}:P.o);if(P.bag==='back')wornBag(t,P.light);if(P.tube>0)pegTube(t,P.tube,P.flow);});
  // Picking the backpack up (or putting it down): it swings from the floor to her back in an arc, turning round as it goes.
  if(P.bag==='carry'){const c=P.carry,on=sofiaPoint(P.pos,P.rot[1],BAG_ON),pos=mix3(MEAL.bag,on,c);pos[1]+=Math.sin(c*Math.PI)*.45;group(pos,[1-.05*c,1-.05*c,1-.05*c],[0,-.25+bedAngle(P.rot[1]+Math.PI+.25)*c,0],()=>pegBag(t,{worn:c>.5}));}
  sleep.pose={pos:P.pos,rot:P.rot};return true;}
@@ -1516,7 +1618,7 @@ let toothGame=null;
 const TEETH_TEXT={paste:['Tannkrem først','Trykk på tuben, så kommer det tannkrem på tannbørsten.'],brush:['Puss alle tennene','Dra tannbørsten fram og tilbake over tennene, både oppe og nede. Husk de bakerste!'],
  rinse:['Skyll munnen','Trykk på koppen med vann.'],done:['Så rene tenner!','Du pusset kjempebra. Stjernen kommer på tannpusskartet.']};
 function startBrushing(){if(state.mode!=='inside'||mealBusy())return;
- if(!toothGame)toothGame=createToothGame({canvas:$('teeth'),reduced:()=>state.reduced,skin:'#f6d1a8',hair:'#77523c',say:text=>gameAudio.say(text,{id:'teeth'}),
+ if(!toothGame)toothGame=createToothGame({canvas:$('teeth'),reduced:()=>state.reduced,skin:SOFIA.skin,hair:SOFIA.hair,say:text=>gameAudio.say(text,{id:'teeth'}),
   sound:(name,i)=>name==='ding'?gameAudio.note(i||0):name==='done'?gameAudio.effect('fanfare'):name==='tap'?gameAudio.effect('oops'):gameAudio.effect(name),
   onStep:step=>{const [h,p]=TEETH_TEXT[step]||['Tannpuss',''];$('teeth-title').textContent=h;$('teeth-tip').textContent=p;},onDone:brushed});
  state.mode='teeth';state.dragging=false;showConsole('teeth');$('teeth').hidden=false;$('app').classList.add('brushing');$('world-hint').hidden=true;

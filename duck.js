@@ -36,12 +36,11 @@ function duck(t,{fly=false,flap=0,fire=false,rider=false,quack=0}={}){
   if(fire)group([0,1.75,-1.65],[.9,.9,.9],[Math.PI/2,0,0],()=>shipFire(t,0,true));
  });}
 // Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z.
-function duckRider(t,fly){const skin='#f6d1a8',hair='#77523c',top='#efb749',legs='#34426d',hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
- d('box',[0,.36,0],[.22,.3,.16],top);
- for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],'#f6ede0');
+function duckRider(t,fly){const {skin,top,legs}=SOFIA,hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
+ d('box',[0,.36,0],[.22,.3,.16],top);sofiaButterfly(t,-.17);
+ for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],SOFIA.shoe);
   d('box',[s*.29,.42,.13],[.08,.2,.08],top,[-.9+hold,0,s*.15]);d('sphere',[s*.27,.3,.34],[.1,.1,.1],skin);}
- d('sphere',[0,.93,0],[.31,.32,.29],skin);d('sphere',[0,1.05,-.08],[.33,.25,.28],hair);d('sphere',[.28,.92,-.09],[.12,.18,.12],hair);d('sphere',[-.28,.92,-.09],[.12,.18,.12],hair);
- d('sphere',[-.105,.95,.267],[.035,.043,.018],'#1a2a3e');d('sphere',[.105,.95,.267],[.035,.043,.018],'#1a2a3e');d('box',[0,.85,.284],[.07,.02,.012],'#c5766c');}
+ group([0,.93,0],[1,1,1],[0,0,0],()=>sofiaHead(t));}
 // On the home screen: a duck on the launch pad, or the rocket. The duck flaps, tips its bill up and climbs at take-off.
 function homeShip(t,launch,ignite,wiggle){
  if(!duckFlying()){group([2.6,.44+launch,0],[.8,.8,.8],[wiggle,0,wiggle],()=>rocket(t,ignite>0));return;}

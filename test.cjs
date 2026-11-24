@@ -192,6 +192,19 @@ console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 %
 }
 console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
 
+// Sofia's look (sofia.js): her curls frame her face without covering her eyes or eyebrows, the ringlets in front hang beside her face, the long hair at
+// the back is tucked away while the PEG backpack is on, and with calmer effects she does not blink. Every script is in the page, the build and the server.
+{const draws=[],faces=[],g2d=new Proxy({},{get:()=>()=>({addColorStop(){}})});
+ const ctx=vm.createContext({Math,state:{reduced:true},d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7])},document:{createElement:()=>({getContext:()=>g2d})}});
+ vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;',ctx);
+ for(const h of ctx.SOFIA_HAIR.clumps)if(h.p[2]+h.s[2]>.15)assert.ok(Math.abs(h.p[0])-h.s[0]>=.15||h.p[1]-h.s[1]>=.07,'a curl over her eyes or eyebrows: '+h.p.join(','));
+ for(const h of ctx.SOFIA_HAIR.curls.filter(c=>c.front))assert.ok(Math.abs(h.p[0])>.25);
+ ctx.sofiaHead(1.3+4.1*3+.05,{});const loose=draws.length;assert.deepEqual([...ctx.sofiaFaces.keys()],['open|smile']);
+ draws.length=0;ctx.sofiaHead(0,{tucked:1});assert.ok(draws.length<loose-20,String(draws.length));assert.equal(draws.filter(x=>x.p[2]<-.08&&x.p[1]<-.12).length,0);
+ const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
+ assert.ok(html.includes('sofia.js')&&html.indexOf('sofia.js')<html.indexOf('duck.js'));for(const f of html){assert.ok(build.includes(`'${f}'`),f+' in build.cjs');assert.ok(server.includes(`'${f}'`),f+' in server.cjs');}
+ console.log(`Passed: Sofia's curls leave her eyes and eyebrows free, the hair at the back makes room for the backpack (${loose} → ${draws.length} pieces), no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
+
 // The browser phonemizer gives exactly the phoneme ids Python Piper 1.8 gives (with the game's pronunciation list), and clips are cached.
 (async()=>{
  const core=await import('./tts/piper-core.mjs'),createEspeak=(await import('./tts/espeak-nb.mjs')).default;

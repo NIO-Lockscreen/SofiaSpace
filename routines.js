@@ -100,9 +100,9 @@ function mealWalk(a,b,k,yaw0,yaw1){const w=mealEase(Math.min(1,k)),dist=Math.hyp
   turnIn=mealEase(Math.min(1,k*5)),turnOut=mealEase(Math.max(0,(k-.8)/.2));let yaw=yaw0+bedAngle(go-yaw0)*turnIn;yaw+=bedAngle(yaw1-yaw)*turnOut;
  return {pos:[a[0]+(b[0]-a[0])*w,state.reduced?0:Math.abs(sway)*.07,a[2]+(b[2]-a[2])*w],rot:[0,yaw,sway*.1*(1-turnOut)]};}
 const SEATED=[MEAL.chair[0],MEAL.seat-.18,MEAL.chair[2]],SHIN=.42;
-const HAND={bowl:[.13,.52,.4],mouth:[.1,.93,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12]};
+const HAND={bowl:[.13,.52,.4],mouth:[.1,.88,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12]};
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
-function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow='#efb749',skin='#f6d1a8';
+function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
  limb([-.3,.78,0],[-.17,.52,.36],.085,yellow);d('sphere',[-.17,.52,.36],[.1,.1,.1],skin);
  const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
@@ -140,7 +140,8 @@ function mealPose(t){const st=meal.step,k=stepTime()<Infinity?Math.min(1,meal.s/
   if(meal.dance>=0){const c=meal.dance/1.3;P.rot=[0,state.reduced?0:mealEase(c)*Math.PI*2,0];P.pos=[s[0],(state.reduced?.4:1)*Math.sin(c*Math.PI)*.35,s[2]];P.cheer=true;}}
  return P;}
 function mealSofia(t){if(!meal.kind)return false;const P=mealPose(t);
- group(P.pos,[.95,.95,.95],P.rot,()=>{character(t,false,P.cheer,P.o);if(P.bag==='back')wornBag(t,P.light);if(P.tube>0)pegTube(t,P.tube,P.flow);});
+ const bag=P.bag==='back'?1:P.bag==='carry'?P.carry:0;
+ group(P.pos,[.95,.95,.95],P.rot,()=>{character(t,false,P.cheer,bag?{...P.o,bag}:P.o);if(P.bag==='back')wornBag(t,P.light);if(P.tube>0)pegTube(t,P.tube,P.flow);});
  // Picking the backpack up (or putting it down): it swings from the floor to her back in an arc, turning round as it goes.
  if(P.bag==='carry'){const c=P.carry,on=sofiaPoint(P.pos,P.rot[1],BAG_ON),pos=mix3(MEAL.bag,on,c);pos[1]+=Math.sin(c*Math.PI)*.45;group(pos,[1-.05*c,1-.05*c,1-.05*c],[0,-.25+bedAngle(P.rot[1]+Math.PI+.25)*c,0],()=>pegBag(t,{worn:c>.5}));}
  sleep.pose={pos:P.pos,rot:P.rot};return true;}
@@ -176,7 +177,7 @@ let toothGame=null;
 const TEETH_TEXT={paste:['Tannkrem først','Trykk på tuben, så kommer det tannkrem på tannbørsten.'],brush:['Puss alle tennene','Dra tannbørsten fram og tilbake over tennene, både oppe og nede. Husk de bakerste!'],
  rinse:['Skyll munnen','Trykk på koppen med vann.'],done:['Så rene tenner!','Du pusset kjempebra. Stjernen kommer på tannpusskartet.']};
 function startBrushing(){if(state.mode!=='inside'||mealBusy())return;
- if(!toothGame)toothGame=createToothGame({canvas:$('teeth'),reduced:()=>state.reduced,skin:'#f6d1a8',hair:'#77523c',say:text=>gameAudio.say(text,{id:'teeth'}),
+ if(!toothGame)toothGame=createToothGame({canvas:$('teeth'),reduced:()=>state.reduced,skin:SOFIA.skin,hair:SOFIA.hair,say:text=>gameAudio.say(text,{id:'teeth'}),
   sound:(name,i)=>name==='ding'?gameAudio.note(i||0):name==='done'?gameAudio.effect('fanfare'):name==='tap'?gameAudio.effect('oops'):gameAudio.effect(name),
   onStep:step=>{const [h,p]=TEETH_TEXT[step]||['Tannpuss',''];$('teeth-title').textContent=h;$('teeth-tip').textContent=p;},onDone:brushed});
  state.mode='teeth';state.dragging=false;showConsole('teeth');$('teeth').hidden=false;$('app').classList.add('brushing');$('world-hint').hidden=true;
