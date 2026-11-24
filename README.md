@@ -1,6 +1,6 @@
 # Sofias romreise
 
-Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iPad. Oppdatert 23. november 2026.
+Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iPad. Oppdatert 24. november 2026.
 
 ## Spill
 
@@ -37,6 +37,7 @@ Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iP
 - Fremdriftslinjen viser reisen. Ved boost skyter raketten synlig frem mot planeten, flammen blir lengre og blåhvit, og fartsstriper og boostringer dukker opp. Farten faller mykt tilbake til vanlig fart etter noen sekunder.
 - Planeter på veien passerer i 3D under reisen, med navneskilt, lyd og norsk opplesning. På vei fra jorda til Pluto passerer vi Mars, Jupiter, Saturn, Uranus og Neptun. Reisen hjem viser omvendt rekkefølge. En rutelinje viser hvilke planeter som er passert og hvilke som gjenstår.
 - Hver bokstav som trykkes, leses med norsk bokstavnavn. Planetpasseringer og ankomstfakta får snakke ferdig uten å bli kuttet av nye bokstavtrykk.
+- **Ny norsk stemme.** All opplesning bruker en nevral norsk stemme (Piper «talesyntese», laget av Nasjonalbibliotekets talesyntesedata) som lages helt på enheten. Stemmen lastes ned i bakgrunnen første gang (ca. 48 MB), og frem til den er klar leser enhetens egen norske stemme. Bokstavnavnene lages på forhånd, så de kommer med en gang. Lange fakta leses setning for setning: den første høres etter under ett sekund mens resten lages. «Ny norsk stemme» i innstillingene slår den av og på. Se [Stemmen](#stemmen).
 - Ny lydpakke: knapper, nedtelling, avgang, motorlyd som følger farten, boost, feiltrykk, passering, ankomst og redning. Lyd dempes under opplesning og stoppes ved pause/lyd av.
 - Du kommer frem selv om du ikke skriver. Det er ingen liv eller poeng som kan mistes.
 - Ved sola brenner raketten opp. En redningskapsel tar Sofia trygt hjem på noen sekunder, og en ny rakett venter. Flyr hun med anda, brenner ingenting: anda kjenner varmen, snur og flyr henne trygt hjem på ryggen.
@@ -53,7 +54,7 @@ Et lite 3D-eventyr på norsk bokmål, laget for en femåring og berøring på iP
 
 ## Prøv med én fil
 
-`dist/index.html` er hele spillet i én fil. På PC kan filen åpnes direkte i en vanlig nettleser. Ingen installasjon, server, CDN eller nedlastede 3D-filer er nødvendig.
+`dist/index.html` er hele spillet i én fil. På PC kan filen åpnes direkte i en vanlig nettleser. Ingen installasjon, server, CDN eller nedlastede 3D-filer er nødvendig. Den nye norske stemmen ligger i `dist/tts/` og trenger en nettadresse (http/https). Åpnes bare filen, leser enhetens egen stemme.
 
 På iPad er en publisert nettadresse i Safari den anbefalte måten. Filforhåndsvisning i Filer-appen eller inne i en melding er ikke en full nettleser og kan blokkere JavaScript.
 
@@ -64,7 +65,7 @@ På iPad er en publisert nettadresse i Safari den anbefalte måten. Filforhånds
 3. Vercel-konfigurasjonen velger ingen rammeverkspreset, kjører `node build.cjs` og publiserer `dist`.
 4. Publiser og åpne adressen i Safari på iPaden.
 
-Det trengs ingen miljøvariabler, API-nøkler eller database. Prosjektet har ingen npm-avhengigheter.
+Det trengs ingen miljøvariabler, API-nøkler eller database. Prosjektet har ingen npm-avhengigheter. Byggesteget kopierer stemmefilene fra `tts/` til `dist/tts/` (48 MB, godt under Vercels grense for statiske filer).
 
 Du kan også publisere den ferdige `dist`-mappen som en statisk nettside. Med Vercel CLI fra prosjektmappen: `npx vercel --prod` (krever innlogging på egen konto).
 
@@ -74,7 +75,27 @@ Konfigurasjonsreferanser: [Vercel Project Configuration](https://vercel.com/docs
 
 Åpne Vercel-adressen i Safari. Spillet er tilpasset både stående og liggende visning. Du kan bruke Safari-menyen for å legge siden til på Hjem-skjermen. Alle knapper er laget for berøring; dra i 3D-scenen for å snu kameraet. Lyd må starte etter et trykk, slik mobilnettlesere krever.
 
-Opplesningen bruker en tilgjengelig norsk stemme på enheten. Hvis den ikke er tilgjengelig, fungerer teksten og spillet fortsatt. En fysisk iPad og Safari-lyd er ikke testet i dette miljøet.
+Opplesningen bruker den nye norske stemmen når den er lastet ned, og ellers den beste norske stemmen iPaden har (en «Forbedret» eller «Premium»-stemme foran den enkle). Hvis ingen stemme er tilgjengelig, fungerer teksten og spillet fortsatt. Den nye stemmen spilles gjennom spillets egen lyd, så den følger lydknappen i spillet og iPadens lydinnstillinger på samme måte som de andre lydene. Den krever iPadOS 16.4 eller nyere (WebAssembly SIMD). En fysisk iPad og Safari-lyd er ikke testet i dette miljøet.
+
+## Stemmen
+
+**Valget (24. november 2026).** Kravene var: gratis, god norsk uttale, liten nok til å kjøre i Safari på iPad, og ingen tjeneste på nett. Kandidatene ble testet med spillets egne 32 setninger, og hvor forståelige de var ble målt med NB-Whisper (Nasjonalbibliotekets norske talegjenkjenning). Lavere ordfeil er bedre:
+
+| Stemme | Lisens | Størrelse | Ordfeil | Feilfrie setninger |
+|---|---|---|---|---|
+| **Piper `no_NO-talesyntese-medium`** (ny versjon 13.11.2026) | CC0 | 63 MB (32 MB her) | **5,5 %** | **16 / 32** |
+| Piper `nb_NO-vox-medium` (fellesskapsstemme, destillert fra VoxCPM2) | CC0 | 63 MB | 7,2 % | 13 / 32 |
+| Piper `no_NO-nvcc-medium` (10 dialektstemmer) | CC0 | 77 MB | 40–50 % | 0–2 / 32 |
+
+Andre ble vurdert og valgt bort: Kokoro, Kitten TTS og Supertonic har ikke norsk; Metas MMS-TTS for bokmål har en lisens som ikke tillater kommersiell bruk; espeak-ng alene er robotaktig; større modeller (VoxCPM2, Chatterbox, F5-TTS) trenger grafikkort og er for store for en iPad. «Talesyntese» er en mannsstemme; de kvinnelige dialektstemmene i nvcc var for utydelige.
+
+**Slik virker den.** `tts.js` starter `tts/piper-worker.mjs` i en egen tråd (Web Worker), så 3D-bildet ikke hakker. Arbeideren gjør tekst om til fonemer med espeak-ng (samme versjon som Piper 1.8, bygget til WebAssembly med bare norske data, 1 MB), gjør fonemene om til ID-er nøyaktig som Piper (`tts/piper-core.mjs`, testet mot Python-Piper), og lager lyd med ONNX Runtime Web (én tråd, SIMD). Vektene ligger som float16 (31 MB i stedet for 62) og gjøres om til float32 før modellen startes. Det gir samme lyd som originalen og lavere minnebruk enn å la ONNX Runtime gjøre omgjøringen. Stillhet før og etter klippene klippes bort, og klipp som er laget huskes (opptil 24 MB), så bokstavene og det som gjentas kommer med en gang. Filene lagres i nettleserens Cache Storage etter første nedlasting.
+
+**Uttale.** espeak-ng legger trykket på første stavelse i nesten alle norske lånord. `tts/src/no_listx` retter det for spillets egne ord: Sofia (So-FI-a), Merkur, Uranus, Neptun, månene, planet, komet, rakett, asteroide, astronaut, bakterie og flere. Vanlige småord som «igjen» og «velkommen» står urørt, fordi stemmen allerede har lært dem. Et nytt ord legges til i `no_listx` med espeak-fonemer, og så kjøres `tts/build-espeak.sh` (krever Emscripten). Testene sjekker at fonemene i nettleseren er de samme som i Python-Piper.
+
+**Trygt på eldre iPader.** Stemmen bruker rundt 350–500 MB minne mens den kjører. Stopper siden mens stemmen starter (for eksempel fordi en eldre iPad går tom for minne), startes den ikke av seg selv neste gang. Da leser enhetens stemme, og innstillingene forteller hvordan man prøver igjen.
+
+**Filer i `tts/`.** `no_NO-talesyntese-medium.graph.onnx` + `.weights.f16` + `.onnx.json` (stemmen, laget med `src/fp16-weights.py` fra Pipers modell), `espeak-nb.*` (fonemer, laget med `build-espeak.sh` fra `src/bridge.c` og `src/no_listx`), `ort.wasm.bundle.min.mjs` + `ort-wasm-simd-threaded.wasm` (ONNX Runtime Web 1.31.1), og `licenses/`. Stemmen er CC0 (Språkbanken/Nasjonalbiblioteket), ONNX Runtime er MIT, og espeak-ng er GPL-3.0 (kildekoden er espeak-ng ved commit 724808c pluss `src/bridge.c` og `src/no_listx` her).
 
 ## Slik ser planetene ut
 
@@ -120,8 +141,8 @@ Kilder: [NASA – planetene](https://science.nasa.gov/solar-system/planets/), [N
 ## Utvikling
 
 - `npm run dev`: lokal visning med Node på port 4173.
-- `npm run build`: lager den selvstendige HTML-filen i `dist`.
-- `npm test`: kontrollerer at angre etter nullstilling henter tilbake alt og beholder det som er samlet siden, asteroidebeltet på alle reiser som krysser det, en egen lek på hver planet og én månelek, rundene i Planetspillet med to, tre og fire navn, reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost uten fartstak og normalisering av fart tilbake til nøyaktig 1 ×, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk, rakettfargene med fargevelgeren, og månedataene med reisetider, foreldreplaneter, gullrakett og anda, som kommer med alle planetene og månene, og at romskipsvalget følger med når en nullstilling angres. Tannpussleken (`teeth.js`) testes også: tannkrem først, at tennene ligger inne i munnen, at hver tann tar et par–fire sekunder selv med vill gnikking, at bakteriene forsvinner, hintet som blinker, skylling, at leken sier ferdig bare én gang, og at tannpuss-stjernene tas vare på når en nullstilling angres.
+- `npm run build`: lager den selvstendige HTML-filen i `dist`, og kopierer stemmefilene til `dist/tts`.
+- `npm test`: kontrollerer at angre etter nullstilling henter tilbake alt og beholder det som er samlet siden, asteroidebeltet på alle reiser som krysser det, en egen lek på hver planet og én månelek, rundene i Planetspillet med to, tre og fire navn, reisetider, alle 100 reisemålskombinasjoner, passeringer begge veier, boost uten fartstak og normalisering av fart tilbake til nøyaktig 1 ×, norsk talekø, prioritering av planetopplesning og belønningsterskler for unike besøk, rakettfargene med fargevelgeren, og månedataene med reisetider, foreldreplaneter, gullrakett og anda, som kommer med alle planetene og månene, og at romskipsvalget følger med når en nullstilling angres. Tannpussleken (`teeth.js`) testes også: tannkrem først, at tennene ligger inne i munnen, at hver tann tar et par–fire sekunder selv med vill gnikking, at bakteriene forsvinner, hintet som blinker, skylling, at leken sier ferdig bare én gang, og at tannpuss-stjernene tas vare på når en nullstilling angres. Den nye stemmen testes også: at fonemene fra nettleserens espeak-ng er nøyaktig de samme som Python-Piper gir for ti setninger, at trykket ligger riktig på Sofia, planeten, Uranus, Neptun, raketten og kometer, at emoji ikke leses, at setningene spilles etter hverandre med en liten pause, at bokstaver venter til fakta er lest, at «stopp» kutter lyden med en gang, at bokstavnavnene lages på forhånd, at minnet for ferdige klipp holder seg under 24 MB, og at enhetens beste norske stemme leser når den nye er av, ikke klar ennå eller feiler.
 
 `engine.js` er en liten WebGL-motor med ekte 3D-perspektiv, belyste geometriske modeller og dybdebuffer. En programvarerenderer med Canvas og egen dybdebuffer brukes hvis WebGL ikke er tilgjengelig. Ingen tredjepartspakker eller eiendeler er nødvendige.
 
@@ -134,5 +155,7 @@ Nettleserkontroll 9. november 2026: hopp i senga med ekte trykk på senga, titte
 Nettleserkontroll 19. oktober 2026: leggetid med ekte trykk på senga, på planeter og komet i drømmen og på senga igjen for å vekke, «☀️ Stå opp», «Gå ut igjen» mens hun sover, Planetspillet etterpå og at dobbelttrykk på senga ikke gir stor skjerm, med WebGL og med programvarerendereren; kameraet ved senga er kontrollert på 1024 × 768, 768 × 1024, 390 × 844 og 812 × 375. Anda er kontrollert hjemme (også trykk og kvakk), ved ombordstigning og avgang, under reise ved vanlig fart og 6 × fart, i bane rundt Saturn, parkert ved Mars-leken, ved sola, i rommet og i drømmen, og med opplåsing ved ankomst til Charon, bytte mellom skipene, ny sidelasting, nullstilling og angring. Knappene hjemme er kontrollert fra 320 til 1024 piksler; bare på 320 piksler blir knapperaden 8 piksler høyere.
 
 Nettleserkontroll 23. september 2026: alle åtte planetleker og månehoppet er spilt ferdig med trykk i nettleseren, både med WebGL og med programvarerendereren, og stjernene lagres. Planetspillet er spilt gjennom med feil og riktige svar på lett og vanskelig nivå, med hint, lesestjerne og kamera som glir til veggen. Asteroidebeltet, kometen, flygende bokstaver og tunnelen er kontrollert under reise. Layout for lekene og Planetspillet er kontrollert på 1024 × 768, 768 × 1024, 390 × 844 og 812 × 375. Alle planet- og månekart er gjennomgått som flate kart og kloder. NASAs bildeservere var ikke tilgjengelige fra testmiljøet, så kartene er malt etter kjente NASA-bilder og ikke sammenlignet piksel for piksel.
+
+Nettleserkontroll 24. november 2026 (stemmen): siden lastet i Chromium med lokal server. Stemmen var klar 6–7 sekunder etter at siden åpnet (2,5 sekunders ventetid pluss 3–4 sekunder i arbeideren), fremdriften i innstillingene gikk fra 0 til 100 %, og en ankomst på fem setninger begynte etter 0,6–0,8 sekunder og ble lest uten opphold mellom setningene. Bokstavene var laget på forhånd og startet med en gang, og klippene ble omtrent 0,4 sekunder lange etter at stillheten ble klippet bort. «Lyd av» midt i en setning stoppet lyden med en gang, og når den nye stemmen var slått av, leste enhetens stemme. Ved ny lasting kom filene fra Cache Storage. Lyden fra nettleseren ble skrevet ut med NB-Whisper og ble nesten ord for ord lik teksten («Hei, Sofia. Hvor vil du reise nå?», «Se, Sofia, vi passerer Uranus og Neptun.»). Lyden fra stemmen i nettleseren er sammenlignet med Python-Piper: samme fonem-ID-er for 43 setninger og praktisk talt samme lyd. Safari på en fysisk iPad er ikke testet her.
 
 Validering: syntakskontroll og tester av reisetider, ruterekkefølge, boost og talekø. Stor skjerm er kontrollert i nettleser: knappen og dobbelttrykket på og av, at bildet faktisk vokser også når nettleseren nekter ekte fullskjerm, at lyd, pause, innstillinger, kart og reise virker mens den er på, at spillet går tilbake av seg selv når nettleseren forlater fullskjerm, og at ett trykk, to langsomme trykk, to trykk langt fra hverandre og dra ikke utløser den. Knapperaden øverst er kontrollert fra 320 til 1366 piksler. Nettleserkontroll av rommet i huset og kjapp hjemtur: inn og ut av huset, monteren som oppdateres etter et nytt planetbesøk, «⌂ Hjem» fra ankomstskjermen og Jorda valgt i reisemenyen, begge uten nedtelling eller reisetid. Knapperaden på hjemmeskjermen er kontrollert fra 320 til 1366 piksler. Nettleserkontroll av gullramme og hakemerke i reisemenyen på 1024 × 768, 390 × 844 og 812 × 375, med reise til Venus og oppdatert ramme etter ankomst. Solsystemkartet er kontrollert på 320, 390, 560, 768, 1024 og 1366 piksler bredde: rekkefølge fra sola, navn som ikke kolliderer med planet eller ringer, ingen vannrett rulling, månemodus, tastaturlukking og ny opptegning ved endret skjermstørrelse. Nettleserkontroll av berøringsknapper, boost opp til 19 × fart med rolig retur til 1 ×, dragretning på hjemmebasen, SOFIA-graffiti lest av på både stående og liggende rakett, reiserute, planetpasseringer, lagret fremgang, rakettfarger, fargevelgeren, regnbuespor, månemodus med reise til Månen og Phobos, av- og påslag av månemodus, og gullraketten med diamant og myntspor. Månemodus er også kontrollert med programvarerendereren. Terskler og taleprioritet er i tillegg testet automatisk. Faktisk lyd og norsk uttale på en fysisk iPad gjenstår å verifisere. Første versjon ble også kontrollert for Mars-ankomst og solbesøk med trygg retur. Layout kontrollert i nettleservinduer på 1024 × 768, 768 × 1024, 1024 × 600, 390 × 844 og 812 × 375. På lave vinduer står fargevelgeren på én linje sammen med etiketten. Nettlesermiljøet brukte programvarerendereren; maskinvare-WebGL og fysisk iPad er ikke verifisert. Valgfri WebMCP-integrasjon er funksjonsdetektert, men testnettleseren eksponerte ikke denne API-en.

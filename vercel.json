@@ -2,5 +2,9 @@
   "framework": null,
   "buildCommand": "node build.cjs",
   "outputDirectory": "dist",
-  "headers": [{"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}]
+  "headers": [
+    {"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]},
+    {"source":"/tts/(.*)\\.mjs","headers":[{"key":"Content-Type","value":"text/javascript; charset=utf-8"}]},
+    {"source":"/tts/(.*)\\.wasm","headers":[{"key":"Content-Type","value":"application/wasm"}]}
+  ]
 }

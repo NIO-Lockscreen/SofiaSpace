@@ -137,3 +137,53 @@ assert.equal(BED_JUMP_AGAIN,.2);for(const r of [0,.5,.99])assert.equal(bedTap(fa
 assert.equal(bedTap(true,0),'jump');assert.equal(bedTap(true,.19),'jump');assert.equal(bedTap(true,.2),'sleep');assert.equal(bedTap(true,.6),'sleep');assert.equal(bedTap(true,.999),'sleep');
 {let jumps=0;for(let i=0;i<10000;i++)if(bedTap(true,Math.random())==='jump')jumps++;assert.ok(jumps>1800&&jumps<2200,'about one in five: '+jumps);}
 console.log('Passed: the first tap on the bed is a jump, and after it about one tap in five is another jump instead of bedtime.');
+
+// The new Norwegian voice (24 November 2026): Piper clips play through Web Audio one sentence after another, letters wait behind
+// narration, stopping cuts the sound at once, and the device voice reads whenever the new voice is off, not ready or fails.
+{
+ const started=[],stopped=[];let now=0;
+ class FakeSource{connect(){}start(at){this.at=at;started.push(this);}stop(){stopped.push(this);}}
+ const ctx={state:'running',get currentTime(){return now;},destination:{},createGain:()=>({gain:{value:1},connect(){}}),createBuffer:(ch,len,sr)=>{const d=new Float32Array(len);return{duration:len/sr,getChannelData:()=>d};},createBufferSource:()=>new FakeSource()};
+ const jobs=[];
+ class FakePiper{static supported(){return true;}constructor(){this.status='off';this.sampleRate=1000;}get ready(){return this.status==='ready';}onChange(fn){this.fn=fn;}load(){this.status='ready';this.fn?.(this);}prewarm(t,o){this.prewarmed=t;this.prewarmOpts=o;}speak(text,opts){const job={text,opts,cancelled:false,cancel(){job.cancelled=true;}};jobs.push(job);return job;}}
+ const said=[],prefs={muted:false,voice:true,paused:false,neural:true},deviceSynth={getVoices:()=>[{lang:'nb-NO',name:'Nora'},{lang:'nb-NO',name:'Nora (Forbedret)',voiceURI:'com.apple.voice.enhanced.nb-NO.Nora'},{lang:'sv-SE',name:'Alva (Premium)'}],addEventListener(){},cancel(){},speak(u){said.push(u);}};
+ const sandbox=vm.createContext({window:{speechSynthesis:deviceSynth},document:{getElementById:()=>null},navigator:{},SpeechSynthesisUtterance:class{constructor(t){this.text=t;}},PiperVoice:FakePiper,prefs,setTimeout,clearTimeout});
+ vm.runInContext(fs.readFileSync('audio.js','utf8'),sandbox);const voice=vm.runInContext('new GameAudio(()=>prefs)',sandbox);
+ assert.equal(voice.deviceVoice.voiceURI,'com.apple.voice.enhanced.nb-NO.Nora','the enhanced Norwegian device voice is chosen, not a Swedish premium one');
+ voice.context=ctx;voice.neural.load();
+ assert.ok(voice.neural.prewarmed.includes('jådd')&&voice.neural.prewarmed.includes('dobbelt ve')&&voice.neural.prewarmed.length===29,'all letter names are prepared');
+ voice.say('Velkommen til Mars! Mars er rød.',{id:'fact-mars'});assert.equal(jobs.length,1);assert.equal(jobs[0].opts.lengthScale,1.12);
+ voice.letter('M');assert.equal(jobs.length,1,'letters wait behind the arrival fact');
+ jobs[0].onchunk(new Float32Array(1500));jobs[0].onchunk(new Float32Array(500));assert.equal(started.length,2);
+ assert.ok(Math.abs(started[1].at-(started[0].at+1.5+.22))<1e-9,'sentences follow each other with a short pause');
+ jobs[0].ondone();assert.equal(jobs.length,1,'still speaking');now=started[1].at+.5;started[1].onended();
+ assert.equal(jobs.length,2,'then the letter');assert.equal(jobs[1].text,'emm');assert.equal(jobs[1].opts.lengthScale,voice.neural.prewarmOpts.lengthScale);
+ jobs[1].onchunk(new Float32Array(300));voice.stopSpeech();assert.ok(jobs[1].cancelled);assert.ok(stopped.includes(started.at(-1)),'stopping cuts the sound at once');assert.equal(voice.current,null);
+ voice.say('Hei, Sofia!');jobs[2].onerror();assert.equal(said.at(-1).text,'Hei, Sofia!','the device voice takes over when the new voice fails');
+ voice.stopSpeech();prefs.neural=false;voice.say('Med enhetens stemme');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Med enhetens stemme','the setting turns the new voice off');
+ prefs.neural=true;ctx.state='suspended';voice.stopSpeech();voice.say('Før første trykk');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Før første trykk','before sound is unlocked the device voice reads');
+ voice.stopSpeech();prefs.muted=true;voice.say('Stille');assert.equal(said.at(-1).text,'Før første trykk','nothing when muted');
+}
+console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
+
+// The browser phonemizer gives exactly the phoneme ids Python Piper 1.8 gives (with the game's pronunciation list), and clips are cached.
+(async()=>{
+ const core=await import('./tts/piper-core.mjs'),createEspeak=(await import('./tts/espeak-nb.mjs')).default;
+ assert.equal(core.cleanText('🦆 Hei, ★ Sofia! ☀ [[x]]'),'Hei, Sofia! x');
+ assert.deepEqual(core.mergeVowelClusters(['h','a','ɪ',' ','a','ʊ','a'],[['a','ɪ'],['a','ʊ']]),['h','aɪ',' ','aʊ','a']);
+ assert.deepEqual(Array.from(core.trimSilence(Float32Array.from([0,0,0,.5,.25,0,0]),10,.01,0,0)),[.5,.25]);
+ const data=fs.readFileSync('tts/espeak-nb.data');
+ const espeak=await createEspeak({wasmBinary:fs.readFileSync('tts/espeak-nb.wasm'),getPreloadedPackage:()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength),print(){},printErr(){}});
+ assert.equal(espeak.ccall('ph_init','number',['string'],['nb']),0);
+ const config=JSON.parse(fs.readFileSync('tts/no_NO-talesyntese-medium.onnx.json','utf8')),cases=JSON.parse(fs.readFileSync('tts/src/piper-fixture.json','utf8')).cases;
+ for(const c of cases)assert.deepEqual(core.textToIdSentences(espeak,c.text,config),c.ids,c.text);
+ const ipa=t=>{const p=espeak.stringToNewUTF8(t);try{return core.parseClauses(espeak.UTF8ToString(espeak._ph_text(p))).map(c=>c.phonemes).join(' ');}finally{espeak._free(p);}};
+ for(const [word,expected] of [['Sofia','sʊfˈiːʲɑ'],['planeten','plɑnˈeːtən'],['Uranus','ʉrˈɑːnʉs'],['Neptun','nɛptˈʉːn'],['raketten','rɑkˈɛtːən'],['kometer','kʊmˈeːtər']])assert.equal(ipa(word),expected,word);
+ const sandbox=vm.createContext({window:{AudioContext:function(){}},Worker:function(){},WebAssembly,BigInt64Array,caches:{},queueMicrotask});
+ vm.runInContext(fs.readFileSync('tts.js','utf8'),sandbox);const piper=vm.runInContext('new PiperVoice()',sandbox);
+ assert.equal(vm.runInContext('PiperVoice.supported()',sandbox),true);
+ piper.remember('1|be',[new Float32Array(40)]);const got=await new Promise(done=>{const job=piper.speak('be'),lens=[];job.onchunk=c=>lens.push(c.length);job.ondone=()=>done(lens);});assert.deepEqual(got,[40],'a cached clip plays without the worker');
+ const failed=await new Promise(done=>{const job=piper.speak('ikke laget');job.onerror=()=>done(true);job.ondone=()=>done(false);});assert.ok(failed,'not ready and not cached: the caller falls back');
+ for(let i=0;i<9;i++)piper.remember('1|lang '+i,[new Float32Array(9e5)]);assert.ok(piper.cacheBytes<=24e6&&!piper.has('lang 0')&&piper.has('lang 8'),'the clip memory stays under 24 MB, oldest first out');
+ console.log('Passed: browser phonemes identical to Python Piper for '+cases.length+' sentences, stress fixed for Sofia and the space words, emoji not read aloud, and a bounded clip cache.');
+})().catch(err=>{console.error(err);process.exit(1);});
