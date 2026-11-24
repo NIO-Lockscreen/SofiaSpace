@@ -555,6 +555,8 @@ class GameAudio {
  case 'click':this.tone(1500,.035,'square',.025);this.tone(950,.05,'square',.022,.05);break;
  case 'beep':this.tone(1760,.13,'sine',.05);break;
  case 'pumpdone':[0,.24,.48].forEach(d=>this.tone(1760,.13,'sine',.05,d));break;
+ // A drink from the glass (24 November 2026): three soft, low gulps.
+ case 'glugg':[0,.22,.44].forEach((d,i)=>{this.tone(260-i*25,.13,'sine',.06,d,150);this.tone(520-i*50,.06,'sine',.015,d+.02,300);});break;
  case 'scrub':this.swoosh(.13,.028,true);break;
  case 'squeeze':this.tone(230,.32,'triangle',.05,0,140);this.swoosh(.35,.035,false);break;
  case 'rinse':this.swoosh(1.2,.06,false);[0,.22,.44,.66].forEach((d,i)=>this.tone(240+i*40,.12,'sine',.04,.3+d,170));break;
@@ -1444,18 +1446,21 @@ function createToothGame({canvas,say=()=>{},sound=()=>{},onStep=()=>{},onDone=()
    until the bowl is empty), or through her PEG tube with the feeding pump in its backpack, made after the real one: a red front with black zips, blue
    sides, yellow loops with a blue elastic cord laced through them in X's, a small red pocket at the bottom and black straps. She puts it on, the tube is
    clicked onto the button on her tummy, a tap starts the pump, and drops of food run down the tube into her tummy while she is free to dance about.
-   Three beeps when it is done. Tooth brushing opens the game in teeth.js over the room; each time she brushes, a star goes on the chart on the wall. */
+   Three beeps when it is done. Tooth brushing opens the game in teeth.js over the room; each time she brushes, a star goes on the chart on the wall.
+   (24 November 2026) The food lies in a heap in the bowl that gets smaller with each spoonful, so the bowl is empty just as the last one is eaten, and a tap
+   on the glass of water by the bowl makes her drink: she takes it with her free hand, lifts it to her mouth, tips it, «glugg glugg», and puts it back. */
 // Where things are in the room: her chair (she sits facing the room), the seat's height, the table, where she stands beside the chair, the backpack
-// on the floor by the table, where she stands with it on, the bowl and the brushing chart on the back wall over the bed.
-const MEAL={chair:[-2.3,0,2.6],seat:.42,table:[-2.3,0,3.35],side:[-1.58,0,2.62],bag:[-1.36,0,3.3],stand:[-.86,0,3.02],bowl:[-2.22,.62,3.04],chart:[2.85,2.98,-3.25],speed:2.2};
+// on the floor by the table, where she stands with it on, the bowl, the middle of the glass and the brushing chart on the back wall over the bed.
+const MEAL={chair:[-2.3,0,2.6],seat:.42,table:[-2.3,0,3.35],side:[-1.58,0,2.62],bag:[-1.36,0,3.3],stand:[-.86,0,3.02],bowl:[-2.22,.62,3.04],cup:[-2.6,.69,3.16],chart:[2.85,2.98,-3.25],speed:2.2};
 const FOODS=[{name:'grøt med blåbær',color:'#efe0bb',dots:'#4b5fae'},{name:'pasta med tomatsaus',color:'#f2c35b',dots:'#d9452f'},{name:'yoghurt med jordbær',color:'#fff1f3',dots:'#e0304f'}];
-const BITES=5,BITE=1.05,PUMP=16;
+const BITES=5,BITE=1.05,PUMP=16,DRINK=2;
 // Which steps each meal goes through. The walks take as long as they take; eating and the pump wait for Sofia; the rest have their own time (s).
 const MEAL_STEPS={spoon:['walk','sit','eat','full','up','back'],peg:['walk','pick','plug','ready','pump','beep','unplug','drop','back']};
 const MEAL_TIME={sit:.6,full:2,up:.5,pick:1.2,plug:.9,beep:1.5,unplug:.7,drop:1.1};
 // kind: null, 'spoon' or 'peg'; s: seconds into the step; bite: seconds into a spoonful (−1 between); queued: taps waiting; pump: seconds the pump has run;
-// dance: seconds into a twirl with the backpack (−1 when not); view: how far the camera has glided in to the meal (0..1); food: which food today.
-const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,view:0,food:-1,from:null,last:-9};
+// dance: seconds into a twirl with the backpack (−1 when not); view: how far the camera has glided in to the meal (0..1); food: which food today;
+// drink: seconds into a drink from the glass (−1 when not); drinkNext: the glass was tapped while she was busy, so she drinks next; sips: how many so far.
+const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,sips:0,view:0,food:-1,from:null,last:-9};
 const mealEase=k=>k*k*(3-2*k);
 // A box (or cylinder) from a to b, w thick: arms, straps, the spoon and the tube.
 function limb(a,b,w,color,mesh='box',glow=0){const v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],len=Math.hypot(...v)||1e-6;d(mesh,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[w,len/2,w],color,[Math.atan2(v[2],v[1]),0,-Math.asin(Math.max(-1,Math.min(1,v[0]/len)))],glow);}
@@ -1484,13 +1489,15 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  d('cylinder',[tx,.57,tz],[.66,.035,.6],wood);d('cylinder',[tx,.6,tz],[.62,.01,.56],'#f2d6ad');for(const [x,z] of [[-.4,-.36],[.4,-.36],[-.4,.36],[.4,.36]])d('box',[tx+x,.27,tz+z],[.04,.27,.04],leg);
  d('box',[cx,MEAL.seat-.03,cz],[.3,.04,.28],'#ff9ec4');d('box',[cx,MEAL.seat+.32,cz-.27],[.3,.3,.035],'#ff9ec4');d('box',[cx,MEAL.seat+.5,cz-.25],[.22,.08,.02],'#ffd1e2');
  for(const [x,z] of [[-.25,-.24],[.25,-.24],[-.25,.24],[.25,.24]])d('box',[cx+x,(MEAL.seat-.06)/2,cz+z],[.03,(MEAL.seat-.06)/2,.03],'#e07aa3');
- // the bowl: empty until a meal with the spoon, then full, emptied a spoonful at a time
- const [bx,by,bz]=MEAL.bowl;d('cylinder',[bx,by+.035,bz],[.17,.05,.17],'#79e4e2');d('cylinder',[bx,by+.08,bz],[.18,.012,.18],'#a9f0ee');
- const left=meal.kind==='spoon'&&meal.step!=='back'&&meal.food>=0?1-Math.min(BITES,meal.bites)/BITES:0;
- if(left>0){const f=FOODS[meal.food];d('cylinder',[bx,by+.05+.035*left,bz],[.155*(.6+.4*left),.02,.155*(.6+.4*left)],f.color);
-  for(let i=0;i<Math.ceil(5*left);i++){const a=i*2.4;d('sphere',[bx+Math.cos(a)*.08*left,by+.08+.035*left,bz+Math.sin(a)*.08*left],[.025,.02,.025],f.dots);}}
+ // the bowl: empty until a meal with the spoon, then a heap of food that gets smaller with each spoonful and is gone with the last one.
+ // (The bowl is solid, so the food lies on top of its rim, over a darker disc that is the inside of the bowl; food sunk below the rim could not be seen.)
+ const [bx,by,bz]=MEAL.bowl;d('cylinder',[bx,by+.035,bz],[.17,.05,.17],'#79e4e2');d('cylinder',[bx,by+.08,bz],[.18,.012,.18],'#a9f0ee');d('cylinder',[bx,by+.093,bz],[.155,.002,.155],'#5fc9c7');
+ const left=foodLeft();
+ if(left>0){const f=FOODS[meal.food],r=.145*(.5+.5*left),h=.012+.05*left;d('sphere',[bx,by+.093,bz],[r,h,r],f.color);
+  for(let i=0;i<Math.ceil(5*left);i++){const a=i*2.4;d('sphere',[bx+Math.cos(a)*.5*r,by+.093+.82*h,bz+Math.sin(a)*.5*r],[.025,.02,.025],f.dots);}}
  if(!spoonInHand())d('box',[bx+.27,by+.015,bz+.05],[.018,.008,.13],'#c9ced8',[0,.3,0]);
- d('cylinder',[bx-.38,by+.07,bz+.12],[.07,.08,.07],'#ffde71');
+ // the glass of water, unless it is in her hand
+ if(!drinkPose()?.held)group(MEAL.cup,[.95,.95,.95],[0,0,0],glassOfWater);
  // the backpack on the floor by the table, the light off
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
  // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes.
@@ -1500,15 +1507,19 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
   if(on)d('star',[x,y,hz+.04],[.1,.1,.1],'#79e4e2',[0,0,(i%3-1)*.2],.35+(state.reduced?0:.15*Math.sin(t*2+i)));else d('sphere',[x,y,hz+.03],[.06,.06,.01],'#e8e0d0');}}
 const bagOnFloor=()=>!(meal.kind==='peg'&&MEAL_STEPS.peg.indexOf(meal.step)>=1&&MEAL_STEPS.peg.indexOf(meal.step)<=7);
 const spoonInHand=()=>meal.kind==='spoon'&&['eat','full'].includes(meal.step);
+// How much food is left in the bowl (1 full, 0 empty): a spoonful leaves the bowl as the spoon scoops it up, before it reaches her mouth.
+function foodLeft(){if(meal.kind!=='spoon'||meal.step==='back'||meal.food<0)return 0;const taken=meal.bites+(meal.step==='eat'&&meal.bite>=.1&&meal.bite<.5?1:0);return Math.max(0,1-taken/BITES);}
+// The glass, in her coordinates (scaled .95 like her): yellow, full of water.
+function glassOfWater(){d('cylinder',[0,0,0],[.074,.084,.074],'#ffde71');d('cylinder',[0,.083,0],[.061,.0025,.061],'#9fd8f0');}
 // ---- Starting, the steps, and stopping ----
 function mealBusy(){return sleep.on||sleep.jump>=0||sleep.k>0||!!meal.kind;}
 function startMeal(kind){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;
- Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
+ Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
  if(kind==='spoon'){meal.food=(meal.food+1)%FOODS.length;title('MATTID','Sofia skal spise',`I dag blir det ${FOODS[meal.food].name}!`,'🥄 Nam nam');gameAudio.say(`Mat! I dag blir det ${FOODS[meal.food].name}. Sofia setter seg ved bordet.`,{id:'meal'});}
  else{title('MATTID','Mat med PEG','Maten går gjennom slangen og rett i magen.','🎒 PEG-sekken');gameAudio.say('Nå skal Sofia få mat gjennom PEG-slangen. Hun tar på seg sekken med pumpen.',{id:'meal'});}
  tone(420,.08);renderBedConsole();}
 function nextStep(){const list=MEAL_STEPS[meal.kind],i=list.indexOf(meal.step);meal.s=0;if(i>=list.length-1){endMeal();return;}meal.step=list[i+1];onStep(meal.step);renderBedConsole();}
-function onStep(step){if(step==='eat')gameAudio.say('Trykk, så tar Sofia en skje!',{id:'meal',queue:true});
+function onStep(step){if(step==='eat'){gameAudio.say('Trykk, så tar Sofia en skje! Trykk på glasset, så drikker hun.',{id:'meal',queue:true});if(meal.drinkNext){meal.drinkNext=false;meal.drink=0;}}
  if(step==='full'){gameAudio.effect('correct');burst([MEAL.chair[0],1.25,MEAL.chair[2]+.25],['#ffde71','#ff9ec4','#79e4e2','#ffffff'],14,1.6,{size:.06});gameAudio.say('Ferdig! Skåla er tom. Nå er magen god og mett, Sofia! Etter maten pusser vi tennene.',{id:'meal'});title('MATTID','Skåla er tom!','Nå er magen god og mett.','😋 Mett og god');}
  if(step==='plug'){gameAudio.effect('click');}
  if(step==='ready'){gameAudio.say('Klikk! Slangen er koblet til knappen på magen. Trykk på sekken for å starte pumpen.',{id:'meal'});title('MATTID','Slangen er koblet til','Trykk på sekken, så starter pumpen.','🎒 PEG-sekken');}
@@ -1517,20 +1528,26 @@ function onStep(step){if(step==='eat')gameAudio.say('Trykk, så tar Sofia en skj
 function startPump(){if(meal.kind!=='peg'||meal.step!=='ready')return;meal.step='pump';meal.s=0;meal.pump=0;gameAudio.effect('beep');renderBedConsole();
  title('MATTID','Pumpen går','Maten renner gjennom slangen og rett i magen. Trykk på Sofia, så danser hun!','🎒 Mat med PEG');
  gameAudio.say('Pip! Pumpen går. Maten renner gjennom slangen og rett i magen. Med sekken på ryggen kan Sofia leke mens hun spiser. Trykk på henne, så danser hun!',{id:'meal'});}
-function takeBite(){if(meal.kind!=='spoon'||meal.step!=='eat')return;if(meal.bite>=0){meal.queued=Math.min(2,meal.queued+1);return;}meal.bite=0;}
+function takeBite(){if(meal.kind!=='spoon'||meal.step!=='eat')return;if(meal.bite>=0||meal.drink>=0){meal.queued=Math.min(2,meal.queued+1);return;}meal.bite=0;}
+// A tap on the glass: she drinks now, or as soon as this spoonful is eaten, or as soon as she has sat down at the table.
+function drink(){if(meal.kind!=='spoon')return;if(meal.step==='walk'||meal.step==='sit'||meal.step==='eat'&&meal.bite>=0){meal.drinkNext=true;return;}if(meal.step==='eat'&&meal.drink<0)meal.drink=0;}
 function dance(){if(meal.kind!=='peg'||meal.step!=='pump'||meal.dance>=0)return;meal.dance=0;gameAudio.effect('boing');
  if(state.clock-meal.last>2.5){meal.last=state.clock;gameAudio.say(['Se, Sofia danser med sekken!','Sekken henger med!','Hopp og sprett!','Maten kommer likevel!'][Math.floor(Math.random()*4)],{id:'meal'});}}
 // «Ferdig» before the end: with the spoon she says thank you and gets up; with the pump it stops, the tube comes off and the backpack goes back.
 function finishMeal(){if(!meal.kind)return;
- if(meal.kind==='spoon'&&['walk','sit','eat'].includes(meal.step)){if(meal.step==='walk'){endMeal();return;}meal.step='up';meal.s=0;meal.bite=-1;meal.queued=0;gameAudio.say('Takk for maten!',{id:'meal'});renderBedConsole();return;}
+ if(meal.kind==='spoon'&&['walk','sit','eat'].includes(meal.step)){if(meal.step==='walk'){endMeal();return;}meal.step='up';meal.s=0;meal.bite=-1;meal.queued=0;meal.drink=-1;meal.drinkNext=false;gameAudio.say('Takk for maten!',{id:'meal'});renderBedConsole();return;}
  if(meal.kind==='peg'){const i=MEAL_STEPS.peg.indexOf(meal.step);if(meal.step==='walk'){endMeal();return;}if(i<=1)return;if(i<=4){meal.step=i<=3?'unplug':'beep';meal.s=0;onStep(meal.step);renderBedConsole();}}} // before the pump has run the tube just comes off
 function endMeal(){if(!meal.kind)return;meal.kind=null;meal.step='';if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};renderBedConsole();insideTitle();}
-function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,view:0});stopBrushing(true);renderBedConsole();}
+function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0});stopBrushing(true);renderBedConsole();}
 function stepTime(){if(meal.step==='walk'||meal.step==='back'){const [a,b]=walkEnds();return Math.max(.4,Math.hypot(b[0]-a[0],b[2]-a[2])/MEAL.speed);}return MEAL_TIME[meal.step]??Infinity;}
 function walkEnds(){const spot=meal.kind==='spoon'?MEAL.side:MEAL.stand;return meal.step==='walk'?[meal.from,spot]:[spot,BED.idle];}
 function updateMeal(dt){meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
- if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
-  if(meal.bite>=BITE){meal.bite=-1;if(meal.bites>=BITES){nextStep();return;}if(meal.queued>0){meal.queued--;meal.bite=0;}}}
+ // A drink from the glass: «glugg» while it is tipped at her mouth, «ahh» when it comes down, then any spoonful that was tapped meanwhile.
+ if(meal.step==='eat'&&meal.drink>=0){const was=meal.drink;meal.drink+=dt;if(was<.8&&meal.drink>=.8)gameAudio.effect('glugg');
+  if(was<1.45&&meal.drink>=1.45&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Ahh, godt med vann!','Glugg, glugg!','Mmm, deilig vann!'][meal.sips%3],{id:'meal'});meal.sips++;}
+  if(meal.drink>=DRINK){meal.drink=-1;if(meal.bites>=BITES){nextStep();return;}if(meal.queued>0){meal.queued--;meal.bite=0;}}}
+ else if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
+  if(meal.bite>=BITE){meal.bite=-1;if(meal.drinkNext){meal.drinkNext=false;meal.drink=0;}else if(meal.bites>=BITES){nextStep();return;}else if(meal.queued>0){meal.queued--;meal.bite=0;}}}
  if(meal.step==='pump'){meal.pump+=dt;if(Math.floor(meal.pump/2)!==Math.floor((meal.pump-dt)/2))burst(sofiaPoint(MEAL.stand,0,[.05,.5,.22]),['#fff3d2','#ffde71','#ff9ec4'],4,.8,{size:.04});
   if(meal.pump>=PUMP){meal.step='beep';meal.s=0;onStep('beep');renderBedConsole();}if(Math.floor(meal.pump)!==Math.floor(meal.pump-dt))renderBedConsole();}
  if(meal.dance>=0){meal.dance+=dt;if(meal.dance>=1.3)meal.dance=-1;}
@@ -1541,11 +1558,20 @@ function mealWalk(a,b,k,yaw0,yaw1){const w=mealEase(Math.min(1,k)),dist=Math.hyp
   turnIn=mealEase(Math.min(1,k*5)),turnOut=mealEase(Math.max(0,(k-.8)/.2));let yaw=yaw0+bedAngle(go-yaw0)*turnIn;yaw+=bedAngle(yaw1-yaw)*turnOut;
  return {pos:[a[0]+(b[0]-a[0])*w,state.reduced?0:Math.abs(sway)*.07,a[2]+(b[2]-a[2])*w],rot:[0,yaw,sway*.1*(1-turnOut)]};}
 const SEATED=[MEAL.chair[0],MEAL.seat-.18,MEAL.chair[2]],SHIN=.42;
-const HAND={bowl:[.13,.52,.4],mouth:[.1,.88,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12]};
+const HAND={bowl:[.13,.52,.4],mouth:[.1,.88,.42],tipBowl:[-.06,-.07,.03],tipMouth:[-.08,.07,-.12],rest:[-.17,.52,.36]};
+// Drinking, in her coordinates: the glass where it stands on the table and at her mouth, and where her left hand holds it (by the side nearest her on the
+// table, by its left side at her mouth). Over DRINK seconds she reaches for it, lifts it, tips it more while she drinks, puts it back and lets go.
+const GLASS={table:MEAL.cup.map((v,i)=>(v-SEATED[i])/.95),mouth:[0,.925,.4],gripTable:[-.05,0,-.07],gripMouth:[-.085,-.01,0]};
+function drinkPose(){const k=meal.drink;if(meal.kind!=='spoon'||meal.step!=='eat'||k<0)return null;
+ const up=k<.35?0:k<.8?mealEase((k-.35)/.45):k<1.4?1:k<1.8?1-mealEase((k-1.4)/.4):0,sip=k<.8||k>=1.4?0:mealEase(Math.min(1,(k-.8)/.3)),
+  c=mix3(GLASS.table,[GLASS.mouth[0],GLASS.mouth[1]+.04*sip,GLASS.mouth[2]],up),g=mix3(GLASS.gripTable,GLASS.gripMouth,up),hold=c.map((v,i)=>v+g[i]),
+  free=k<.35?1-mealEase(k/.35):k>=1.8?mealEase(Math.min(1,(k-1.8)/.2)):0;
+ return {c,tilt:up*(.6+.4*sip),hand:mix3(hold,HAND.rest,free),held:k>=.35&&k<1.8,mouth:k>=.7&&k<1.45};}
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
 function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
- limb([-.3,.78,0],[-.17,.52,.36],.085,yellow);d('sphere',[-.17,.52,.36],[.1,.1,.1],skin);
+ const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;limb([-.3,.78,0],lh,.085,yellow);d('sphere',lh,[.1,.1,.1],skin);
+ if(dp?.held)group(dp.c,[1,1,1],[-dp.tilt,0,0],glassOfWater); // tipped towards her, the top to her mouth
  const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
  const tip=h.map((v,i)=>v+HAND.tipBowl[i]+(HAND.tipMouth[i]-HAND.tipBowl[i])*lift);limb(h,tip,.018,'#c9ced8');d('sphere',tip,[.05,.02,.04],'#c9ced8');
  if(b>=.1&&b<.52&&meal.food>=0)d('sphere',[tip[0],tip[1]+.02,tip[2]],[.04,.03,.035],FOODS[meal.food].color);}
@@ -1571,7 +1597,7 @@ function mealPose(t){const st=meal.step,k=stepTime()<Infinity?Math.min(1,meal.s/
  else if(spoon){
   if(st==='sit'||st==='up'){const c=mealEase(st==='sit'?k:1-k),s=MEAL.side,yaw0=Math.atan2(MEAL.chair[0]-s[0],MEAL.chair[2]-s[2]);
    P.pos=[s[0]+(SEATED[0]-s[0])*c,s[1]+(SEATED[1]-s[1])*c+Math.sin(c*Math.PI)*.35,s[2]+(SEATED[2]-s[2])*c];P.rot=[0,yaw0*(1-c),0];if(c>.55)P.o={sit:SHIN};}
-  else{P.o={sit:SHIN,arms:()=>spoonArms(t),mouth:st==='full'?'smile':meal.bite>=.36&&meal.bite<.58?'open':meal.bite>=.58&&meal.bite<.98?'chew':'smile'};
+  else{P.o={sit:SHIN,arms:()=>spoonArms(t),mouth:st==='full'?'smile':drinkPose()?.mouth||meal.bite>=.36&&meal.bite<.58?'open':meal.bite>=.58&&meal.bite<.98?'chew':'smile'};
    if(st==='full'&&!state.reduced)P.pos=[SEATED[0],SEATED[1]+Math.abs(Math.sin(meal.s*4.5))*.05,SEATED[2]];}}
  else{const s=MEAL.stand;P.pos=[s[0],0,s[2]];P.bag='back';
   if(st==='pick'){const toBag=Math.atan2(MEAL.bag[0]-s[0],MEAL.bag[2]-s[2]),c=mealEase(Math.min(1,Math.max(0,(k-.25)/.6)));P.rot=[0,toBag*(1-mealEase(Math.max(0,(k-.3)/.6))),0];P.bag=c>=1?'back':'carry';P.carry=c;}
@@ -1591,17 +1617,19 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
  dist=Math.max(aspect>2?3:3.6,1.45/(.354*aspect)),x=.25,z=1,y=.5,n=Math.hypot(x,y,z),dir=[(x*Math.cos(a)+z*Math.sin(a))/n,y/n,(z*Math.cos(a)-x*Math.sin(a))/n];
  for(let i=0;i<3;i++){eye[i]+=(look[i]+dir[i]*dist-eye[i])*k;at[i]+=(look[i]+(i===1?.12:0)-at[i])*k;}}
 // ---- Taps in the room: on the table or the bowl to eat, on the backpack for food through the tube; during a meal, a tap is the next spoonful,
-// starts the pump, or makes her dance with the backpack on. Anything else during a meal does nothing (the bed waits until she is done). ----
-function tapMeal(x,y){
- if(meal.kind){if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
+// starts the pump, or makes her dance with the backpack on. Anything else during a meal does nothing (the bed waits until she is done).
+// A tap on the glass is a drink: at the table she drinks, and before a meal she goes to the table and drinks as soon as she has sat down. ----
+function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
+ if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
+ if(onGlass()){startMeal('spoon');if(meal.kind==='spoon')meal.drinkNext=true;return true;}
  // The table and the backpack together, so a tap between them goes to the nearer; both answer at least 56 px round them, as the backpack is small.
  const hit=pickTarget([{kind:'spoon',p:[MEAL.table[0],.62,MEAL.table[2]],r:.6},{kind:'peg',p:[MEAL.bag[0],.3,MEAL.bag[2]],r:.5}],x,y,o=>o.p,o=>o.r,56);
  if(hit){startMeal(hit.kind);return true;}
  return false;}
 // ---- The console: the three everyday buttons in the room, and during a meal what she can do next ----
 function mealText(){const m=meal,f=FOODS[m.food]?.name||'mat';
- if(m.kind==='spoon')return m.step==='eat'?`Sofia spiser ${f}. Trykk, så tar hun en skje. ${BITES-m.bites} ${BITES-m.bites===1?'skje':'skjeer'} igjen.`:m.step==='full'||m.step==='up'||m.step==='back'?'Skåla er tom. Nå er magen god og mett!':`Sofia setter seg ved bordet. I dag blir det ${f}.`;
+ if(m.kind==='spoon')return m.step==='eat'?`Sofia spiser ${f}. Trykk, så tar hun en skje. Trykk på glasset, så drikker hun. ${BITES-m.bites} ${BITES-m.bites===1?'skje':'skjeer'} igjen.`:m.step==='full'||m.step==='up'||m.step==='back'?'Skåla er tom. Nå er magen god og mett!':`Sofia setter seg ved bordet. I dag blir det ${f}.`;
  if(m.kind==='peg')return m.step==='ready'?'Slangen er koblet til knappen på magen. Trykk på sekken for å starte pumpen.':m.step==='pump'?'Pumpen går. Maten renner gjennom slangen og rett i magen. Trykk på Sofia, så danser hun med sekken på!':['beep','unplug','drop','back'].includes(m.step)?'Ferdig! Nå er magen god og mett.':'Sofia tar på seg PEG-sekken og kobler slangen til knappen på magen.';
  return '';}
 // Called at the end of renderBedConsole (bedtime.js), which sets the room's own text and buttons first.

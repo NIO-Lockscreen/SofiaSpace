@@ -51,6 +51,8 @@ class GameAudio {
  case 'click':this.tone(1500,.035,'square',.025);this.tone(950,.05,'square',.022,.05);break;
  case 'beep':this.tone(1760,.13,'sine',.05);break;
  case 'pumpdone':[0,.24,.48].forEach(d=>this.tone(1760,.13,'sine',.05,d));break;
+ // A drink from the glass (24 November 2026): three soft, low gulps.
+ case 'glugg':[0,.22,.44].forEach((d,i)=>{this.tone(260-i*25,.13,'sine',.06,d,150);this.tone(520-i*50,.06,'sine',.015,d+.02,300);});break;
  case 'scrub':this.swoosh(.13,.028,true);break;
  case 'squeeze':this.tone(230,.32,'triangle',.05,0,140);this.swoosh(.35,.035,false);break;
  case 'rinse':this.swoosh(1.2,.06,false);[0,.22,.44,.66].forEach((d,i)=>this.tone(240+i*40,.12,'sine',.04,.3+d,170));break;
