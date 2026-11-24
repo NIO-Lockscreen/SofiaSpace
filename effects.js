@@ -80,7 +80,7 @@ function astronaut(t,reach=0){const suit='#f2f3f6',wave=state.reduced?0:Math.sin
  d('box',[0,.55,0],[.26,.33,.19],suit);d('box',[0,.62,-.24],[.2,.26,.08],'#c9ced8');d('box',[0,.64,.2],[.11,.07,.02],'#79e4e2',[],.7);d('box',[0,.28,0],[.27,.05,.2],'#ff9ed1');
  for(const x of [-.12,.12]){d('box',[x,.14,0],[.1,.2,.12],suit);d('sphere',[x,.02,.06],[.13,.08,.18],'#8d96a8');}
  for(const side of [-1,1]){const ang=reach?2.75:side>0?2.2+wave:.3,L=.22,sx=side*.3,sy=.82,th=side*ang;d('box',[sx+L*Math.sin(th),sy-L*Math.cos(th),0],[.09,L,.1],suit,[0,0,th]);d('sphere',[sx+2*L*Math.sin(th),sy-2*L*Math.cos(th),0],[.1,.1,.1],'#8d96a8');}
- d('sphere',[0,1.1,-.2],[.42,.42,.3],'#f7f8fb');group([0,1.1,0],[.87,.87,.87],[0,0,0],()=>sofiaHead(t,{compact:true}));
+ d('sphere',[0,1.1,-.2],[.42,.42,.3],'#f7f8fb');group([0,1.1,0],[.87,.87,.87],[0,0,0],()=>sofiaHead(t,{compact:true}));if(santaOn())group([0,1.43,-.16],[.3,.3,.3],[-.3,Math.PI/4,0],()=>santaHatShape(t)); // in December the Santa hat goes on top of the helmet
  d('ringlet',[0,1.1,.1],[.36,1,.36],'#79e4e2',[Math.PI/2,0,0],.6);d('sphere',[-.15,1.26,.22],[.04,.04,.02],'#ffffff',[],1);}
 // Round, bright letter badges for the letter storm, painted once per letter and colour.
 const tileCache=new Map();

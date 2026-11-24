@@ -195,7 +195,7 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
 // Sofia's look (sofia.js): her curls frame her face without covering her eyes or eyebrows, the ringlets in front hang beside her face, the long hair at
 // the back is tucked away while the PEG backpack is on, and with calmer effects she does not blink. Every script is in the page, the build and the server.
 {const draws=[],faces=[],g2d=new Proxy({},{get:()=>()=>({addColorStop(){}})});
- const ctx=vm.createContext({Math,state:{reduced:true},d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7])},document:{createElement:()=>({getContext:()=>g2d})}});
+ const ctx=vm.createContext({Math,state:{reduced:true},santaSeason:()=>false,d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7])},document:{createElement:()=>({getContext:()=>g2d})}});
  vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;',ctx);
  for(const h of ctx.SOFIA_HAIR.clumps)if(h.p[2]+h.s[2]>.15)assert.ok(Math.abs(h.p[0])-h.s[0]>=.15||h.p[1]-h.s[1]>=.07,'a curl over her eyes or eyebrows: '+h.p.join(','));
  for(const h of ctx.SOFIA_HAIR.curls.filter(c=>c.front))assert.ok(Math.abs(h.p[0])>.25);
@@ -204,6 +204,36 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
  assert.ok(html.includes('sofia.js')&&html.indexOf('sofia.js')<html.indexOf('duck.js'));for(const f of html){assert.ok(build.includes(`'${f}'`),f+' in build.cjs');assert.ok(server.includes(`'${f}'`),f+' in server.cjs');}
  console.log(`Passed: Sofia's curls leave her eyes and eyebrows free, the hair at the back makes room for the backpack (${loose} → ${draws.length} pieces), no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
+
+// The Santa hat (24 November 2026): all through December, from the device's calendar, or on any day with ?jul=1 (and never with ?jul=0). It sits on top of her
+// curls well above her eyebrows, lies on the pillow in bed, and is on her in the rocket's window and on the space suit's helmet. The red part is a tube that
+// stands up from the brim and flops over to the side, with the pompom at its tip.
+{const {santaSeason}=require('./game-core.js');
+ for(const [y,m,day,h,on] of [[2026,11,30,23,false],[2026,12,1,0,true],[2026,12,24,18,true],[2026,12,31,23,true],[2027,1,1,0,false],[2027,6,15,12,false]])assert.equal(santaSeason(new Date(y,m-1,day,h,59)),on,`${day}.${m}.${y}`);
+ assert.equal(santaSeason(new Date(2027,5,1),true),true,'?jul=1 in June');assert.equal(santaSeason(new Date(2026,11,24),false),false,'?jul=0 on Christmas Eve');
+ const ectx=vm.createContext({Math,Float32Array});vm.runInContext(fs.readFileSync('engine.js','utf8')+';this.SANTA_HAT=SANTA_HAT;this.SpaceRenderer=SpaceRenderer;this.M=M;',ectx);
+ const meshes={};for(const software of [false,true])ectx.SpaceRenderer.prototype.makeMeshes.call({software,mesh:(n,a)=>meshes[n+(software?'-sw':'')]=a});
+ for(const name of ['hat','hat-sw']){const a=meshes[name];assert.ok(a.length>0&&a.length%18===0,name);let minY=1e9,maxY=-1e9,maxX=-1e9;for(let i=0;i<a.length;i+=6){minY=Math.min(minY,a[i+1]);maxY=Math.max(maxY,a[i+1]);maxX=Math.max(maxX,a[i]);
+  assert.ok(Math.abs(Math.hypot(a[i+3],a[i+4],a[i+5])-1)<1e-6,'unit normals');}
+  assert.ok(minY>=-.2&&maxY>1.2&&maxY<1.9&&maxX>.9,`${name}: stands up from the brim and flops over (y ${minY.toFixed(2)} to ${maxY.toFixed(2)}, x to ${maxX.toFixed(2)})`);}
+ const [tx,ty]=ectx.SANTA_HAT.tip;assert.ok(tx>.9&&ty>.6&&ty<1.5,'the pompom hangs off to the side: '+tx.toFixed(2)+', '+ty.toFixed(2));
+ // Sofia drawn in a given month and address: every piece with its place in the head's own space (a real transform stack, from engine.js).
+ const M=ectx.M,at=(m,p)=>[0,1,2].map(k=>m[k]*p[0]+m[4+k]*p[1]+m[8+k]*p[2]+m[12+k]);
+ const sofia=(date,search='')=>{const draws=[];let root=M.identity();const now=date.getTime(),D=class extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}};
+  const ctx=vm.createContext({Math,Date:D,URLSearchParams,location:{search},state:{reduced:true},santaSeason,SANTA_HAT:ectx.SANTA_HAT,d:(mesh,p,s,c)=>draws.push({mesh,c,p:at(root,p)}),
+   group:(p,s,r,fn)=>{const prev=root;root=M.mul(prev,M.model(p,s,r));fn();root=prev;},renderer:{draw(){}},document:{createElement:()=>({getContext:()=>new Proxy({},{get:()=>()=>({addColorStop(){}})})})}});
+  vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.sofiaHead=sofiaHead;this.sofiaWindow=sofiaWindow;this.SANTA_RED=SANTA_RED;this.SANTA_FUR=SANTA_FUR;',ctx);
+  const hatOf=list=>list.filter(x=>x.c===ctx.SANTA_RED||x.c===ctx.SANTA_FUR);
+  const head=o=>{draws.length=0;ctx.sofiaHead(0,o);return hatOf(draws);},standing=head({}),lying=head({lying:true}),win=(draws.length=0,ctx.sofiaWindow([0,0,0],.13,0),hatOf(draws));return {standing,lying,win};};
+ const nov=sofia(new Date(2026,10,24,12)),dec=sofia(new Date(2026,11,1,0,0,30)),jul=sofia(new Date(2026,10,24,12),'?jul=1'),off=sofia(new Date(2026,11,24,12),'?jul=0'),jan=sofia(new Date(2027,0,1,0,0,30));
+ for(const [name,s] of [['24 November',nov],['?jul=0 on Christmas Eve',off],['1 January',jan]])assert.ok(!s.standing.length&&!s.lying.length&&!s.win.length,name+': no hat');
+ for(const [name,s] of [['1 December',dec],['?jul=1 in November',jul]]){assert.ok(s.standing.some(x=>x.mesh==='hat')&&s.lying.some(x=>x.mesh==='hat')&&s.win.some(x=>x.mesh==='hat'),name+': the hat on her head, in bed and in the window');
+  const low=Math.min(...s.standing.filter(x=>x.p[2]>0).map(x=>x.p[1]));assert.ok(low>.2,name+': the front of the hat is above her eyebrows ('+low.toFixed(3)+')');
+  assert.ok(s.standing.every(x=>x.p[1]>.1)&&Math.max(...s.standing.map(x=>x.p[1]))>.5,name+': the hat is on top of her head');
+  assert.ok(Math.max(...s.lying.map(x=>x.p[2]))>.2,name+': in bed the hat stands up off the pillow');}
+ const effects=fs.readFileSync('effects.js','utf8'),game=fs.readFileSync('game.js','utf8');assert.ok(/sofiaHead\(t,\{compact:true\}\)\);if\(santaOn\(\)\)group\(.*santaHatShape\(t\)/.test(effects),'the hat on the helmet');
+ assert.equal((game.match(/sofiaWindow\([^)]*,t\)/g)||[]).length,2,'both windows pass the time for the hat');
+ console.log('Passed: the Santa hat from 1 December to 31 December (and with ?jul=1, never with ?jul=0), above her eyebrows, off the pillow in bed, in the window and on the helmet.');}
 
 // The browser phonemizer gives exactly the phoneme ids Python Piper 1.8 gives (with the game's pronunciation list), and clips are cached.
 (async()=>{

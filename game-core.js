@@ -87,4 +87,7 @@ function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[
 // has a BED_JUMP_AGAIN (20 %) chance of another jump, and otherwise she goes to bed. r is a random number from 0 to 1.
 const BED_JUMP_AGAIN=.2;
 function bedTap(jumped,r){return !jumped||r<BED_JUMP_AGAIN?'jump':'sleep';}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};
+// Sofia wears a Santa hat all through December (24 November 2026, santaHat in sofia.js), from the device's own calendar. force (true or false, from ?jul=1 or
+// ?jul=0 in the address) decides instead, so the hat can be seen on any day.
+function santaSeason(date=new Date(),force=null){return force==null?date.getMonth()===11:!!force;}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};

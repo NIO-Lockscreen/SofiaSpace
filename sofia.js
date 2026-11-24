@@ -65,8 +65,26 @@ const SOFIA_HAIR=(()=>{const hash=i=>{const x=Math.sin(i*127.1+11.7)*43758.5453;
  for(const s of [-1,1])curls.push({p:[s*.285,.02,.095],len:.27,c:SOFIA.hairLight,ph:s+1,tilt:s*.12,front:true});
  return {clumps,curls};})();
 
+// ---- The Santa hat (24 November 2026) ----
+// All through December Sofia wears a Santa hat: at home, in her room, at the table, in bed, in the planet quiz, on the duck, on top of the space suit's helmet
+// and behind the rocket's and the rescue capsule's window. When is the device's own calendar (santaSeason in game-core.js), looked at every half minute, so it
+// comes on at midnight on 1 December and goes at midnight on 1 January even with the game open. ?jul=1 in the address puts it on any day, ?jul=0 takes it off.
+const SANTA_FORCE=(()=>{try{const v=new URLSearchParams(location.search).get('jul');return v===null?null:v!=='0';}catch{return null;}})();
+let santaNow={on:false,at:-Infinity};
+function santaOn(){const now=Date.now();if(now-santaNow.at>30000||now<santaNow.at)santaNow={on:santaSeason(new Date(now),SANTA_FORCE),at:now};return santaNow.on;}
+// The hat, standing up along +y from its brim (radius 1 at y = 0; the red part is the 'hat' mesh, SANTA_HAT in engine.js): a fluffy white brim, the red hat
+// flopping over towards +x, and a white pompom at the tip. The top sways a little.
+const SANTA_RED='#d8262f',SANTA_FUR='#fbf7ef';
+function santaHatShape(t){d('cylinder',[0,.04,0],[1.04,.17,1.04],SANTA_FUR);
+ for(let i=0;i<16;i++){const a=i/16*Math.PI*2;d('sphere',[Math.cos(a)*1.02,.05+(i%2)*.05,Math.sin(a)*1.02],[.21,.2,.21],SANTA_FUR);}
+ group([0,0,0],[1,1,1],[0,0,state.reduced?-.05:-.05-Math.sin(t*1.8)*.05],()=>{d('hat',[0,0,0],[1,1,1],SANTA_RED);d('sphere',SANTA_HAT.tip,[.3,.3,.3],SANTA_FUR);});}
+// On her head (centre at the origin, facing +z): sitting back on her curls so her forehead shows, the top falling over behind her to her left. Lying in bed
+// (lying) it is tipped up off the pillow, and the top falls over to the side on the pillow.
+function santaHat(t,lying=false){if(lying)group([0,.26,0],[.33,.33,.33],[.45,0,0],()=>santaHatShape(t));else group([0,.255,-.07],[.33,.33,.33],[-.32,Math.PI/4,0],()=>santaHatShape(t));}
+
 // Her head, centred on the origin and facing +z. o.eyes: 'open' or 'shut'; o.mouth: 'smile', 'open', 'chew' or 'rest'; o.compact keeps the hair
-// inside the space suit's helmet; o.tucked (0..1) draws the long hair at the back up out of the way of the PEG backpack. She blinks now and then.
+// inside the space suit's helmet; o.tucked (0..1) draws the long hair at the back up out of the way of the PEG backpack; o.lying: in bed, for the Santa hat.
+// She blinks now and then.
 function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!still&&(t+1.3)%4.1<.13);
  let mouth=o.mouth||'smile';if(mouth==='chew')mouth='chew'+(still?1:Math.min(2,Math.floor(Math.abs(Math.sin(t*14))*3)));
  renderer.draw('sphere',[0,0,0],[.31,.32,.29],SOFIA.skin,[0,0,0],.35,0,sofiaFace(shut?'shut':'open',mouth));
@@ -74,6 +92,7 @@ function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!sti
  const tuck=o.tucked||0;
  for(const h of SOFIA_HAIR.clumps){if(o.compact&&h.y<-.25)continue;const back=h.p[2]<-.08&&h.y<-.12?1-tuck:1;if(back<=0)continue;const b=still?0:Math.sin(t*1.9+h.ph)*.006,sq=o.compact?.86:1;d('sphere',[h.p[0]*sq,h.p[1]+b+(1-back)*.12,h.p[2]*sq],h.s.map(v=>v*back),h.c);}
  if(o.compact)return;
+ if(santaOn())santaHat(t,o.lying);
  for(const h of SOFIA_HAIR.curls){const back=h.p[2]<-.05?1-tuck:1;if(back<=0)continue;const sway=still?0:Math.sin(t*1.6+h.ph)*.12;d('curl',h.p,[.055,h.len*back,.055],h.c,[sway*.6,(h.ph-3.1)*.3,h.tilt+sway*(h.front?.3:1)]);}}
 
 // ---- The whole of her ----
@@ -82,7 +101,7 @@ function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!sti
 // bag (0..1, the PEG backpack going on her back: her long hair at the back is tucked away so the backpack shows).
 function character(t,asleep=false,cheer=false,o={}){const C=SOFIA;
  d('box',[0,.52,0],[.22,.33,.16],C.top);d('box',[0,.215,0],[.228,.035,.168],C.topDark);sofiaButterfly(t);
- group([0,1.09,0],[1,1,1],[0,0,0],()=>sofiaHead(t,{eyes:asleep?'shut':'open',mouth:asleep?'rest':o.mouth||(cheer?'open':'smile'),tucked:o.bag}));
+ group([0,1.09,0],[1,1,1],[0,0,0],()=>sofiaHead(t,{lying:asleep,eyes:asleep?'shut':'open',mouth:asleep?'rest':o.mouth||(cheer?'open':'smile'),tucked:o.bag}));
  if(o.sit)for(const x of [-.115,.115]){d('box',[x,.215,.15],[.09,.085,.16],C.legs);d('box',[x,.215-o.sit/2,.3],[.085,o.sit/2,.09],C.legs);d('sphere',[x,.25-o.sit,.36],[.12,.07,.17],C.shoe);}
  else for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],C.legs);d('sphere',[x,.015,.06],[.12,.07,.17],C.shoe);}
  if(o.arms){o.arms();return;}
@@ -96,7 +115,9 @@ function sofiaButterfly(t,dy=0,z=.162){for(const s of [-1,1]){d('sphere',[s*.058
   for(let i=0;i<2;i++){const tw=state.reduced?.4:.25+.5*Math.max(0,Math.sin(t*2.3+i*2+s));d('sphere',[s*(.055+i*.02),.64-i*.035+dy,z+.007],[.011,.011,.005],i?'#8fe3ff':'#fff2b0',[],tw);}}
  d('box',[0,.59+dy,z+.002],[.009,.055,.008],'#e5c46a',[],.3);}
 
-// Her face behind a round window (the rocket's, the rescue capsule's), with her curls round it. p is the middle of her face, r its radius.
-function sofiaWindow(p,r){const [x,y,z]=p,k=r/.13;d('sphere',[x,y+.012*k,z-.008*k],[r*1.32,r*1.25,.02*k],SOFIA.hair);
+// Her face behind a round window (the rocket's, the rescue capsule's), with her curls round it. p is the middle of her face, r its radius. In December her Santa
+// hat is squeezed in above her curls, flopping over to the side, and her face moves down a little to make room.
+function sofiaWindow(p,r,t=0){if(santaOn()){p=[p[0],p[1]-r*.2,p[2]];r*=.85;group([p[0],p[1]+r*1.12,p[2]-.004*r/.13],[r*.95,r*.8,r*.3],[0,0,.15],()=>santaHatShape(t));}
+const [x,y,z]=p,k=r/.13;d('sphere',[x,y+.012*k,z-.008*k],[r*1.32,r*1.25,.02*k],SOFIA.hair);
  for(let i=0;i<9;i++){const a=-.5+i*(Math.PI+1)/8;d('sphere',[x+Math.cos(a)*r*1.17,y+Math.sin(a)*r*1.1,z-.004*k],[.046*k,.046*k,.02*k],i%2?SOFIA.hairLight:SOFIA.hairMid);}
  renderer.draw('sphere',[x,y,z],[r*.95,r*1.05,r*.2],SOFIA.skin,[0,0,0],.35,0,sofiaFace());}
