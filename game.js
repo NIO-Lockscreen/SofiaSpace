@@ -170,8 +170,10 @@ function homeScene(t,launch=0){const a=state.angle,aspect=scene.clientWidth/Math
  // Soft, floating clouds on the horizon.
  for(const [x,y,z]of [[-9,7,-16],[7,8,-17],[1,9,-23]]){d('sphere',[x,y,z],[1.9,.5,.7],'#c4ded6');d('sphere',[x-.4,y+.35,z],[.9,.65,.7],'#d4e6df');}}
 // Sofia's own room: her name on the wall and a display case with every world she has visited.
-function insideScene(t){const a=Math.max(-.5,Math.min(.5,state.angle)),aspect=scene.clientWidth/Math.max(1,scene.clientHeight),dist=aspect<.85?12.6:aspect<1.35?10.8:aspect<2.4?9.4:7.6;
- const eye=[Math.sin(a)*dist,2.35,Math.cos(a)*dist],at=[0,1.5,-.9];bedCamera(eye,at,a,aspect);mealCamera(eye,at,a,aspect);
+// On wide, low screens (an iPad on its side, most of all with Safari's bars) the camera came so close that the front of the floor, with the table and
+// the PEG backpack, fell off the bottom (24 November 2026). From 1.9 times as wide as high it stands a quarter further back and looks a little lower.
+function insideScene(t){const a=Math.max(-.5,Math.min(.5,state.angle)),aspect=scene.clientWidth/Math.max(1,scene.clientHeight),wide=aspect>=1.9,dist=(aspect<.85?12.6:aspect<1.35?10.8:aspect<2.4?9.4:7.6)*(wide?1.25:1);
+ const eye=[Math.sin(a)*dist,2.35,Math.cos(a)*dist],at=[0,wide?1.1:1.5,-.9];bedCamera(eye,at,a,aspect);mealCamera(eye,at,a,aspect);
  renderer.begin(eye,at,'#241a18');room(t);bedScene(t);}
 function room(t){
  d('box',[0,-.14,1.1],[4.4,.14,4.5],'#a9784d');for(let i=0;i<9;i++)d('box',[-3.9+i*.98,.012,1.1],[.022,.006,4.5],'#8a5c38');
