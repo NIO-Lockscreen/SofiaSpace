@@ -109,7 +109,7 @@ assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);a
  const said=[],sounds=[],steps=[];let done=0,clock=0;const canvas={clientWidth:1024,clientHeight:510};
  const game=ctx.createToothGame({canvas,say:t=>said.push(t),sound:n=>sounds.push(n),onStep:s=>steps.push(s),onDone:()=>done++});
  const run=(sec,fn)=>{for(let i=0;i<Math.round(sec*60);i++){fn&&fn(clock);game.update(1/60);clock+=1/60;}};
- game.start({seed:7,loop:false});assert.equal(game.step,'paste');assert.equal(game.teeth.length,16);assert.ok(game.teeth.every(t=>t.dirt>=.6&&!t.clean));
+ game.start({seed:7,loop:false,growth:1});assert.equal(game.step,'paste');assert.equal(game.teeth.length,16);assert.ok(game.teeth.every(t=>t.dirt>=.6&&!t.clean));
  assert.equal(game.teeth.filter(t=>t.germ).length,6);for(const row of ['up','down'])assert.ok(game.teeth.some(t=>t.row===row&&t.kind==='molar'&&t.germ),'a germ on a back tooth in the '+row+' row');
  const L=game.layout(),C=game.teeth.map(t=>game.centre(t));
  for(const t of game.teeth){const r=game.rect(t);assert.ok(r.x>L.cx-L.a&&r.x+r.w<L.cx+L.a&&r.w>20&&r.h>20,'every tooth inside the mouth and big enough to see');}
@@ -129,7 +129,7 @@ assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);a
  run(4);assert.equal(done,1,'done after the smile');run(3);assert.equal(done,1,'and only once');assert.deepEqual(steps,['paste','brush','rinse','done']);
  game.stop();assert.equal(game.step,'idle');game.press(L.tube.x,L.tube.y);assert.equal(game.step,'idle');
  // Three taps anywhere also put toothpaste on, so a five-year-old cannot get stuck there.
- game.start({seed:3,loop:false});for(let i=0;i<3;i++)game.press(10,10);run(1.6);assert.equal(game.step,'brush');}
+ game.start({seed:3,loop:false,growth:1});for(let i=0;i<3;i++)game.press(10,10);run(1.6);assert.equal(game.step,'brush');}
 console.log('Passed: tooth brushing with toothpaste first, about four seconds a tooth however wild the brushing, germs that let go, a blinking hint, rinsing, done once, and brushing stars kept by undo.');
 
 // The bed (24 November 2026): the first tap each time the game is opened is a jump; after that a 20 % chance of another jump, otherwise bed.
@@ -137,3 +137,24 @@ assert.equal(BED_JUMP_AGAIN,.2);for(const r of [0,.5,.99])assert.equal(bedTap(fa
 assert.equal(bedTap(true,0),'jump');assert.equal(bedTap(true,.19),'jump');assert.equal(bedTap(true,.2),'sleep');assert.equal(bedTap(true,.6),'sleep');assert.equal(bedTap(true,.999),'sleep');
 {let jumps=0;for(let i=0;i<10000;i++)if(bedTap(true,Math.random())==='jump')jumps++;assert.ok(jumps>1800&&jumps<2200,'about one in five: '+jumps);}
 console.log('Passed: the first tap on the bed is a jump, and after it about one tap in five is another jump instead of bedtime.');
+
+// The two new lower front teeth (24 November 2026): 5 % out on 24 November 2026, 0.44 % more each real day (0.04 mm a day of a 9 mm crown), whole days on the
+// device's calendar, fully out at the end of June 2027; too small to brush until 40 %: no plaque, no germ, not counted. They show only the part that is out.
+{const ctx=vm.createContext({Math,Date,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;this.newToothGrowth=newToothGrowth;this.NEW_TEETH=NEW_TEETH;',ctx);
+ const grow=(y,m,d,h=12)=>ctx.newToothGrowth(new Date(y,m-1,d,h));
+ assert.equal(grow(2026,11,24),.05,'5 % today');assert.equal(grow(2026,11,24,0),.05);assert.equal(grow(2026,11,24,23),.05,'the same all day');assert.equal(grow(2026,10,1),.05,'never less');
+ assert.ok(Math.abs(grow(2026,11,25)-.05-.04/9)<1e-9,'a little more the next day');assert.ok(Math.abs(grow(2026,12,24)-(.05+30*.04/9))<1e-9,'30 days: '+(grow(2026,12,24)*100).toFixed(1)+' %');
+ let day=0;while(grow(2026,11,24+day)<1)day++;const full=new Date(2026,10,24+day);assert.ok(day>200&&day<230,'fully out after '+day+' days');assert.equal(full.getFullYear(),2027);assert.equal(full.getMonth(),5,'in June 2027');
+ assert.equal(grow(2028,1,1),1,'and then they stay');let up=0;for(let d=0;d<260;d++){const g=grow(2026,11,24+d);assert.ok(g>=up);up=g;}
+ const canvas={clientWidth:1024,clientHeight:510},game=ctx.createToothGame({canvas});
+ game.start({seed:5,loop:false,growth:.05});const fresh=game.teeth.filter(t=>t.isNew);assert.equal(fresh.length,2);assert.ok(fresh.every(t=>t.row==='down'&&t.kind==='central'),'the two lower front teeth');
+ assert.equal(game.total(),14,'only 14 to brush while they are small');assert.ok(fresh.every(t=>t.dirt===0&&!t.germ),'no plaque or germ on them');assert.equal(game.teeth.filter(t=>t.germ).length,6,'still six germs, elsewhere');
+ const full1=game.teeth.find(t=>t.row==='down'&&t.kind==='lateral'),r1=game.rect(full1),r0=game.rect(fresh[0]);assert.ok(r0.h<r1.h*.3,'a small tooth: '+r0.h.toFixed(1)+' px against '+r1.h.toFixed(1));
+ assert.equal(game.growth,.05);
+ game.start({seed:5,loop:false,growth:.39});assert.equal(game.total(),14);game.start({seed:5,loop:false,growth:.4});assert.equal(game.total(),16,'from 40 % they are brushed too');assert.ok(fresh.every(t=>t.dirt>=.6));
+ game.start({seed:5,loop:false,growth:1});const r2=game.rect(fresh[0]);assert.ok(Math.abs((r0.y+r0.h)-(r2.y+r2.h))<1e-6,'rooted in the same gum small and grown');assert.ok(Math.abs(r2.h-.37*game.layout().b)<1e-6,'fully out: as tall as before ('+r2.h.toFixed(1)+')');
+ // brushing with them small: 14 clean is all clean
+ const said=[],g2=ctx.createToothGame({canvas,say:t=>said.push(t)});g2.start({seed:9,loop:false,growth:.05});const L2=g2.layout();assert.match(said[0],/to nye tenner/,'the voice tells of them');
+ for(const t of g2.teeth)if(g2.counts(t)){t.dirt=0;t.clean=true;}g2.press(L2.tube.x,L2.tube.y);for(let i=0;i<100;i++)g2.update(1/60);g2.press(L2.cx,L2.cy);g2.move(L2.cx+5,L2.cy);g2.update(1/60);assert.equal(g2.step,'rinse','14 of 14 clean: rinse');
+ g2.start({seed:9,loop:false,growth:1});assert.doesNotMatch(said.at(-1),/nye tenner/,'grown: nothing to tell');}
+console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 % a real day until the end of June 2027, not brushed until 40 %, rooted in the gum and as tall as the rest when grown.');

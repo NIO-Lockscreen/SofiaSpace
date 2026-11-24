@@ -145,8 +145,9 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 function tapMeal(x,y){
  if(meal.kind){if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
- if(pickTarget([0],x,y,()=>[MEAL.table[0],.62,MEAL.table[2]],()=>.6)!==null){startMeal('spoon');return true;}
- if(pickTarget([0],x,y,()=>[MEAL.bag[0],.32,MEAL.bag[2]],()=>.35)!==null){startMeal('peg');return true;}
+ // The table and the backpack together, so a tap between them goes to the nearer; both answer at least 56 px round them, as the backpack is small.
+ const hit=pickTarget([{kind:'spoon',p:[MEAL.table[0],.62,MEAL.table[2]],r:.6},{kind:'peg',p:[MEAL.bag[0],.3,MEAL.bag[2]],r:.5}],x,y,o=>o.p,o=>o.r,56);
+ if(hit){startMeal(hit.kind);return true;}
  return false;}
 // ---- The console: the three everyday buttons in the room, and during a meal what she can do next ----
 function mealText(){const m=meal,f=FOODS[m.food]?.name||'mat';
