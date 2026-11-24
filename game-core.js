@@ -83,4 +83,8 @@ function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCou
 // Undoing a reset folds the saved progress back in, so nothing found since the reset is lost either.
 function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[k])?old[k]:[]),...(Array.isArray(now?.[k])?now[k]:[])])],count=k=>(Number.isFinite(old?.[k])?old[k]:0)+(Number.isFinite(now?.[k])?now[k]:0);
  return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship,brushed:count('brushed')};}
-if(typeof module!=='undefined')module.exports={BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};
+// A tap on the bed while Sofia is awake and standing (24 November 2026): the first time each time the game is opened she jumps on it; after that a tap
+// has a BED_JUMP_AGAIN (20 %) chance of another jump, and otherwise she goes to bed. r is a random number from 0 to 1.
+const BED_JUMP_AGAIN=.2;
+function bedTap(jumped,r){return !jumped||r<BED_JUMP_AGAIN?'jump':'sleep';}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};

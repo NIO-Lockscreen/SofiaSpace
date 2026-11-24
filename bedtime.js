@@ -1,6 +1,7 @@
 /* Bedtime in Sofia's room: tap the bed and she walks over, climbs in under the blanket and falls asleep.
    Z's float up from the pillow, and a dream bubble swells over the bed with planets and comets in it. Tap again to wake her.
-   The first tap on the bed after the game opens is different: she jumps on the bed instead (see JUMP below). */
+   The first tap on the bed after the game opens is different: she jumps on the bed instead (see JUMP below). After that, a tap while she is awake and
+   standing has a 20 % chance of another jump (bedTap in game-core.js); a tap in the middle of a jump, or while she gets up, puts her to bed. */
 // jump: seconds into the jump on the bed (-1 when she is not jumping); jumped: she has had her jump since the game opened.
 // pose: where she was drawn last; blend: the pose to glide away from after she changes her mind halfway; hop: where she flops into bed from.
 const sleep={on:false,k:0,dream:0,lastTap:-9,cometHit:-1,targets:[],eye:[0,8,10],jump:-1,jumped:false,pose:null,blend:null,hop:null,view:0};
@@ -133,6 +134,6 @@ function tapInside(x,y){if(tapMeal(x,y))return true;if(state.clock-sleep.lastTap
  const hit=sleep.targets.length?pickTarget(sleep.targets,x,y,o=>o.p,o=>o.r,34):null;
  if(hit){burst(hit.p,['#ffde71','#ffffff','#79e4e2','#ece6ff'],12,1.6,{size:.06});
   if(hit.comet!==undefined){sleep.cometHit=hit.comet;gameAudio.effect('sparkle');speak('En komet!');}else if(hit.duck){gameAudio.effect('quack');speak('Kvakk kvakk!');}else{gameAudio.effect('pop');speak(hit.body.name);}return true;}
- if(pickTarget([[3.05,.9,-1.6],[3.05,.9,-.5],[3.05,.9,.6]],x,y,p=>p,()=>.75)){if(sleep.on)wakeUp();else if(!sleep.jumped)startJump();else goToBed();return true;}
+ if(pickTarget([[3.05,.9,-1.6],[3.05,.9,-.5],[3.05,.9,.6]],x,y,p=>p,()=>.75)){if(sleep.on)wakeUp();else if(sleep.jump<0&&sleep.k===0&&bedTap(sleep.jumped,Math.random())==='jump')startJump();else goToBed();return true;}
  return false;}
 $('wake-up').onclick=wakeUp;
