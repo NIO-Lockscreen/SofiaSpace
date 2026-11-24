@@ -10,7 +10,8 @@ class GameAudio {
   // Den nye norske stemmen (tts.js). Mangler den, eller går den ikke på enheten, brukes enhetens egen stemme.
   this.neural=typeof PiperVoice==='function'&&PiperVoice.supported()?new PiperVoice():null;
   this.neural?.onChange(n=>{if(n.ready&&!this.warmed){this.warmed=true;n.prewarm([...new Set(Object.values(LETTER_NAMES))],{lengthScale:LETTER_PACE});}this.updateVoiceNote();});
-  this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);}
+  this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);
+  this.stallMs=8000;this.stalls=0;this.hiddenAt=0;document.addEventListener?.('visibilitychange',()=>{if(document.hidden)this.hiddenAt=Date.now();});}
  // Start nedlastingen av den nye stemmen litt etter oppstart, når 3D-scenen har fått lastet ferdig.
  startNeural(delay=2500){if(!this.neural)return;clearTimeout(this.neuralTimer);this.neuralTimer=setTimeout(()=>{if(this.getState().neural!==false&&!navigator.connection?.saveData)this.neural.load();},delay);}
  neuralOn(){return !!this.neural?.ready&&this.getState().neural!==false;}
@@ -18,6 +19,7 @@ class GameAudio {
   label.textContent=on&&n?.ready?'Den nye norske stemmen er klar. Den lages her på enheten (Piper «talesyntese» fra Nasjonalbiblioteket) og virker også uten nett.'
   :on&&n?.status==='loading'?(n.progress>=1?'Den nye norske stemmen gjøres klar … Imens leser enheten med sin egen stemme.':`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 48 MB, bare første gang). Imens leser enheten med sin egen stemme.`)
   :on&&n?.status==='failed'&&n.error==='crash'?'Den nye stemmen ble ikke startet, fordi siden stoppet sist den lastet (kanskje for lite minne). Slå «Ny norsk stemme» av og på for å prøve igjen.'
+  :on&&n?.status==='failed'&&n.error==='stalled'?'Den nye stemmen stoppet opp, så enhetens egen stemme leser resten av tiden. Last siden på nytt for å prøve den igjen.'
   :on&&n?.status==='failed'?'Den nye stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke den nye stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :device?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';}
@@ -65,14 +67,19 @@ class GameAudio {
   if(this.neuralOn()&&this.context?.state==='running')this.speakNeural(item,gen);else this.speakDevice(item,gen);}
  speakDevice(item,gen){if(!this.synth||typeof SpeechSynthesisUtterance==='undefined'){this.current=null;return this.pump();}const u=new SpeechSynthesisUtterance(item.text);this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;if(this.deviceVoice)u.voice=this.deviceVoice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
  // Setningene spilles etter hverandre i Web Audio så snart de er laget, med en liten pause mellom.
- speakNeural(item,gen){const ctx=this.context,job=this.neural.speak(item.text,{lengthScale:item.id.startsWith('letter')?LETTER_PACE:TALK_PACE}),cur={...item,job,sources:[],end:0,done:false,timer:0};this.current=cur;
+ speakNeural(item,gen){const ctx=this.context,job=this.neural.speak(item.text,{lengthScale:item.id.startsWith('letter')?LETTER_PACE:TALK_PACE}),cur={...item,job,sources:[],end:0,done:false,timer:0,since:Date.now()};this.current=cur;
   if(!this.voiceOut){this.voiceOut=ctx.createGain();this.voiceOut.gain.value=.95;this.voiceOut.connect(ctx.destination);}
   const live=()=>gen===this.generation&&this.current===cur;
   const finish=()=>{if(!live())return;clearTimeout(cur.timer);this.current=null;this.pump();};
   const check=()=>{if(cur.done&&ctx.currentTime>=cur.end-.03)finish();};
+  // Vakthund: kommer det ingen setning på 8 sekunder (arbeideren kan være stoppet av nettleseren), leser enhetens stemme
+  // resten. Etter to slike stopp slås den nye stemmen av for denne økten. Tid med skjult side teller ikke.
+  const stall=()=>{if(!live())return;if(document.hidden||this.hiddenAt>cur.since){cur.since=Date.now();cur.timer=setTimeout(stall,this.stallMs);return;}
+   job.cancel();if(++this.stalls>=2)this.neural.fail('stalled');if(cur.sources.length){cur.done=true;check();cur.timer=setTimeout(finish,Math.max(0,cur.end-ctx.currentTime)*1000+700);}else{this.current=null;this.speakDevice(item,gen);}};
+  cur.timer=setTimeout(stall,this.stallMs);
   job.onchunk=pcm=>{if(!live()||!pcm.length)return;const buf=ctx.createBuffer(1,pcm.length,this.neural.sampleRate);buf.getChannelData(0).set(pcm);const src=ctx.createBufferSource();src.buffer=buf;src.connect(this.voiceOut);
-   const at=Math.max(ctx.currentTime+.02,cur.end+(cur.sources.length?SENTENCE_GAP:0));src.start(at);cur.end=at+buf.duration;src.onended=check;cur.sources.push(src);};
-  job.ondone=()=>{if(!live())return;cur.done=true;check();clearTimeout(cur.timer);cur.timer=setTimeout(finish,Math.max(0,cur.end-ctx.currentTime)*1000+700);};
+   const at=Math.max(ctx.currentTime+.02,cur.end+(cur.sources.length?SENTENCE_GAP:0));src.start(at);cur.end=at+buf.duration;src.onended=check;cur.sources.push(src);clearTimeout(cur.timer);cur.since=Date.now();cur.timer=setTimeout(stall,this.stallMs);};
+  job.ondone=()=>{if(!live())return;this.stalls=0;cur.done=true;check();clearTimeout(cur.timer);cur.timer=setTimeout(finish,Math.max(0,cur.end-ctx.currentTime)*1000+700);};
   // Feiler den nye stemmen før noe er sagt, leser enhetens stemme det samme i stedet.
-  job.onerror=()=>{if(!live())return;if(cur.sources.length){cur.done=true;check();return;}this.current=null;this.speakDevice(item,gen);};}
+  job.onerror=()=>{if(!live())return;clearTimeout(cur.timer);if(cur.sources.length){cur.done=true;check();return;}this.current=null;this.speakDevice(item,gen);};}
 }

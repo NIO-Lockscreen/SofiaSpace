@@ -163,6 +163,11 @@ console.log('Passed: the first tap on the bed is a jump, and after it about one 
  voice.stopSpeech();prefs.neural=false;voice.say('Med enhetens stemme');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Med enhetens stemme','the setting turns the new voice off');
  prefs.neural=true;ctx.state='suspended';voice.stopSpeech();voice.say('Før første trykk');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Før første trykk','before sound is unlocked the device voice reads');
  voice.stopSpeech();prefs.muted=true;voice.say('Stille');assert.equal(said.at(-1).text,'Før første trykk','nothing when muted');
+ // A worker the browser stopped without an error: after a short wait the device voice reads, and two stalls turn the new voice off.
+ prefs.muted=false;ctx.state='running';voice.stallMs=15;voice.say('Ingen svar');const stuck=jobs.at(-1);assert.equal(stuck.text,'Ingen svar');
+ setTimeout(()=>{assert.ok(stuck.cancelled);assert.equal(said.at(-1).text,'Ingen svar','the device voice reads after a stall');assert.equal(voice.neural.status,'ready');
+  voice.neural.fail=reason=>{voice.neural.failedWith=reason;};voice.stopSpeech();voice.say('Igjen ingen svar');
+  setTimeout(()=>{assert.equal(said.at(-1).text,'Igjen ingen svar');assert.equal(voice.neural.failedWith,'stalled','two stalls in a row switch the new voice off');console.log('Passed: a silent worker never blocks the speech queue: the device voice takes over after a stall.');},60);},60);
 }
 console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
 
