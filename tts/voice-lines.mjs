@@ -18,6 +18,9 @@ export default {
     for (const k of ['entry.body.name', 'state.target.name', 'p.name', 'a.name', 'parentOf(p).name', 'state.origin.name', 'next.name']) v[k] = any;
     v['state.location.name.toLowerCase()'] = any.map(n => n.toLowerCase());
     v['FOODS[meal.food].name'] = v.f = foods;
+    // The food she orders on the mobile (25 November 2026): «Pizza er bestilt!», «Her kommer pizzaen.», «I dag blir det pizza.»
+    const dishes = constFrom(root, 'game-core.js', 'DISHES');
+    v['dish.word'] = dishes.map(d => d.word); v['dish.the'] = dishes.map(d => d.the); v['foodName()'] = [...foods, ...dishes.map(d => d.name)];
     for (const k of ['LETTER_NAMES[o.ch]||o.ch', 'LETTER_NAMES[next]||next', 'LETTER_NAMES[a.word[0]]']) v[k] = Object.values(letterNames);
     for (const k of ['word[0]', 'word[play.count]', 'o.ch', 'next', 'a.word[0]', 'state.word[state.index]']) v[k] = letters;
     v['p.word'] = bodies.map(b => b.word);

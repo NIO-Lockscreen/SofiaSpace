@@ -82,7 +82,8 @@ function quizChoiceCount(correct){return correct<6?2:correct<20?3:4;}
 function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCount(correct),pool=BODIES.filter(p=>!recent.includes(p.id)),answer=pool[Math.floor(rand()*pool.length)%pool.length];const shuffle=list=>{const out=[...list];for(let i=out.length-1;i>0;i--){const j=Math.floor(rand()*(i+1))%(i+1);[out[i],out[j]]=[out[j],out[i]];}return out;};const others=BODIES.filter(p=>p.id!==answer.id&&(count===4||p.word[0]!==answer.word[0])),picked=[];for(const p of shuffle(others)){if(picked.length>=count-1)break;if(count===4||!picked.some(q=>q.word[0]===p.word[0]))picked.push(p);}return {answer,choices:shuffle([answer,...picked])};}
 // Undoing a reset folds the saved progress back in, so nothing found since the reset is lost either.
 function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[k])?old[k]:[]),...(Array.isArray(now?.[k])?now[k]:[])])],count=k=>(Number.isFinite(old?.[k])?old[k]:0)+(Number.isFinite(now?.[k])?now[k]:0);
- return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship,brushed:count('brushed')};}
+ return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship,brushed:count('brushed'),
+  food:cleanFood([...(Array.isArray(old?.food)?old.food:[]),...(Array.isArray(now?.food)?now.food:[])])};}
 // A tap on the bed while Sofia is awake and standing (24 November 2026): the first time each time the game is opened she jumps on it; after that a tap
 // has a BED_JUMP_AGAIN (20 %) chance of another jump, and otherwise she goes to bed. r is a random number from 0 to 1.
 const BED_JUMP_AGAIN=.2;
@@ -113,4 +114,18 @@ function brushStarSpots(n,{walls,from,gap=.4,r=.12}){
  const first=[...places(0),...places(1)];take(first.filter(c=>!c.wi).sort(near));take(first.filter(c=>c.wi).sort(near));
  for(let round=2,empty=0;out.length<n&&empty<4;round++){const list=places(round);empty=list.length?0:empty+1;take(list.sort((a,b)=>(a.wi?1:0)-(b.wi?1:0)||a.d-b.d));}
  return out;}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves};
+// Food Sofia orders on the white mobile on her table (25 November 2026). What she has ordered waits on the trolley in her room until she eats it,
+// one dish each meal; the list is saved with the rest of the progress. word: on the phone's buttons; name: in «I dag blir det …»; the: «Her kommer …»;
+// hand: eaten with her fingers (the egg, soft-boiled in an egg cup, with the spoon). The trolley holds FOOD_MAX dishes.
+const DISHES=[{id:'pizza',word:'Pizza',name:'pizza',the:'pizzaen',emoji:'🍕',hand:true},{id:'burger',word:'Burger',name:'burger',the:'burgeren',emoji:'🍔',hand:true},
+ {id:'sushi',word:'Sushi',name:'sushi',the:'sushien',emoji:'🍣',hand:true},{id:'egg',word:'Egg',name:'egg',the:'egget',emoji:'🥚',hand:false}];
+const FOOD_MAX=6;
+const dishById=id=>DISHES.find(d=>d.id===id)||null;
+// Known dishes only, at most FOOD_MAX, in the order they came.
+function cleanFood(list){return Array.isArray(list)?list.filter(id=>dishById(id)).slice(0,FOOD_MAX):[];}
+// A new order goes last on the trolley, unless it is full; a dish she eats is taken from the trolley (the first of its kind).
+function orderFood(list,id){return dishById(id)&&list.length<FOOD_MAX?[...list,id]:list;}
+function eatFood(list,id){const i=list.indexOf(id);return i<0?list:[...list.slice(0,i),...list.slice(i+1)];}
+// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order.
+function foodChoices(list){return DISHES.map(d=>({...d,n:list.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_MAX,dishById,cleanFood,orderFood,eatFood,foodChoices};

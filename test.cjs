@@ -103,6 +103,25 @@ console.log('Passed: undoing a reset restores every place, star and setting, add
 
 // Tooth brushing stars are kept by an undo too, added to what was brushed since.
 assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);assert.equal(mergeSaves(fresh,before).brushed,0);
+// The food she orders on the white mobile (25 November 2026): four dishes, at most six on the trolley, one taken at a time, saved and kept by an undo.
+{const {DISHES,FOOD_MAX,orderFood,eatFood,foodChoices,cleanFood}=require('./game-core.js');
+ assert.deepEqual(DISHES.map(d=>d.id),['pizza','burger','sushi','egg']);assert.deepEqual(DISHES.map(d=>d.word),['Pizza','Burger','Sushi','Egg']);assert.equal(FOOD_MAX,6);
+ assert.deepEqual(DISHES.filter(d=>d.hand).map(d=>d.id),['pizza','burger','sushi'],'the egg is eaten with the spoon');
+ let food=[];for(const id of ['pizza','sushi','pizza','kake','egg','burger','burger','egg','pizza'])food=orderFood(food,id);
+ assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger'],'in order, nothing unknown, full at six');
+ assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza2','burger2','sushi1','egg1'],'each kind once, in the menu\'s order, with how many');
+ food=eatFood(food,'pizza');assert.deepEqual(food,['sushi','pizza','egg','burger','burger']);assert.deepEqual(eatFood(food,'kake'),food);assert.deepEqual(foodChoices([]),[]);
+ assert.deepEqual(cleanFood(['egg','kake',7,'sushi']),['egg','sushi']);assert.deepEqual(cleanFood('pizza'),[]);assert.equal(cleanFood(Array(9).fill('egg')).length,6);
+ assert.deepEqual(mergeSaves({...fresh,food:['egg']},{...before,food:['pizza','sushi']}).food,['pizza','sushi','egg'],'an undo keeps both');
+ assert.deepEqual(mergeSaves(fresh,{...before,food:'x'}).food,[]);assert.equal(mergeSaves({food:Array(4).fill('egg')},{food:Array(4).fill('pizza')}).food.length,6);
+ const src=fs.readFileSync('routines.js','utf8'),game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
+ assert.ok(/progressData\(\)\{return \{[^}]*food:\[\.\.\.state\.food\]/.test(game)&&/state\.food=cleanFood\(saved\?\.food\)/.test(game),'saved with the progress');
+ assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.dish\);saveProgress\(\);\}/.test(src),'off the trolley at the first bite');
+ assert.ok(/\$\('eat-spoon'\)\.onclick=\(\)=>chooseMeal\(\);/.test(src)&&/if\(!list\.length\)\{startMeal\('spoon'\);return;\}/.test(src),'«Spise» asks only when there is food to choose from');
+ assert.ok(/openPhone\(true\)/.test(src)&&/chooseMeal\(true\)/.test(src)&&/function guardTap/.test(src),'windows opened by a tap ignore the finger until it is lifted');
+ for(const id of ['phone-modal','order-grid','phone-sent','phone-full','phone-count','phone-close','dish-modal','dish-choices','close-dishes'])assert.ok(html.includes(`id="${id}"`),id);
+ assert.ok(/modal\.id==='phone-modal'\)closePhone\(\);else if\(modal\.id==='dish-modal'\)/.test(game),'Esc puts them away');}
+console.log('Passed: the white mobile: four dishes, six on the trolley, in order, each kind once to choose from, off the trolley at the first bite, saved, and kept by an undo.');
 // Tooth brushing (teeth.js, 23 November 2026): toothpaste first, every tooth needs a few seconds of brushing however fast the brush goes,
 // the germs let go, the hint blinks when Sofia is stuck, a tap on the cup rinses, and the game says it is done exactly once.
 {const ctx=vm.createContext({Math,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;',ctx);
@@ -301,6 +320,11 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.equal(espeak.ccall('ph_init','number',['string'],['nb']),0);
  const ipa=t=>{const p=espeak.stringToNewUTF8(t);try{return espeak.UTF8ToString(espeak._ph_text(p)).split('\x1e').map(c=>c.split('\x1f')[0]).filter(Boolean).join(' ');}finally{espeak._free(p);}};
  for(const [word,expected] of [['Sofia','sʊfˈiːʲɑ'],['planeten','plɑnˈeːtən'],['Uranus','ʉrˈɑːnʉs'],['Neptun','nɛptˈʉːn'],['raketten','rɑkˈɛtːən'],['kometer','kʊmˈeːtər'],['pegg-slangen','pˈɛɡːʃlˈɑŋən']])assert.equal(ipa(word),expected,word);
+ // The food on the mobile as the clips say it, once g2p_no has made ʉ into ɨ and render-voice.py's PHONEME_FIXES are applied: «pitsa», «børger»,
+ // «sushi» with sj, and «mobilen» stressed on «bi».
+ const fixes=[...fs.readFileSync('tts/render-voice.py','utf8').match(/PHONEME_FIXES = \[([\s\S]*?)\]\n/)[1].matchAll(/\("([^"]*)", "([^"]*)"\)/g)].map(m=>[m[1],m[2]]);
+ const said=t=>fixes.reduce((s,[a,b])=>s.split(a).join(b),ipa(t).split('ʉ').join('ɨ'));
+ for(const [word,expected] of [['pizza','pˈɪtsɑ'],['pizzaen','pˈɪtsɑən'],['burger','bˈœrɡər'],['burgeren','bˈœrɡərən'],['sushi','sˈɨːʃiː'],['sushien','sˈɨːʃiːən'],['mobilen','mʊbˈiːlən'],['trillebordet','trˈɪləbˌuːrda']])assert.equal(said(word),expected,word);
  // The player (ClipVoice) with a pretend network, cache and MP3 decoder: a clip decodes to as many samples as it has bytes.
  const store=new Map(),timers=[],logged=[];let online=true,fetched=0,decodes=0;
  const files={'tts/voice/ingrid.json':JSON.stringify({hash:'abc',bytes:3000,sampleRate:24000,clips:{'Hei, Sofia!':[0,1000],'Velkommen til Mars!':[1000,1500],'Mars er rød.':[2500,500]}}),'tts/voice/ingrid.mp3':new Uint8Array(3000)};
@@ -332,5 +356,5 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.ok(await bad(),'a clip that will not unpack: the device voice reads that line');assert.equal(v4.status,'ready','and the voice stays on');assert.equal(timers.length,n0);
  await bad();await bad();assert.equal(v4.status,'failed');assert.equal(v4.error,'decode');assert.equal(timers.at(-1).ms,30000,'three in a row: a rest of 30 s');
  v4.ensure();assert.equal(v4.status,'failed','not before the rest is over');timers.at(-1).fn();await tick();assert.equal(v4.status,'ready','then back by itself, without a new download');
- console.log('Passed: '+keys.length+' sentences with clips ('+(pack.length/1e6).toFixed(1)+' MB), the player cuts text like the clips, PEG read «pegg», Sofia and the space words stressed, clips unpacked once and kept under 24 MB, offline from the cache, retries with no limit, a rest that ends by itself, and the device voice for anything missing.');
+ console.log('Passed: '+keys.length+' sentences with clips ('+(pack.length/1e6).toFixed(1)+' MB), the player cuts text like the clips, PEG read «pegg», Sofia, the space words and the food stressed, clips unpacked once and kept under 24 MB, offline from the cache, retries with no limit, a rest that ends by itself, and the device voice for anything missing.');
 })().catch(err=>{console.error(err);process.exit(1);});

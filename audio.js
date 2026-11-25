@@ -56,6 +56,10 @@ class GameAudio {
  case 'pumpdone':[0,.24,.48].forEach(d=>this.tone(1760,.13,'sine',.05,d));break;
  // A drink from the glass (24 November 2026): three soft, low gulps.
  case 'glugg':[0,.22,.44].forEach((d,i)=>{this.tone(260-i*25,.13,'sine',.06,d,150);this.tone(520-i*50,.06,'sine',.015,d+.02,300);});break;
+ // The white mobile (25 November 2026): two soft blips when it opens, a whoosh when an order is sent, and the doorbell when the food comes.
+ case 'phone':[0,.09].forEach((d,i)=>this.tone(1175+i*392,.07,'sine',.035,d));break;
+ case 'order':this.swoosh(.45,.045);this.tone(880,.14,'sine',.04,0,1320);break;
+ case 'doorbell':[[659,0],[523,.42]].forEach(([f,d])=>{this.tone(f,.75,'sine',.07,d);this.tone(f*2,.4,'sine',.014,d);});break;
  case 'scrub':this.swoosh(.13,.028,true);break;
  case 'squeeze':this.tone(230,.32,'triangle',.05,0,140);this.swoosh(.35,.035,false);break;
  case 'rinse':this.swoosh(1.2,.06,false);[0,.22,.44,.66].forEach((d,i)=>this.tone(240+i*40,.12,'sine',.04,.3+d,170));break;
