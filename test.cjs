@@ -159,36 +159,37 @@ console.log('Passed: the first tap on the bed is a jump, and after it about one 
  g2.start({seed:9,loop:false,growth:1});assert.doesNotMatch(said.at(-1),/nye tenner/,'grown: nothing to tell');}
 console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 % a real day until the end of June 2027, not brushed until 40 %, rooted in the gum and as tall as the rest when grown.');
 
-// The new Norwegian voice (24 November 2026): Piper clips play through Web Audio one sentence after another, letters wait behind
+// The new Norwegian voice (25 November 2026): the clips play through Web Audio one sentence after another, letters wait behind
 // narration, stopping cuts the sound at once, and the device voice reads whenever the new voice is off, not ready or fails.
 {
  const started=[],stopped=[];let now=0;
  class FakeSource{connect(){}start(at){this.at=at;started.push(this);}stop(){stopped.push(this);}}
  const ctx={state:'running',get currentTime(){return now;},destination:{},createGain:()=>({gain:{value:1},connect(){}}),createBuffer:(ch,len,sr)=>{const d=new Float32Array(len);return{duration:len/sr,getChannelData:()=>d};},createBufferSource:()=>new FakeSource()};
  const jobs=[];
- class FakePiper{static supported(){return true;}constructor(){this.status='off';this.sampleRate=1000;}get ready(){return this.status==='ready';}onChange(fn){this.fn=fn;}load(){this.status='ready';this.fn?.(this);}prewarm(t,o){this.prewarmed=t;this.prewarmOpts=o;}speak(text,opts){const job={text,opts,cancelled:false,cancel(){job.cancelled=true;}};jobs.push(job);return job;}}
+ class FakeClips{static supported(){return true;}constructor(){this.status='off';this.sampleRate=1000;}get ready(){return this.status==='ready';}onChange(fn){this.fn=fn;}load(){this.status='ready';this.fn?.(this);}prewarm(t,o){this.prewarmed=t;this.prewarmOpts=o;}speak(text,opts){const job={text,opts,cancelled:false,cancel(){job.cancelled=true;}};jobs.push(job);return job;}}
  const said=[],prefs={muted:false,voice:true,paused:false,neural:true},deviceSynth={getVoices:()=>[{lang:'nb-NO',name:'Nora'},{lang:'nb-NO',name:'Nora (Forbedret)',voiceURI:'com.apple.voice.enhanced.nb-NO.Nora'},{lang:'sv-SE',name:'Alva (Premium)'}],addEventListener(){},cancel(){},speak(u){said.push(u);}};
- const sandbox=vm.createContext({window:{speechSynthesis:deviceSynth},document:{getElementById:()=>null},navigator:{},SpeechSynthesisUtterance:class{constructor(t){this.text=t;}},PiperVoice:FakePiper,prefs,setTimeout,clearTimeout});
+ const sandbox=vm.createContext({window:{speechSynthesis:deviceSynth},document:{getElementById:()=>null},navigator:{},SpeechSynthesisUtterance:class{constructor(t){this.text=t;}},ClipVoice:FakeClips,spokenText:t=>t.replace(/\bPEG\b/g,'pegg'),prefs,setTimeout,clearTimeout});
  vm.runInContext(fs.readFileSync('audio.js','utf8'),sandbox);const voice=vm.runInContext('new GameAudio(()=>prefs)',sandbox);
  assert.equal(voice.deviceVoice.voiceURI,'com.apple.voice.enhanced.nb-NO.Nora','the enhanced Norwegian device voice is chosen, not a Swedish premium one');
  voice.context=ctx;voice.neural.load();
  assert.ok(voice.neural.prewarmed.includes('jådd')&&voice.neural.prewarmed.includes('dobbelt ve')&&voice.neural.prewarmed.length===29,'all letter names are prepared');
- voice.say('Velkommen til Mars! Mars er rød.',{id:'fact-mars'});assert.equal(jobs.length,1);assert.equal(jobs[0].opts.lengthScale,1.12);
+ voice.say('Velkommen til Mars! Mars er rød.',{id:'fact-mars'});assert.equal(jobs.length,1);
  voice.letter('M');assert.equal(jobs.length,1,'letters wait behind the arrival fact');
  jobs[0].onchunk(new Float32Array(1500));jobs[0].onchunk(new Float32Array(500));assert.equal(started.length,2);
  assert.ok(Math.abs(started[1].at-(started[0].at+1.5+.22))<1e-9,'sentences follow each other with a short pause');
  jobs[0].ondone();assert.equal(jobs.length,1,'still speaking');now=started[1].at+.5;started[1].onended();
- assert.equal(jobs.length,2,'then the letter');assert.equal(jobs[1].text,'emm');assert.equal(jobs[1].opts.lengthScale,voice.neural.prewarmOpts.lengthScale);
+ assert.equal(jobs.length,2,'then the letter');assert.equal(jobs[1].text,'emm');
  jobs[1].onchunk(new Float32Array(300));voice.stopSpeech();assert.ok(jobs[1].cancelled);assert.ok(stopped.includes(started.at(-1)),'stopping cuts the sound at once');assert.equal(voice.current,null);
  voice.say('Hei, Sofia!');jobs[2].onerror();assert.equal(said.at(-1).text,'Hei, Sofia!','the device voice takes over when the new voice fails');
  voice.stopSpeech();prefs.neural=false;voice.say('Med enhetens stemme');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Med enhetens stemme','the setting turns the new voice off');
+ voice.stopSpeech();voice.say('Mat gjennom PEG-slangen.');assert.equal(said.at(-1).text,'Mat gjennom pegg-slangen.','the device voice says PEG as a word too');
  prefs.neural=true;voice.context=null;voice.stopSpeech();voice.say('Før første trykk');assert.equal(jobs.length,3);assert.equal(said.at(-1).text,'Før første trykk','before the first touch (no sound yet) the device voice reads');voice.context=ctx;
  voice.stopSpeech();prefs.muted=true;voice.say('Stille');assert.equal(said.at(-1).text,'Før første trykk','nothing when muted');
- // A worker the browser stopped without an error: after a short wait the device voice reads, and two stalls turn the new voice off.
+ // Unpacking the browser stopped without an error: after a short wait the device voice reads, and two stalls turn the new voice off.
  prefs.muted=false;ctx.state='running';voice.stallMs=15;voice.say('Ingen svar');const stuck=jobs.at(-1);assert.equal(stuck.text,'Ingen svar');
  setTimeout(()=>{assert.ok(stuck.cancelled);assert.equal(said.at(-1).text,'Ingen svar','the device voice reads after a stall');assert.equal(voice.neural.status,'ready');
   voice.neural.fail=reason=>{voice.neural.failedWith=reason;};voice.stopSpeech();voice.say('Igjen ingen svar');
-  setTimeout(()=>{assert.equal(said.at(-1).text,'Igjen ingen svar');assert.equal(voice.neural.failedWith,'stalled','two stalls in a row switch the new voice off');console.log('Passed: a silent worker never blocks the speech queue: the device voice takes over after a stall.');
+  setTimeout(()=>{assert.equal(said.at(-1).text,'Igjen ingen svar');assert.equal(voice.neural.failedWith,'stalled','two stalls in a row switch the new voice off');console.log('Passed: a silent voice never blocks the speech queue: the device voice takes over after a stall.');
    // iOS puts Web Audio on pause ('interrupted', 'suspended'): a touch wakes it, and the new voice waits a moment for it instead of giving way to the device voice.
    voice.stallMs=8000;voice.stalls=0;let resumed=0;ctx.state='interrupted';ctx.resume=()=>{resumed++;ctx.state='running';return Promise.resolve();};voice.unlock();assert.equal(resumed,1,'a touch wakes interrupted sound');
    ctx.state='interrupted';voice.stopSpeech();const n0=jobs.length,d0=said.length;voice.say('Vekket');assert.equal(jobs.length,n0,'waits for the sound to wake');
@@ -260,61 +261,52 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.equal((game.match(/sofiaWindow\([^)]*,t\)/g)||[]).length,2,'both windows pass the time for the hat');
  console.log('Passed: the Santa hat from 1 December to 31 December (and with ?jul=1, never with ?jul=0), above her eyebrows, off the pillow in bed, in the window and on the helmet.');}
 
-// The browser phonemizer gives exactly the phoneme ids Python Piper 1.8 gives (with the game's pronunciation list), and clips are cached.
+// The voice (25 November 2026): Canora Norwegian «ingrid», read in advance as one MP3 clip per sentence (tts/make-voice.mjs).
+// Every sentence the game can say has a clip, the player cuts text into sentences exactly as the clips were made, PEG is read «pegg»,
+// the pack is whole, and the player plays the clips in order, falls back when one is missing, and tries a failed download again.
 (async()=>{
- const core=await import('./tts/piper-core.mjs'),createEspeak=(await import('./tts/espeak-nb.mjs')).default;
- assert.equal(core.cleanText('🦆 Hei, ★ Sofia! ☀ [[x]]'),'Hei, Sofia! x');
- assert.deepEqual(core.mergeVowelClusters(['h','a','ɪ',' ','a','ʊ','a'],[['a','ɪ'],['a','ʊ']]),['h','aɪ',' ','aʊ','a']);
- assert.deepEqual(Array.from(core.trimSilence(Float32Array.from([0,0,0,.5,.25,0,0]),10,.01,0,0)),[.5,.25]);
- const data=fs.readFileSync('tts/espeak-nb.data');
+ const clips=await import('./tts/clips.mjs'),make=await import('./tts/make-voice.mjs'),crypto=require('node:crypto');
+ const miss=await make.missing();assert.deepEqual(miss,[],'sentences without a clip (run node tts/make-voice.mjs): '+miss.slice(0,5).join(' | '));
+ const index=JSON.parse(fs.readFileSync('tts/voice/ingrid.json','utf8')),pack=fs.readFileSync('tts/voice/ingrid.mp3'),keys=Object.keys(index.clips);
+ assert.equal(crypto.createHash('sha1').update(pack).digest('hex').slice(0,12),index.hash,'the list belongs to this pack');assert.equal(pack.length,index.bytes);
+ for(const [k,[at,len]] of Object.entries(index.clips)){assert.ok(at>=0&&len>400&&at+len<=pack.length,k);const h=pack.subarray(at,at+3);assert.ok(h[0]===0xff&&(h[1]&0xe0)===0xe0||h.toString()==='ID3','an MP3 stream starts at '+k);}
+ // The player in tts.js cuts text the same way as tts/clips.mjs.
+ const sb=vm.createContext({});vm.runInContext(fs.readFileSync('tts.js','utf8')+';this.voiceSentences=voiceSentences;this.spokenText=spokenText;this.trimQuiet=trimQuiet;',sb);
+ const samples=[...keys,'Hurra Sofia! Du fant barnehagen!Og se! En stor, snill edderkopp.','🦆 Hei, ★ Sofia! ☀','  Velkommen til Mars!  Mars er rød. ','«Hei!» sa hun. Rema 1000.','Vent … nå!','',null];
+ for(const t of samples)assert.deepEqual([...sb.voiceSentences(t)],clips.sentences(t),'the same sentences: '+t);
+ for(const k of keys)assert.deepEqual([...sb.voiceSentences(k)],[k],'a clip is one sentence: '+k);
+ assert.deepEqual(clips.sentences('Velkommen til Mars! Mars er rød.'),['Velkommen til Mars!','Mars er rød.']);
+ for(const f of [clips.spoken,sb.spokenText])assert.equal(f('Mat gjennom PEG-slangen. Ta på PEG-sekken! PEGASUS'),'Mat gjennom pegg-slangen. Ta på pegg-sekken! PEGASUS','PEG is said «pegg»');
+ assert.ok(keys.includes('Nå skal Sofia få mat gjennom PEG-slangen.'),'the PEG line has a clip');
+ assert.deepEqual(Array.from(sb.trimQuiet(Float32Array.from([0,0,0,0,.5,.25,0,0,0]),100,.01,.01)),[0,.5,.25,0],'quiet ends off, 10 ms kept');
+ // espeak-ng (used when the clips are made) with the game's pronunciation list.
+ const createEspeak=(await import('./tts/espeak-nb.mjs')).default,data=fs.readFileSync('tts/espeak-nb.data');
  const espeak=await createEspeak({wasmBinary:fs.readFileSync('tts/espeak-nb.wasm'),getPreloadedPackage:()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength),print(){},printErr(){}});
  assert.equal(espeak.ccall('ph_init','number',['string'],['nb']),0);
- const config=JSON.parse(fs.readFileSync('tts/no_NO-talesyntese-medium.onnx.json','utf8')),cases=JSON.parse(fs.readFileSync('tts/src/piper-fixture.json','utf8')).cases;
- for(const c of cases)assert.deepEqual(core.textToIdSentences(espeak,c.text,config),c.ids,c.text);
- const ipa=t=>{const p=espeak.stringToNewUTF8(t);try{return core.parseClauses(espeak.UTF8ToString(espeak._ph_text(p))).map(c=>c.phonemes).join(' ');}finally{espeak._free(p);}};
- for(const [word,expected] of [['Sofia','sʊfˈiːʲɑ'],['planeten','plɑnˈeːtən'],['Uranus','ʉrˈɑːnʉs'],['Neptun','nɛptˈʉːn'],['raketten','rɑkˈɛtːən'],['kometer','kʊmˈeːtər']])assert.equal(ipa(word),expected,word);
- const sandbox=vm.createContext({window:{AudioContext:function(){}},Worker:function(){},WebAssembly,BigInt64Array,caches:{},queueMicrotask});
- vm.runInContext(fs.readFileSync('tts.js','utf8'),sandbox);const piper=vm.runInContext('new PiperVoice()',sandbox);
- assert.equal(vm.runInContext('PiperVoice.supported()',sandbox),true);
- piper.remember('1|be',[new Float32Array(40)]);const got=await new Promise(done=>{const job=piper.speak('be'),lens=[];job.onchunk=c=>lens.push(c.length);job.ondone=()=>done(lens);});assert.deepEqual(got,[40],'a cached clip plays without the worker');
- const failed=await new Promise(done=>{const job=piper.speak('ikke laget');job.onerror=()=>done(true);job.ondone=()=>done(false);});assert.ok(failed,'not ready and not cached: the caller falls back');
- // The guard against a start the page did not survive (24 November 2026): one crash and the voice still starts by itself; only after two in a row it waits for
- // the switch. Closing or hiding the page while it starts is no crash. An old mark (a time) counts as one. A failure is tried again twice, after 20 and 40 s.
- {const store=new Map(),on={},timers=[],doc={hidden:false,addEventListener:(t,f)=>on[t]=f};
-  const sb=vm.createContext({window:{AudioContext:function(){}},Worker:class{postMessage(){}terminate(){}},WebAssembly,BigInt64Array,caches:{},queueMicrotask,document:doc,addEventListener:(t,f)=>on[t]=f,
-   setTimeout:(fn,ms)=>timers.push({fn,ms}),clearTimeout(){},localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)}});
-  vm.runInContext(fs.readFileSync('tts.js','utf8'),sb);const fresh=()=>vm.runInContext('new PiperVoice()',sb),crashes=()=>vm.runInContext('PiperVoice.crashes()',sb);
-  let v=fresh();v.load();v.message({type:'starting'});assert.equal(crashes(),1,'the page went while starting');
-  v=fresh();v.load();assert.equal(v.status,'loading','after one crash it starts again by itself');v.message({type:'starting'});assert.equal(crashes(),2);
-  v=fresh();v.load();assert.equal(v.status,'failed');assert.equal(v.error,'crash','after two in a row it waits');assert.equal(timers.length,0,'and is not tried again by itself');
-  v.load({force:true});assert.equal(v.status,'loading','the switch tries again');v.message({type:'starting'});v.message({type:'ready'});assert.equal(v.status,'ready');assert.equal(crashes(),0,'a good start clears it');
-  v=fresh();v.load();v.message({type:'starting'});on.pagehide();assert.equal(crashes(),0,'closing the page while it starts is no crash');
-  v=fresh();v.load();v.message({type:'starting'});doc.hidden=true;on.visibilitychange();assert.equal(crashes(),0,'nor is hiding it');doc.hidden=false;on.visibilitychange();assert.equal(crashes(),1,'back while still starting: it counts again');v.message({type:'ready'});
-  v=fresh();doc.hidden=true;v.load();v.message({type:'starting'});assert.equal(crashes(),0,'starting while hidden is not counted');doc.hidden=false;v.message({type:'ready'});
-  store.set('sofias-romreise-stemme-starter','1732445000000');assert.equal(crashes(),1,'an old mark counts once');v=fresh();v.load();assert.equal(v.status,'loading');store.clear();
-  v=fresh();v.load();v.fail('nett');assert.equal(timers.at(-1).ms,20000);timers.at(-1).fn();assert.equal(v.status,'loading','tried again after 20 s');v.fail('nett');assert.equal(timers.at(-1).ms,40000);timers.at(-1).fn();
-  const n=timers.length;v.fail('nett');assert.equal(timers.length,n,'twice, then it rests');}
- for(let i=0;i<9;i++)piper.remember('1|lang '+i,[new Float32Array(9e5)]);assert.ok(piper.cacheBytes<=24e6&&!piper.has('lang 0')&&piper.has('lang 8'),'the clip memory stays under 24 MB, oldest first out');
- // The woman's voice (tts/voice-shift.mjs): a voiced sound at 120 Hz with a man's formants comes out at about 204 Hz (1.7 times) with its formants about 18 %
- // higher, the same length and the same peak; a hiss stays a hiss; and it is quick (a few per cent of the time it takes to say).
- {const {womanVoice,FORMANT,PITCH}=await import('./tts/voice-shift.mjs'),sr=22050,n=Math.round(1.3*sr),x=new Float32Array(n);
-  const res=(f,bw)=>{const r=Math.exp(-Math.PI*bw/sr),c=2*r*Math.cos(2*Math.PI*f/sr);return {a1:c,a2:-r*r,y1:0,y2:0};},R=[res(600,80),res(1100,90),res(2500,120)];let seed=3;const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296-.5;
-  for(let i=0;i<n;i++){let v=i<sr?(i%Math.round(sr/120)===0?1:0):rnd()*.3;for(const f of R){const y=v+f.a1*f.y1+f.a2*f.y2;f.y2=f.y1;f.y1=y;v=y;}x[i]=v;}
-  let peak=0;for(const v of x)peak=Math.max(peak,Math.abs(v));for(let i=0;i<n;i++)x[i]/=peak*1.25;
-  const t0=performance.now(),y=womanVoice(x,sr),ms=performance.now()-t0;
-  assert.equal(y.length,x.length,'the same length');const pk=a=>a.reduce((m,v)=>Math.max(m,Math.abs(v)),0);assert.ok(Math.abs(pk(y)-pk(x))<1e-6,'the same peak');
-  const period=(a,from,len)=>{const r=[];let best=0;for(let k=Math.floor(sr/500);k<sr/60;k++){let c=0,e0=0,e1=0;for(let i=from;i<from+len;i++){c+=a[i]*a[i+k];e0+=a[i]*a[i];e1+=a[i+k]*a[i+k];}r[k]=c/Math.sqrt(e0*e1);best=Math.max(best,r[k]);}
-   for(let k=Math.floor(sr/500)+1;k<sr/60-1;k++)if(r[k]>=best*.9&&r[k]>=r[k-1]&&r[k]>=r[k+1])return {hz:sr/k,r:best};return {hz:0,r:best};}; // the shortest lag near the best, not a multiple of the period
-  const before=period(x,4000,2000),after=period(y,4000,2000);assert.ok(Math.abs(before.hz-120)<3);assert.ok(Math.abs(after.hz/before.hz-PITCH)<.08,`pitch ${before.hz.toFixed(0)} -> ${after.hz.toFixed(0)} Hz`);
-  // The formants from the LPC envelope (order 14 over 0.2 s): the peaks near F1 (600 Hz) and F2 (1100 Hz).
-  const formants=(a,from,len)=>{const n=14,r=new Float64Array(n+1);for(let k=0;k<=n;k++)for(let i=from;i<from+len-k;i++){const w=i0=>.5-.5*Math.cos(2*Math.PI*(i0-from)/len);r[k]+=a[i]*w(i)*a[i+k]*w(i+k);}
-   let e=r[0];const c=new Float64Array(n+1);c[0]=1;for(let i=1;i<=n;i++){let acc=r[i];for(let j=1;j<i;j++)acc+=c[j]*r[i-j];const k=-acc/e,prev=c.slice();for(let j=1;j<i;j++)c[j]=prev[j]+k*prev[i-j];c[i]=k;e*=1-k*k;}
-   const env=f=>{let re=0,im=0;for(let j=0;j<=n;j++){re+=c[j]*Math.cos(2*Math.PI*f*j/sr);im-=c[j]*Math.sin(2*Math.PI*f*j/sr);}return 1/Math.hypot(re,im);};
-   const peak=(lo,hi)=>{let best=0,bf=0;for(let f=lo;f<=hi;f+=5){const v=env(f);if(v>best){best=v;bf=f;}}return bf;};return [peak(350,900),peak(900,1700)];};
-  // The pitch alone (formant 1) keeps the formants where they were; the woman's voice has them higher by about FORMANT.
-  const only=womanVoice(x,sr,{formant:1}),f0=formants(x,4000,4400),f1=formants(only,4000,4400),f2=formants(y,4000,4400);
-  for(let i=0;i<2;i++){assert.ok(Math.abs(f1[i]/f0[i]-1)<.1,`the pitch alone keeps F${i+1}: ${f0[i]} -> ${f1[i]} Hz`);assert.ok(Math.abs(f2[i]/f0[i]-FORMANT)<.1,`F${i+1} up about ${FORMANT}: ${f0[i]} -> ${f2[i]} Hz`);}
-  assert.ok(period(y,sr+2000,2000).r<.5,'the hiss is still a hiss');
-  assert.ok(ms<400,'quick: '+ms.toFixed(0)+' ms for 1.3 s');}
- console.log('Passed: browser phonemes identical to Python Piper for '+cases.length+' sentences, stress fixed for Sofia and the space words, emoji not read aloud, a bounded clip cache, a crash guard that only counts real crashes (two in a row), retries, and the woman\'s voice (pitch 1.7, formants 1.18, same length).');
+ const ipa=t=>{const p=espeak.stringToNewUTF8(t);try{return espeak.UTF8ToString(espeak._ph_text(p)).split('\x1e').map(c=>c.split('\x1f')[0]).filter(Boolean).join(' ');}finally{espeak._free(p);}};
+ for(const [word,expected] of [['Sofia','sʊfˈiːʲɑ'],['planeten','plɑnˈeːtən'],['Uranus','ʉrˈɑːnʉs'],['Neptun','nɛptˈʉːn'],['raketten','rɑkˈɛtːən'],['kometer','kʊmˈeːtər'],['pegg-slangen','pˈɛɡːʃlˈɑŋən']])assert.equal(ipa(word),expected,word);
+ // The player (ClipVoice) with a pretend network, cache and MP3 decoder: a clip decodes to as many samples as it has bytes.
+ const store=new Map(),timers=[],logged=[];let online=true,fetched=0,decodes=0;
+ const files={'tts/voice/ingrid.json':JSON.stringify({hash:'abc',bytes:3000,sampleRate:24000,clips:{'Hei, Sofia!':[0,1000],'Velkommen til Mars!':[1000,1500],'Mars er rød.':[2500,500]}}),'tts/voice/ingrid.mp3':new Uint8Array(3000)};
+ const respond=body=>({ok:true,headers:{get:()=>null},clone(){return respond(body);},json:async()=>JSON.parse(body),arrayBuffer:async()=>(body.buffer||new TextEncoder().encode(body).buffer).slice(0)});
+ class Offline{constructor(ch,len,sr){this.sr=sr;}decodeAudioData(buf,done,fail){decodes++;if(buf.byteLength===7)return fail(new Error('bad'));const n=buf.byteLength,d=new Float32Array(n).fill(.5);done({sampleRate:this.sr,getChannelData:()=>d});}}
+ const vb=vm.createContext({window:{AudioContext:function(){},OfflineAudioContext:Offline},location:{href:'https://spill.example/index.html'},queueMicrotask,console:{info:m=>logged.push(m)},
+  setTimeout:(fn,ms)=>timers.push({fn,ms}),clearTimeout(){},Response:class{constructor(b){this.b=b;}async arrayBuffer(){return this.b;}},URL,
+  fetch:async url=>{fetched++;if(!online)throw new Error('offline');const path=new URL(url).pathname.slice(1);if(!(path in files))return {ok:false,status:404};return respond(files[path]);},
+  caches:{open:async()=>({put:async(k,r)=>store.set(k,r),match:async k=>store.get(k),keys:async()=>[...store.keys()].map(url=>({url})),delete:async k=>store.delete(k.url||k)})}});
+ vm.runInContext(fs.readFileSync('tts.js','utf8'),vb);const v=vm.runInContext('new ClipVoice()',vb);assert.equal(vm.runInContext('ClipVoice.supported()',vb),true);
+ await v.load();assert.equal(v.status,'ready');assert.equal(v.progress,1);assert.ok(v.covers('Velkommen til Mars! Mars er rød.'));assert.ok(!v.covers('Velkommen til Venus!'));
+ const play=t=>new Promise(done=>{const job=v.speak(t),lens=[];job.onchunk=c=>lens.push(c.length);job.ondone=()=>done(lens);job.onerror=()=>done('error');});
+ assert.deepEqual(await play('Velkommen til Mars! Mars er rød.'),[1500,500],'one chunk per sentence, in order');
+ assert.equal(await play('Velkommen til Mars! Venus er varm.'),'error','a sentence without a clip: the whole line goes to the device voice');assert.ok(logged.some(m=>m.includes('Venus er varm.')),'and it is logged');
+ const d0=decodes;assert.deepEqual(await play('Mars er rød.'),[500]);assert.equal(decodes,d0,'a clip is unpacked once');assert.ok(v.has('Mars er rød.'));
+ for(let i=0;i<9;i++)v.remember('lang '+i,new Float32Array(9e5));assert.ok(v.cacheBytes<=24e6&&!v.cache.has('lang 0')&&v.cache.has('lang 8'),'the clip memory stays under 24 MB, oldest first out');
+ // Offline the next time: the list and the pack come from Cache Storage. A failed download is tried again twice, after 20 and 40 s.
+ online=false;const v2=vm.runInContext('new ClipVoice()',vb);await v2.load();assert.equal(v2.status,'ready','offline from the cache');
+ store.clear();const v3=vm.runInContext('new ClipVoice()',vb);await v3.load();assert.equal(v3.status,'failed');assert.equal(timers.at(-1).ms,20000);
+ online=true;await timers.at(-1).fn();await new Promise(r=>setTimeout(r,0));await new Promise(r=>setTimeout(r,0));assert.equal(v3.status,'ready','tried again after 20 s');
+ const v4=vm.runInContext('new ClipVoice()',vb);files['tts/voice/ingrid.mp3']=new Uint8Array(3000);await v4.load();v4.index.clips['Hei, Sofia!']=[0,7];const n0=timers.length;
+ const bad=await new Promise(done=>{const job=v4.speak('Hei, Sofia!');job.onerror=()=>done(true);job.ondone=()=>done(false);});
+ assert.ok(bad,'a clip that will not decode: the device voice reads');assert.equal(v4.status,'failed');assert.equal(v4.error,'decode');assert.equal(timers.length,n0,'and it is not tried again');
+ console.log('Passed: '+keys.length+' sentences with clips ('+(pack.length/1e6).toFixed(1)+' MB), the player cuts text like the clips, PEG read «pegg», Sofia and the space words stressed, clips unpacked once and kept under 24 MB, offline from the cache, retries, and the device voice for anything missing.');
 })().catch(err=>{console.error(err);process.exit(1);});

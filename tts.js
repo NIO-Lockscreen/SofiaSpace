@@ -1,49 +1,62 @@
-/* Norsk nevral stemme: Piper «talesyntese» (Nasjonalbiblioteket, CC0) som kjører i en Web Worker (tts/piper-worker.mjs), gjort om til en
-   damestemme i arbeideren (tts/voice-shift.mjs, 24. november 2026).
-   Første gang lastes ca. 48 MB ned (modell 32 MB, ONNX Runtime 15 MB, norsk espeak-ng 1 MB). Senere ligger filene i
-   Cache Storage. Klippene som allerede er laget, huskes i minnet, så bokstavene kommer med en gang. */
-// PIPER_VERSION hører til filene i Cache Storage (en ny verdi laster ned 48 MB på nytt); PIPER_CODE til koden i arbeideren.
-const PIPER_VERSION='1',PIPER_CODE='2',PIPER_GUARD='sofias-romreise-stemme-starter';
-class PiperVoice{
- constructor(base='tts/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=22050;this.worker=null;this.jobs=new Map();this.seq=0;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.guardFrom=null;
-  // Lukkes eller skjules siden mens stemmen starter, er det ingen krasj: da telles det ikke (24. november 2026). Kommer siden tilbake før stemmen er klar, telles det igjen.
-  const away=()=>{if(this.guardFrom!=null)this.unguard();},back=()=>{if(this.starting&&this.guardFrom==null)this.guard(true);};
-  try{globalThis.addEventListener?.('pagehide',away);globalThis.document?.addEventListener?.('visibilitychange',()=>document.hidden?away():back());}catch{}}
- static supported(){try{return typeof Worker==='function'&&typeof WebAssembly==='object'&&typeof BigInt64Array==='function'&&typeof caches!=='undefined'&&!!(window.AudioContext||window.webkitAudioContext);}catch{return false;}}
+/* Norsk damestemme: Canora Norwegian «ingrid» (EmpirioLabs, Apache 2.0), lest inn på forhånd (25. november 2026).
+   Alt spillet kan si er laget som klipp, én setning per klipp, med tts/make-voice.mjs, og pakket i tts/voice/ingrid.mp3 (MP3) med en
+   liste i tts/voice/ingrid.json. Spillet laster ned pakken én gang (ca. 15 MB, lagres i Cache Storage) og spiller klippene; det lager
+   ingen tale selv. En setning som ikke har klipp (eller en replikk med en slik setning i), leses av enhetens egen stemme.
+   Før 25. november 2026 ble talen laget på iPaden med Piper «talesyntese» (en mannsstemme) og gjort lysere med TD-PSOLA. Det
+   sprakte, og det hørtes ikke ut som en dame. «ingrid» er for tung til å kjøre på en iPad (tre ganger saktere enn sanntid i
+   nettleseren), men lest inn på forhånd er den både naturlig og en ekte damestemme. */
+const VOICE_CACHE='sofia-stemme';
+
+// Som tts/clips.mjs (testene sjekker at de er like): setningene i en tekst, og hva som leses for det som står.
+function voiceSentences(text){const t=String(text??'').replace(/[\p{Extended_Pictographic}\p{So}\u{FE0F}\u{200D}\u{20E3}]/gu,' ').replace(/\s+/g,' ').trim();if(!t)return [];
+ return t.replace(/([.!?…]["»”')\]]*)(?:\s+|(?=\p{Lu}))/gu,'$1\n').split('\n').map(s=>s.trim()).filter(s=>/[\p{L}\d]/u.test(s));}
+// PEG (sonden på magen) sies som et ord, «pegg», ikke P-E-G.
+function spokenText(text){return String(text??'').replace(/\bPEG\b/g,'pegg');}
+
+class ClipVoice{
+ constructor(base='tts/voice/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=24000;this.index=null;this.pack=null;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.decoder=null;this.missed=new Set();}
+ static supported(){try{return typeof fetch==='function'&&!!(window.OfflineAudioContext||window.webkitOfflineAudioContext)&&!!(window.AudioContext||window.webkitAudioContext);}catch{return false;}}
  get ready(){return this.status==='ready';}
  onChange(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
  set(status){this.status=status;for(const fn of this.listeners)try{fn(this);}catch{}}
- // Ble siden borte mens stemmen startet (typisk: for lite minne på en eldre iPad), telles det. Først etter to slike ganger på rad startes den ikke
- // av seg selv igjen (slå «Ny norsk stemme» av og på for å prøve). Før 24. november 2026 holdt én gang, også når siden bare ble lukket mens stemmen
- // startet, og da måtte stemmen slås av og på før den virket igjen. Et gammelt merke (et tidspunkt) teller som én gang.
- static crashes(){try{const v=JSON.parse(localStorage.getItem(PIPER_GUARD)||'0');return v&&typeof v==='object'?Math.max(0,+v.n||0):v?1:0;}catch{return 0;}}
- static crashedBefore(){return PiperVoice.crashes()>=2;}
- guard(on){try{if(on){if(this.guardFrom==null)this.guardFrom=PiperVoice.crashes();localStorage.setItem(PIPER_GUARD,JSON.stringify({n:this.guardFrom+1,at:Date.now()}));}else{this.guardFrom=null;localStorage.removeItem(PIPER_GUARD);}}catch{}}
- unguard(){try{this.guardFrom?localStorage.setItem(PIPER_GUARD,JSON.stringify({n:this.guardFrom,at:Date.now()})):localStorage.removeItem(PIPER_GUARD);}catch{}this.guardFrom=null;}
- load({force=false}={}){if(this.status==='loading'||this.status==='ready')return;if(!PiperVoice.supported())return this.set('unsupported');if(!force&&PiperVoice.crashedBefore()){this.error='crash';return this.set('failed');}this.progress=0;this.error='';
-  try{this.worker=new Worker(this.base+'piper-worker.mjs?v='+PIPER_VERSION+'&c='+PIPER_CODE,{type:'module'});}catch(err){return this.fail(err);}
-  this.worker.onmessage=e=>this.message(e.data||{});this.worker.onerror=e=>{e.preventDefault?.();this.fail(e.message||'worker');};this.set('loading');this.worker.postMessage({type:'init'});}
- // Feiler stemmen (nettet borte midt i nedlastingen, en arbeider som stoppet opp), prøves den igjen av seg selv, to ganger, etter 20 og 40 sekunder.
- fail(err){this.error=String(err?.message||err||'');this.starting=false;this.guard(false);try{this.worker?.terminate();}catch{}this.worker=null;for(const job of this.jobs.values())job.fail();this.jobs.clear();this.set('failed');
-  if(this.error!=='crash'&&this.retries<2){clearTimeout(this.retryTimer);this.retryTimer=setTimeout(()=>{if(this.status==='failed')this.load({force:true});},20000*++this.retries);}}
- message(m){const job=m.id!=null?this.jobs.get(m.id):null;switch(m.type){
-  case 'progress':this.progress=m.value;this.set('loading');break;
-  case 'starting':this.starting=true;if(!globalThis.document?.hidden)this.guard(true);break;
-  case 'ready':this.starting=false;this.guard(false);this.sampleRate=m.sampleRate||22050;this.loadMs=m.ms;this.progress=1;this.set('ready');break;
-  case 'failed':this.fail(m.message);break;
-  case 'chunk':if(job){job.chunks.push(m.pcm);job.onchunk?.(m.pcm);}break;
-  case 'done':if(job){this.jobs.delete(m.id);this.remember(job.key,job.chunks);job.finished=true;job.ondone?.();}break;
-  case 'cancelled':this.jobs.delete(m.id);break;
-  case 'error':if(job){this.jobs.delete(m.id);job.fail();}break;}}
- // Ett klipp per setning; onchunk kommer for hver setning så snart den er laget, ondone til slutt.
- speak(text,{lengthScale=1,low=false}={}){const key=lengthScale+'|'+text,job={key,chunks:[],finished:false,onchunk:null,ondone:null,onerror:null,cancel:()=>{},fail(){if(!job.finished){job.finished=true;job.onerror?.();}}};
-  const hit=this.cache.get(key);if(hit){this.cache.delete(key);this.cache.set(key,hit);job.chunks=hit;job.cached=true;queueMicrotask(()=>{if(job.finished)return;for(const c of hit)job.onchunk?.(c);job.finished=true;job.ondone?.();});job.cancel=()=>{job.finished=true;};return job;}
-  if(!this.ready||!this.worker){queueMicrotask(()=>job.fail());return job;}
-  const id=++this.seq;this.jobs.set(id,job);this.worker.postMessage({type:'speak',id,text,lengthScale,low});
-  job.cancel=()=>{if(job.finished)return;job.finished=true;this.jobs.delete(id);this.worker?.postMessage({type:'cancel',id});};return job;}
- // Lag klipp på forhånd (for eksempel bokstavnavnene), uten å forstyrre det som leses nå.
- prewarm(texts,opts={}){for(const text of texts)if(!this.cache.has((opts.lengthScale||1)+'|'+text))this.speak(text,{...opts,low:true});}
- has(text,lengthScale=1){return this.cache.has(lengthScale+'|'+text);}
- remember(key,chunks){const bytes=chunks.reduce((n,c)=>n+c.byteLength,0);if(!bytes||bytes>4e6||this.cache.has(key))return;this.cache.set(key,chunks);this.cacheBytes+=bytes;
-  for(const [k,v] of this.cache){if(this.cacheBytes<=24e6)break;this.cache.delete(k);this.cacheBytes-=v.reduce((n,c)=>n+c.byteLength,0);}}
+ // Listen hentes på nytt hver gang (så nye klipp kommer med), pakken bare når den er ny (adressen har pakkens hash). Uten nett brukes det som er lagret.
+ async load({force=false}={}){if(this.status==='loading'||this.status==='ready')return;if(!ClipVoice.supported())return this.set('unsupported');this.progress=0;this.error='';this.set('loading');
+  try{let cache=null;try{cache=await caches.open(VOICE_CACHE);}catch{}
+   const indexUrl=new URL(this.base+'ingrid.json',location.href).href;let res=null;
+   try{res=await fetch(indexUrl,{cache:'no-cache'});if(!res.ok)res=null;}catch{}
+   if(res){const copy=res.clone();cache?.put(indexUrl,copy).catch(()=>{});}else res=await cache?.match(indexUrl);
+   if(!res)throw new Error('ingen liste');
+   const index=await res.json(),packUrl=new URL(this.base+'ingrid.mp3?v='+index.hash,location.href).href;
+   let buf=null;const hit=await cache?.match(packUrl).catch(()=>null);
+   if(hit)buf=await hit.arrayBuffer();
+   else{const r=await fetch(packUrl);if(!r.ok)throw new Error('ingrid.mp3: HTTP '+r.status);const total=+r.headers.get('content-length')||index.bytes||1;
+    if(r.body?.getReader){const reader=r.body.getReader(),parts=[];let size=0;for(;;){const {done,value}=await reader.read();if(done)break;parts.push(value);size+=value.byteLength;this.progress=Math.min(.99,size/total);this.set('loading');}
+     const all=new Uint8Array(size);let at=0;for(const p of parts){all.set(p,at);at+=p.byteLength;}buf=all.buffer;}else buf=await r.arrayBuffer();
+    if(cache){for(const k of await cache.keys().catch(()=>[]))if(/ingrid\.mp3/.test(k.url)&&k.url!==packUrl)cache.delete(k).catch(()=>{});await cache.put(packUrl,new Response(buf,{headers:{'Content-Type':'audio/mpeg'}})).catch(()=>{});}}
+   this.index=index;this.pack=new Uint8Array(buf);this.sampleRate=index.sampleRate||24000;this.progress=1;this.retries=0;this.set('ready');}
+  catch(err){this.fail(err);}}
+ // Feiler nedlastingen (nettet borte), prøves den igjen av seg selv, to ganger, etter 20 og 40 sekunder.
+ fail(err){this.error=String(err?.message||err||'');this.set('failed');
+  if(this.error!=='stalled'&&this.error!=='decode'&&this.retries<2){clearTimeout(this.retryTimer);this.retryTimer=setTimeout(()=>{if(this.status==='failed')this.load({force:true});},20000*++this.retries);}}
+ has(text){const s=voiceSentences(text);return s.length>0&&s.every(x=>this.cache.has(x));}
+ // Har alle setningene i teksten klipp?
+ covers(text){const s=voiceSentences(text);return !!this.index&&s.length>0&&s.every(x=>this.index.clips[x]);}
+ decode(sentence){const hit=this.cache.get(sentence);if(hit){this.cache.delete(sentence);this.cache.set(sentence,hit);return Promise.resolve(hit);}
+  const [at,len]=this.index.clips[sentence],bytes=this.pack.slice(at,at+len).buffer;
+  if(!this.decoder){const C=window.OfflineAudioContext||window.webkitOfflineAudioContext;this.decoder=new C(1,1,this.sampleRate);}
+  return new Promise((done,fail)=>{const p=this.decoder.decodeAudioData(bytes,done,fail);p?.catch?.(()=>{});}).then(buf=>{const pcm=trimQuiet(buf.getChannelData(0),buf.sampleRate);this.sampleRate=buf.sampleRate;this.remember(sentence,pcm);return pcm;});}
+ // Ett klipp per setning: onchunk for hver, ondone til slutt. Mangler et klipp, kommer onerror (og enhetens stemme leser replikken).
+ speak(text){const job={chunks:[],finished:false,onchunk:null,ondone:null,onerror:null,cancel(){job.finished=true;},fail(){if(!job.finished){job.finished=true;job.onerror?.();}}};
+  const list=voiceSentences(text);
+  if(!this.ready||!list.length||!list.every(s=>this.index.clips[s])){for(const s of list)if(this.ready&&!this.index.clips[s]&&!this.missed.has(s)){this.missed.add(s);console.info('Ingen klipp for: «'+s+'» (node tts/make-voice.mjs)');}queueMicrotask(()=>job.fail());return job;}
+  job.cached=list.every(s=>this.cache.has(s));
+  (async()=>{for(const s of list){if(job.finished)return;let pcm;try{pcm=await this.decode(s);}catch{if(!job.finished){this.fail('decode');job.fail();}return;}if(job.finished)return;job.chunks.push(pcm);job.onchunk?.(pcm);}
+   if(!job.finished){job.finished=true;job.ondone?.();}})();
+  return job;}
+ // Pakk ut klipp på forhånd (for eksempel bokstavnavnene), så de kommer med en gang.
+ prewarm(texts){(async()=>{for(const t of texts)for(const s of voiceSentences(t))if(this.ready&&this.index.clips[s]&&!this.cache.has(s))try{await this.decode(s);}catch{return;}})();}
+ remember(key,pcm){if(this.cache.has(key))return;this.cache.set(key,pcm);this.cacheBytes+=pcm.byteLength;
+  for(const [k,v] of this.cache){if(this.cacheBytes<=24e6)break;this.cache.delete(k);this.cacheBytes-=v.byteLength;}}
 }
+// Stillhet før og etter et klipp tas bort (MP3 legger til litt), med 20 ms igjen.
+function trimQuiet(pcm,sr,threshold=.003,keep=.02){let a=0,b=pcm.length;while(a<b&&Math.abs(pcm[a])<threshold)a++;while(b>a&&Math.abs(pcm[b-1])<threshold)b--;const k=Math.round(keep*sr);return pcm.slice(Math.max(0,a-k),Math.min(pcm.length,b+k));}

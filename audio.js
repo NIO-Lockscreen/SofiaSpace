@@ -1,15 +1,15 @@
 /* Synthesized, gesture-unlocked sound design and bounded Norwegian speech queue. */
 // Norwegian letter names, read aloud when a letter is pressed or asked for.
 const LETTER_NAMES={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};
-// Tempo for den nye stemmen (Piper length_scale): litt roligere enn vanlig opplesning, for en femåring.
-const TALK_PACE=1.12,LETTER_PACE=1.05,SENTENCE_GAP=.22;
+// En liten pause mellom setningene i den nye stemmen (tempoet er lest inn i klippene: litt roligere enn vanlig, for en femåring).
+const SENTENCE_GAP=.22;
 // Beste norske stemme på enheten: Premium foran Forbedret foran vanlig, bokmål foran nynorsk.
 function bestNorwegianVoice(voices){const score=v=>{const id=(v.voiceURI||'')+' '+(v.name||'');return(/^(nb|no)(-|_|$)/i.test(v.lang)?10:/^nn/i.test(v.lang)?5:-99)+(/premium/i.test(id)?3:/enhanced|forbedret/i.test(id)?2:0)+(v.localService?.5:0);};let best=null;for(const v of voices)if(score(v)>0&&(!best||score(v)>score(best)))best=v;return best;}
 class GameAudio {
  constructor(getState){this.getState=getState;this.context=null;this.master=null;this.voiceOut=null;this.engine=null;this.queue=[];this.current=null;this.generation=0;this.voices=[];this.deviceVoice=null;this.synth=window.speechSynthesis;
-  // Den nye norske stemmen (tts.js). Mangler den, eller går den ikke på enheten, brukes enhetens egen stemme.
-  this.neural=typeof PiperVoice==='function'&&PiperVoice.supported()?new PiperVoice():null;
-  this.neural?.onChange(n=>{if(n.ready&&!this.warmed){this.warmed=true;n.prewarm([...new Set(Object.values(LETTER_NAMES))],{lengthScale:LETTER_PACE});}this.updateVoiceNote();});
+  // Den nye norske stemmen (tts.js: ferdige klipp). Mangler den, eller går den ikke på enheten, brukes enhetens egen stemme.
+  this.neural=typeof ClipVoice==='function'&&ClipVoice.supported()?new ClipVoice():null;
+  this.neural?.onChange(n=>{if(n.ready&&!this.warmed){this.warmed=true;n.prewarm([...new Set(Object.values(LETTER_NAMES))]);}this.updateVoiceNote();});
   this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);
   this.stallMs=8000;this.stalls=0;this.hiddenAt=0;document.addEventListener?.('visibilitychange',()=>{if(document.hidden)this.hiddenAt=Date.now();});
   // Hvert trykk vekker lyden igjen. iOS kan sette Web Audio på pause («interrupted») etter en samtale, en annen app eller enhetens stemme.
@@ -18,9 +18,8 @@ class GameAudio {
  startNeural(delay=2500){if(!this.neural)return;clearTimeout(this.neuralTimer);this.neuralTimer=setTimeout(()=>{if(this.getState().neural!==false&&!navigator.connection?.saveData)this.neural.load();},delay);}
  neuralOn(){return !!this.neural?.ready&&this.getState().neural!==false;}
  updateVoiceNote(){const label=document.getElementById('voice-note');if(!label)return;const n=this.neural,on=this.getState?.().neural!==false,device=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang));
-  label.textContent=on&&n?.ready?'Den nye norske stemmen er klar: en damestemme som lages her på enheten (Piper «talesyntese» fra Nasjonalbiblioteket, gjort lysere), og som virker også uten nett.'
-  :on&&n?.status==='loading'?(n.progress>=1?'Den nye norske stemmen gjøres klar … Imens leser enheten med sin egen stemme.':`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 48 MB, bare første gang). Imens leser enheten med sin egen stemme.`)
-  :on&&n?.status==='failed'&&n.error==='crash'?'Den nye stemmen ble ikke startet, fordi siden stoppet sist den lastet (kanskje for lite minne). Slå «Ny norsk stemme» av og på for å prøve igjen.'
+  label.textContent=on&&n?.ready?'Den nye norske stemmen er klar: en ekte damestemme («ingrid» fra Canora Norwegian), lest inn på forhånd, så den virker også uten nett.'
+  :on&&n?.status==='loading'?`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 15 MB, bare første gang). Imens leser enheten med sin egen stemme.`
   :on&&n?.status==='failed'&&n.error==='stalled'?'Den nye stemmen stoppet opp, så enhetens egen stemme leser resten av tiden. Last siden på nytt for å prøve den igjen.'
   :on&&n?.status==='failed'?'Den nye stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke den nye stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
@@ -74,14 +73,14 @@ class GameAudio {
   const cur={...item,waking:true};this.current=cur;let settled=false;
   const go=()=>{if(settled)return;settled=true;if(gen!==this.generation||this.current!==cur)return;this.current=null;this.context.state==='running'&&this.neuralOn()?this.speakNeural(item,gen):this.speakDevice(item,gen);};
   try{this.context.resume?.().then?.(go,go);}catch{}setTimeout(go,this.wakeMs??350);}
- speakDevice(item,gen){if(!this.synth||typeof SpeechSynthesisUtterance==='undefined'){this.current=null;return this.pump();}const u=new SpeechSynthesisUtterance(item.text);this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;if(this.deviceVoice)u.voice=this.deviceVoice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
- // Setningene spilles etter hverandre i Web Audio så snart de er laget, med en liten pause mellom.
- speakNeural(item,gen){const ctx=this.context,job=this.neural.speak(item.text,{lengthScale:item.id.startsWith('letter')?LETTER_PACE:TALK_PACE}),cur={...item,job,sources:[],end:0,done:false,timer:0,since:Date.now()};this.current=cur;
+ speakDevice(item,gen){if(!this.synth||typeof SpeechSynthesisUtterance==='undefined'){this.current=null;return this.pump();}const u=new SpeechSynthesisUtterance(typeof spokenText==='function'?spokenText(item.text):item.text);this.refreshVoices();u.lang='nb-NO';u.rate=item.id.startsWith('letter')?.9:.83;u.pitch=1.04;if(this.deviceVoice)u.voice=this.deviceVoice;this.current={...item,utterance:u};const finish=()=>{if(gen!==this.generation)return;this.current=null;this.pump();};u.onend=finish;u.onerror=finish;this.synth.speak(u);}
+ // Setningene spilles etter hverandre i Web Audio så snart de er pakket ut, med en liten pause mellom.
+ speakNeural(item,gen){const ctx=this.context,job=this.neural.speak(item.text),cur={...item,job,sources:[],end:0,done:false,timer:0,since:Date.now()};this.current=cur;
   if(!this.voiceOut){this.voiceOut=ctx.createGain();this.voiceOut.gain.value=.95;this.voiceOut.connect(ctx.destination);}
   const live=()=>gen===this.generation&&this.current===cur;
   const finish=()=>{if(!live())return;clearTimeout(cur.timer);this.current=null;this.pump();};
   const check=()=>{if(cur.done&&ctx.currentTime>=cur.end-.03)finish();};
-  // Vakthund: kommer det ingen setning på 8 sekunder (arbeideren kan være stoppet av nettleseren), leser enhetens stemme
+  // Vakthund: kommer det ingen setning på 8 sekunder (nettleseren kan ha stoppet utpakkingen), leser enhetens stemme
   // resten. Etter to slike stopp slås den nye stemmen av for denne økten. Tid med skjult side teller ikke.
   const stall=()=>{if(!live())return;if(document.hidden||this.hiddenAt>cur.since){cur.since=Date.now();cur.timer=setTimeout(stall,this.stallMs);return;}
    job.cancel();if(++this.stalls>=2)this.neural.fail('stalled');if(cur.sources.length){cur.done=true;check();cur.timer=setTimeout(finish,Math.max(0,cur.end-ctx.currentTime)*1000+700);}else{this.current=null;this.speakDevice(item,gen);}};
