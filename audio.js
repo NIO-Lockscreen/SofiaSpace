@@ -13,14 +13,16 @@ class GameAudio {
   this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);
   this.stallMs=8000;this.stalls=0;this.hiddenAt=0;document.addEventListener?.('visibilitychange',()=>{if(document.hidden)this.hiddenAt=Date.now();});
   // Hvert trykk vekker lyden igjen. iOS kan sette Web Audio på pause («interrupted») etter en samtale, en annen app eller enhetens stemme.
-  for(const type of ['pointerdown','keydown'])document.addEventListener?.(type,()=>this.unlock(),true);}
+  // På iPad teller bare slipp av fingeren (pointerup, touchend, click) som et trykk som kan starte lyd, ikke pointerdown (25. november 2026).
+  this.waitMs=3000;for(const type of ['pointerdown','pointerup','touchend','click','keydown'])document.addEventListener?.(type,()=>this.unlock(),true);}
  // Start nedlastingen av den nye stemmen litt etter oppstart, når 3D-scenen har fått lastet ferdig.
+ // Stemmen er på fra start: den lastes uansett om lyden er av eller på, så den er klar når lyden slås på.
  startNeural(delay=2500){if(!this.neural)return;clearTimeout(this.neuralTimer);this.neuralTimer=setTimeout(()=>{if(this.getState().neural!==false&&!navigator.connection?.saveData)this.neural.load();},delay);}
  neuralOn(){return !!this.neural?.ready&&this.getState().neural!==false;}
  updateVoiceNote(){const label=document.getElementById('voice-note');if(!label)return;const n=this.neural,on=this.getState?.().neural!==false,device=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang));
   label.textContent=on&&n?.ready?'Den nye norske stemmen er klar: en ekte damestemme («ingrid» fra Canora Norwegian), lest inn på forhånd, så den virker også uten nett.'
   :on&&n?.status==='loading'?`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 15 MB, bare første gang). Imens leser enheten med sin egen stemme.`
-  :on&&n?.status==='failed'&&n.error==='stalled'?'Den nye stemmen stoppet opp, så enhetens egen stemme leser resten av tiden. Last siden på nytt for å prøve den igjen.'
+  :on&&n?.status==='failed'&&(n.error==='stalled'||n.error==='decode')?'Den nye stemmen tar en liten pause, så enhetens egen stemme leser. Den er tilbake av seg selv om et halvt minutt.'
   :on&&n?.status==='failed'?'Den nye stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke den nye stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :device?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';}
@@ -64,9 +66,13 @@ class GameAudio {
  makeEngine(){if(this.engine||!this.context)return;const ctx=this.context,o=ctx.createOscillator(),harmonic=ctx.createOscillator(),gain=ctx.createGain();o.type='sine';harmonic.type='triangle';o.frequency.value=65;harmonic.frequency.value=130;gain.gain.value=0;o.connect(gain);harmonic.connect(gain);gain.connect(this.master);o.start();harmonic.start();this.engine={o,harmonic,gain};}
  update(){if(!this.context)return;const s=this.getState(),active=s.mode==='flight'&&!s.muted&&!s.paused;this.master.gain.setTargetAtTime(s.muted||s.paused?0:this.current?.id?.startsWith('letter')?.36:(this.current?.id?.startsWith('fact')||this.current?.id?.startsWith('flyby'))?.20:.65,this.context.currentTime,.045);if(active)this.makeEngine();if(!this.engine)return;const t=this.context.currentTime;this.engine.gain.gain.setTargetAtTime(active?.012+Math.max(0,s.speed-1)*.014:0,t,.09);this.engine.o.frequency.setTargetAtTime(62+s.speed*18,t,.1);this.engine.harmonic.frequency.setTargetAtTime(125+s.speed*35,t,.1);}
  stopSpeech(){this.generation++;this.queue=[];const c=this.current;this.current=null;if(c?.job){clearTimeout(c.timer);c.job.cancel();for(const src of c.sources)try{src.stop();}catch{}}this.synth?.cancel();}
- say(text,{force=false,queue=false,id='info'}={}){const s=this.getState();if(s.muted||(!s.voice&&!force)||(!this.neuralOn()&&(!this.synth||typeof SpeechSynthesisUtterance==='undefined')))return;if(!queue)this.stopSpeech();if(this.queue.length>=8)this.queue.shift();this.queue.push({text,id,force});this.pump();}
+ say(text,{force=false,queue=false,id='info'}={}){const s=this.getState();if(s.muted||(!s.voice&&!force)||(!this.neuralOn()&&(!this.synth||typeof SpeechSynthesisUtterance==='undefined')))return;if(!queue)this.stopSpeech();if(this.queue.length>=8)this.queue.shift();this.queue.push({text,id,force,at:Date.now()});this.pump();}
  letter(letter,completedWord=''){const names=LETTER_NAMES;if(this.current&&!this.current.id.startsWith('letter')&&!this.current.id.startsWith('flyby')&&!this.current.id.startsWith('fact'))this.stopSpeech();this.say((names[letter]||letter)+(completedWord?'. '+completedWord.toLowerCase()+'! '+(['Bra, Sofia!','Kult, Sofia!','Supert, Sofia!'][Math.floor(Math.random()*3)]):''),{queue:true,id:'letter-'+letter});}
  pump(){if(this.current||!this.queue.length)return;const s=this.getState();if(s.muted||(!s.voice&&!this.queue[0].force)||s.paused)return;const item=this.queue.shift(),gen=this.generation;
+  // Den nye stemmen er på, men ikke klar ennå (den lastes fra lageret eller nettet): start den om den ikke er i gang, og vent opptil tre sekunder
+  // på den før enhetens stemme tar replikken. Så slipper den første replikken etter oppstart å bli lest av feil stemme.
+  if(this.context&&this.neural&&s.neural!==false&&!this.neural.ready){this.neural.ensure?.();
+   if(this.neural.status==='loading'&&Date.now()-(item.at||0)<this.waitMs){this.queue.unshift(item);clearTimeout(this.waitTimer);this.waitTimer=setTimeout(()=>this.pump(),150);return;}}
   if(!this.neuralOn()||!this.context)return this.speakDevice(item,gen);
   if(this.context.state==='running')return this.speakNeural(item,gen);
   // Står lyden på pause (iOS), vekkes den først. Våkner den innen et øyeblikk, leser den nye stemmen; ellers leser enhetens stemme.

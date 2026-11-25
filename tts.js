@@ -14,13 +14,17 @@ function voiceSentences(text){const t=String(text??'').replace(/[\p{Extended_Pic
 function spokenText(text){return String(text??'').replace(/\bPEG\b/g,'pegg').replace(/(^|[^\p{L}])(\p{Lu}{2,}(?:(?:,? |-)\p{Lu}{2,})+|\p{Lu}{6,})(?!\p{L})/gu,(m,pre,w)=>pre+w[0]+w.slice(1).toLowerCase());}
 
 class ClipVoice{
- constructor(base='tts/voice/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=24000;this.index=null;this.pack=null;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.decoder=null;this.missed=new Set();}
+ constructor(base='tts/voice/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=24000;this.index=null;this.pack=null;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.decoder=null;this.missed=new Set();this.badClips=0;this.failedAt=0;
+  // Kommer nettet tilbake, eller siden fram igjen, prøves en stemme som feilet med en gang (25. november 2026: den skal aldri måtte slås av og på).
+  try{globalThis.addEventListener?.('online',()=>this.retry());globalThis.document?.addEventListener?.('visibilitychange',()=>{if(!document.hidden)this.retry();});}catch{}}
  static supported(){try{return typeof fetch==='function'&&!!(window.OfflineAudioContext||window.webkitOfflineAudioContext)&&!!(window.AudioContext||window.webkitAudioContext);}catch{return false;}}
  get ready(){return this.status==='ready';}
  onChange(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
  set(status){this.status=status;for(const fn of this.listeners)try{fn(this);}catch{}}
  // Listen hentes på nytt hver gang (så nye klipp kommer med), pakken bare når den er ny (adressen har pakkens hash). Uten nett brukes det som er lagret.
- async load({force=false}={}){if(this.status==='loading'||this.status==='ready')return;if(!ClipVoice.supported())return this.set('unsupported');this.progress=0;this.error='';this.set('loading');
+ async load({force=false}={}){if(this.status==='loading'||this.status==='ready')return;if(!ClipVoice.supported())return this.set('unsupported');
+  if(this.index&&this.pack){this.error='';return this.set('ready');} // allerede lastet (etter en pause)
+  this.progress=0;this.error='';this.set('loading');
   try{let cache=null;try{cache=await caches.open(VOICE_CACHE);}catch{}
    const indexUrl=new URL(this.base+'ingrid.json',location.href).href;let res=null;
    try{res=await fetch(indexUrl,{cache:'no-cache'});if(!res.ok)res=null;}catch{}
@@ -35,9 +39,15 @@ class ClipVoice{
     if(cache){for(const k of await cache.keys().catch(()=>[]))if(/ingrid\.mp3/.test(k.url)&&k.url!==packUrl)cache.delete(k).catch(()=>{});await cache.put(packUrl,new Response(buf,{headers:{'Content-Type':'audio/mpeg'}})).catch(()=>{});}}
    this.index=index;this.pack=new Uint8Array(buf);this.sampleRate=index.sampleRate||24000;this.progress=1;this.retries=0;this.set('ready');}
   catch(err){this.fail(err);}}
- // Feiler nedlastingen (nettet borte), prøves den igjen av seg selv, to ganger, etter 20 og 40 sekunder.
- fail(err){this.error=String(err?.message||err||'');this.set('failed');
-  if(this.error!=='stalled'&&this.error!=='decode'&&this.retries<2){clearTimeout(this.retryTimer);this.retryTimer=setTimeout(()=>{if(this.status==='failed')this.load({force:true});},20000*++this.retries);}}
+ // Feiler nedlastingen (nettet borte), prøves den igjen av seg selv, uten grense: etter 10, 20, 40 … sekunder (høyst 2 minutter mellom), og med en gang
+ // når nettet kommer tilbake, siden vises igjen eller noe skal leses. Stopper stemmen opp ('stalled') eller vil klippene ikke pakkes ut ('decode'),
+ // leser enhetens stemme i 30 sekunder, og så er den nye stemmen tilbake av seg selv. Før 25. november 2026 ga den opp etter to forsøk.
+ fail(err){this.error=String(err?.message||err||'');this.failedAt=Date.now();this.set('failed');clearTimeout(this.retryTimer);
+  const rest=this.error==='stalled'||this.error==='decode',wait=rest?30000:Math.min(120000,10000*2**this.retries++);
+  this.retryTimer=setTimeout(()=>{if(this.status==='failed'){this.badClips=0;this.load({force:true});}},wait);}
+ retry(){if(this.status==='failed'&&this.error!=='stalled'&&this.error!=='decode'){clearTimeout(this.retryTimer);this.load({force:true});}}
+ // Noe skal leses: er stemmen ikke startet, eller feilet den for mer enn fem sekunder siden, startes den nå.
+ ensure(){if(this.status==='off'||this.status==='failed'&&this.error!=='stalled'&&this.error!=='decode'&&Date.now()-this.failedAt>5000)this.load({force:true});}
  has(text){const s=voiceSentences(text);return s.length>0&&s.every(x=>this.cache.has(x));}
  // Har alle setningene i teksten klipp?
  covers(text){const s=voiceSentences(text);return !!this.index&&s.length>0&&s.every(x=>this.index.clips[x]);}
@@ -50,7 +60,8 @@ class ClipVoice{
   const list=voiceSentences(text);
   if(!this.ready||!list.length||!list.every(s=>this.index.clips[s])){for(const s of list)if(this.ready&&!this.index.clips[s]&&!this.missed.has(s)){this.missed.add(s);console.info('Ingen klipp for: «'+s+'» (node tts/make-voice.mjs)');}queueMicrotask(()=>job.fail());return job;}
   job.cached=list.every(s=>this.cache.has(s));
-  (async()=>{for(const s of list){if(job.finished)return;let pcm;try{pcm=await this.decode(s);}catch{if(!job.finished){this.fail('decode');job.fail();}return;}if(job.finished)return;job.chunks.push(pcm);job.onchunk?.(pcm);}
+  // Et klipp som ikke vil pakkes ut: enhetens stemme leser den replikken. Tre på rad: en pause på 30 sekunder (fail('decode')).
+  (async()=>{for(const s of list){if(job.finished)return;let pcm;try{pcm=await this.decode(s);this.badClips=0;}catch{if(!job.finished){if(++this.badClips>=3)this.fail('decode');job.fail();}return;}if(job.finished)return;job.chunks.push(pcm);job.onchunk?.(pcm);}
    if(!job.finished){job.finished=true;job.ondone?.();}})();
   return job;}
  // Pakk ut klipp på forhånd (for eksempel bokstavnavnene), så de kommer med en gang.

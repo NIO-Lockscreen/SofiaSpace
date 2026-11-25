@@ -201,6 +201,21 @@ console.log('Passed: two new lower front teeth, 5 % out today and growing 0.44 %
 }
 console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, letters behind narration, instant stop, prepared letters, and the device voice (best Norwegian one) as fallback.');
 
+// The voice is on from the start (25 November 2026): a line said while the new voice is still loading waits up to three seconds for it instead of
+// going to the device voice; a voice not started is started; lifting the finger wakes the sound on an iPad; everyone starts with it on (key v3).
+{const synthSaid=[],jobs2=[];
+ const ctx2={state:'running',currentTime:0,destination:{},createGain:()=>({gain:{value:1},connect(){}}),createBuffer:(c,len,sr)=>{const d=new Float32Array(len);return{duration:len/sr,getChannelData:()=>d};},createBufferSource:()=>({connect(){},start(){},stop(){}})};
+ class Loading{static supported(){return true;}constructor(){this.status='off';this.ensured=0;}get ready(){return this.status==='ready';}onChange(){}ensure(){this.ensured++;if(this.status==='off')this.status='loading';}load(){}prewarm(){}speak(t){const j={text:t,cancel(){}};jobs2.push(j);return j;}}
+ const prefs2={muted:false,voice:true,paused:false,neural:true},listened=[];
+ const sb2=vm.createContext({window:{speechSynthesis:{getVoices:()=>[],addEventListener(){},cancel(){},speak:u=>synthSaid.push(u.text)}},document:{getElementById:()=>null,addEventListener:t=>listened.push(t)},navigator:{},SpeechSynthesisUtterance:class{constructor(t){this.text=t;}},ClipVoice:Loading,prefs2,setTimeout,clearTimeout});
+ vm.runInContext(fs.readFileSync('audio.js','utf8'),sb2);const a=vm.runInContext('new GameAudio(()=>prefs2)',sb2);a.context=ctx2;a.waitMs=300;
+ for(const t of ['pointerup','touchend','click'])assert.ok(listened.includes(t),'lifting the finger wakes the sound: '+t);
+ a.say('Hei, Sofia!');assert.equal(a.neural.ensured,1,'not started: it is started');assert.equal(jobs2.length,0);assert.equal(synthSaid.length,0,'the line waits');
+ setTimeout(()=>{a.neural.status='ready';setTimeout(()=>{assert.deepEqual(jobs2.map(j=>j.text),['Hei, Sofia!'],'read by the new voice once it is ready');assert.deepEqual(synthSaid,[],'not by the device voice');
+  a.stopSpeech();a.neural.status='loading';a.say('Venter lenge');setTimeout(()=>{assert.deepEqual(synthSaid,['Venter lenge'],'still loading after the wait: the device voice reads');
+   console.log('Passed: the new voice is on from the start: a line waits a moment for it while it loads, it is started if need be, and lifting the finger wakes the sound.');},500);},250);},50);
+ assert.match(fs.readFileSync('game.js','utf8'),/const VOICE_KEY='sofias-romreise-stemme-v3'/,'everyone starts with the new voice on');}
+
 // The brushing stars after the chart (24 November 2026): no limit. Star 11 and on fill the chart's wall first, the nearest places first, then the other
 // walls, then the gaps round after round; never on the name, the case, the chart, the bed, the reading stars, the window or the desk; the same every time.
 {const {brushStarSpots}=require('./game-core.js'),src=fs.readFileSync('routines.js','utf8'),walls=eval(src.match(/const BRUSH_WALLS=(\[[\s\S]*?\]\]\}\]);/)[1]),from=[2.85,2.98];
@@ -304,10 +319,18 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  for(let i=0;i<9;i++)v.remember('lang '+i,new Float32Array(9e5));assert.ok(v.cacheBytes<=24e6&&!v.cache.has('lang 0')&&v.cache.has('lang 8'),'the clip memory stays under 24 MB, oldest first out');
  // Offline the next time: the list and the pack come from Cache Storage. A failed download is tried again twice, after 20 and 40 s.
  online=false;const v2=vm.runInContext('new ClipVoice()',vb);await v2.load();assert.equal(v2.status,'ready','offline from the cache');
- store.clear();const v3=vm.runInContext('new ClipVoice()',vb);await v3.load();assert.equal(v3.status,'failed');assert.equal(timers.at(-1).ms,20000);
- online=true;await timers.at(-1).fn();await new Promise(r=>setTimeout(r,0));await new Promise(r=>setTimeout(r,0));assert.equal(v3.status,'ready','tried again after 20 s');
- const v4=vm.runInContext('new ClipVoice()',vb);files['tts/voice/ingrid.mp3']=new Uint8Array(3000);await v4.load();v4.index.clips['Hei, Sofia!']=[0,7];const n0=timers.length;
- const bad=await new Promise(done=>{const job=v4.speak('Hei, Sofia!');job.onerror=()=>done(true);job.ondone=()=>done(false);});
- assert.ok(bad,'a clip that will not decode: the device voice reads');assert.equal(v4.status,'failed');assert.equal(v4.error,'decode');assert.equal(timers.length,n0,'and it is not tried again');
- console.log('Passed: '+keys.length+' sentences with clips ('+(pack.length/1e6).toFixed(1)+' MB), the player cuts text like the clips, PEG read «pegg», Sofia and the space words stressed, clips unpacked once and kept under 24 MB, offline from the cache, retries, and the device voice for anything missing.');
+ store.clear();const v3=vm.runInContext('new ClipVoice()',vb);await v3.load();assert.equal(v3.status,'failed');assert.equal(timers.at(-1).ms,10000);
+ online=true;await timers.at(-1).fn();await new Promise(r=>setTimeout(r,0));await new Promise(r=>setTimeout(r,0));assert.equal(v3.status,'ready','tried again after 10 s');
+ // No limit to the tries (before 25 November 2026: two, and then the voice had to be switched off and on), and at once when the net is back.
+ const tick=()=>new Promise(r=>setTimeout(r,5));online=false;store.clear();const v5=vm.runInContext('new ClipVoice()',vb);await v5.load();const waits=[timers.at(-1).ms];
+ for(let i=0;i<5;i++){timers.at(-1).fn();await tick();waits.push(timers.at(-1).ms);}assert.deepEqual(waits,[10000,20000,40000,80000,120000,120000],'tried again with no limit, at most two minutes apart');
+ online=true;v5.retry();await tick();assert.equal(v5.status,'ready','the net back: at once');
+ const v6=vm.runInContext('new ClipVoice()',vb);v6.ensure();await tick();assert.equal(v6.status,'ready','something to say before it was started: it starts');
+ // A clip that will not unpack: the device voice reads that line and the voice stays on; three in a row: a rest of 30 s, then back by itself.
+ const v4=vm.runInContext('new ClipVoice()',vb);await v4.load();v4.index.clips['Hei, Sofia!']=[0,7];const n0=timers.length;
+ const bad=()=>new Promise(done=>{const job=v4.speak('Hei, Sofia!');job.onerror=()=>done(true);job.ondone=()=>done(false);});
+ assert.ok(await bad(),'a clip that will not unpack: the device voice reads that line');assert.equal(v4.status,'ready','and the voice stays on');assert.equal(timers.length,n0);
+ await bad();await bad();assert.equal(v4.status,'failed');assert.equal(v4.error,'decode');assert.equal(timers.at(-1).ms,30000,'three in a row: a rest of 30 s');
+ v4.ensure();assert.equal(v4.status,'failed','not before the rest is over');timers.at(-1).fn();await tick();assert.equal(v4.status,'ready','then back by itself, without a new download');
+ console.log('Passed: '+keys.length+' sentences with clips ('+(pack.length/1e6).toFixed(1)+' MB), the player cuts text like the clips, PEG read «pegg», Sofia and the space words stressed, clips unpacked once and kept under 24 MB, offline from the cache, retries with no limit, a rest that ends by itself, and the device voice for anything missing.');
 })().catch(err=>{console.error(err);process.exit(1);});
