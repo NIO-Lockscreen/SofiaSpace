@@ -511,8 +511,8 @@ const VOICE_CACHE='sofia-stemme';
 // Som tts/clips.mjs (testene sjekker at de er like): setningene i en tekst, og hva som leses for det som står.
 function voiceSentences(text){const t=String(text??'').replace(/[\p{Extended_Pictographic}\p{So}\u{FE0F}\u{200D}\u{20E3}]/gu,' ').replace(/\s+/g,' ').trim();if(!t)return [];
  return t.replace(/([.!?…]["»”')\]]*)(?:\s+|(?=\p{Lu}))/gu,'$1\n').split('\n').map(s=>s.trim()).filter(s=>/[\p{L}\d]/u.test(s));}
-// PEG (sonden på magen) sies som et ord, «pegg», ikke P-E-G.
-function spokenText(text){return String(text??'').replace(/\bPEG\b/g,'pegg');}
+// PEG (sonden på magen) sies som et ord, «pegg», ikke P-E-G, og ord med store bokstaver («FOR VARMT FOR EN AND») leses som ord, ikke stavet.
+function spokenText(text){return String(text??'').replace(/\bPEG\b/g,'pegg').replace(/(^|[^\p{L}])(\p{Lu}{2,}(?:(?:,? |-)\p{Lu}{2,})+|\p{Lu}{6,})(?!\p{L})/gu,(m,pre,w)=>pre+w[0]+w.slice(1).toLowerCase());}
 
 class ClipVoice{
  constructor(base='tts/voice/'){this.base=base;this.status='off';this.progress=0;this.sampleRate=24000;this.index=null;this.pack=null;this.cache=new Map();this.cacheBytes=0;this.listeners=new Set();this.error='';this.retries=0;this.decoder=null;this.missed=new Set();}

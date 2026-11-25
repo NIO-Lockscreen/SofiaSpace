@@ -276,7 +276,8 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  for(const t of samples)assert.deepEqual([...sb.voiceSentences(t)],clips.sentences(t),'the same sentences: '+t);
  for(const k of keys)assert.deepEqual([...sb.voiceSentences(k)],[k],'a clip is one sentence: '+k);
  assert.deepEqual(clips.sentences('Velkommen til Mars! Mars er rød.'),['Velkommen til Mars!','Mars er rød.']);
- for(const f of [clips.spoken,sb.spokenText])assert.equal(f('Mat gjennom PEG-slangen. Ta på PEG-sekken! PEGASUS'),'Mat gjennom pegg-slangen. Ta på pegg-sekken! PEGASUS','PEG is said «pegg»');
+ for(const f of [clips.spoken,sb.spokenText]){assert.equal(f('Mat gjennom PEG-slangen. Ta på PEG-sekken!'),'Mat gjennom pegg-slangen. Ta på pegg-sekken!','PEG is said «pegg»');
+  assert.equal(f('FOR VARMT FOR EN AND. HURRA, SOFIA! KOMETKRAFT! Hemmelig KIWI-bil'),'For varmt for en and. Hurra, sofia! Kometkraft! Hemmelig KIWI-bil','headings in capitals are read as words, short names stay');}
  assert.ok(keys.includes('Nå skal Sofia få mat gjennom PEG-slangen.'),'the PEG line has a clip');
  assert.deepEqual(Array.from(sb.trimQuiet(Float32Array.from([0,0,0,0,.5,.25,0,0,0]),100,.01,.01)),[0,.5,.25,0],'quiet ends off, 10 ms kept');
  // espeak-ng (used when the clips are made) with the game's pronunciation list.
