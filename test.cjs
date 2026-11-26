@@ -136,6 +136,7 @@ assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);a
  assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.slot\);saveProgress\(\);\}/.test(src),'out of its place at the first bite');
  assert.ok(/\$\('eat-spoon'\)\.onclick=\(\)=>chooseMeal\(\);/.test(src)&&/if\(!list\.length\)\{startMeal\('spoon'\);return;\}/.test(src),'«Spise» asks only when there is food to choose from');
  assert.ok(/openPhone\(true\)/.test(src)&&/chooseMeal\(true\)/.test(src)&&/function guardTap/.test(src),'windows opened by a tap ignore the finger until it is lifted');
+ assert.ok(/if\(meal\.kind\)\{const near=pickTarget\(\[\{k:'glass'[^\n]*\n  if\(near\?\.k==='phone'\)\{openPhone\(true\);return true;\}/.test(src)&&/function openPhone\(fromTap=false\)\{if\(state\.mode!=='inside'\|\|sleep\.on\|\|sleep\.jump>=0\|\|sleep\.k>0\|\|/.test(src),'the mobile works at a meal too');
  assert.ok(/pickTarget\(floorDishes\(\),x,y/.test(src)&&/startMeal\('spoon',dish\.id,dish\.slot\)/.test(src),'a dish on the floor is eaten with a tap');
  assert.ok(!/FOOD_LIMIT|188|194/.test(html)&&!/av \$\{FOOD/.test(src),'the limit is not shown');assert.ok(/d=record;group=nest;try\{/.test(src)&&/finally\{d=drawD;group=drawGroup;\}/.test(src),'the floor is one mesh per colour, and drawing is put back');
  for(const id of ['phone-modal','order-grid','phone-sent','phone-full','phone-count','phone-close','dish-modal','dish-choices','close-dishes'])assert.ok(html.includes(`id="${id}"`),id);

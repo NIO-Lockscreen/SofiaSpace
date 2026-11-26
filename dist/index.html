@@ -1842,8 +1842,12 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 // starts the pump, or makes her dance with the backpack on. Anything else during a meal does nothing (the bed waits until she is done).
 // A tap on the glass is a drink: at the table she drinks, and before a meal she goes to the table and drinks as soon as she has sat down. ----
 // The mobile opens the phone to order food, and a dish on the trolley is eaten straight away; the table asks what she wants when she has ordered something.
-function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
- if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
+// The mobile can be used while she eats too (26 November 2026, «Fiks så man kan bruke mobilen i mens man spiser ved bordet»): at a meal a tap on it opens it,
+// a tap on the glass is a drink, and anything else is the meal's (a spoonful, the pump, a dance); the glass and the mobile, the one nearer the finger.
+function tapMeal(x,y){
+ if(meal.kind){const near=pickTarget([{k:'glass',p:MEAL.cup,r:.1},{k:'phone',p:MEAL.phone,r:.13}],x,y,o=>o.p,o=>o.r,meal.kind==='spoon'?44:32);
+  if(near?.k==='phone'){openPhone(true);return true;}
+  if(meal.kind==='spoon'&&near?.k==='glass')drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
  if(tapVacuum(x,y))return true;
  // The glass and the mobile lie close on a small screen: the one nearer the finger.
@@ -1971,7 +1975,8 @@ function renderPhone(){const full=foodSlot(state.food)<0,cart=foodCount(state.fo
 // on a button or on the shade round it. So the window ignores the finger until it is lifted (and a moment more), or for 1.5 s at most.
 function guardTap(el){el.style.pointerEvents='none';let timer=0;const up=()=>{removeEventListener('pointerup',up,true);clearTimeout(timer);timer=setTimeout(()=>el.style.pointerEvents='',350);};
  addEventListener('pointerup',up,true);timer=setTimeout(up,1500);}
-function openPhone(fromTap=false){if(state.mode!=='inside'||mealBusy()||!$('phone-modal').hidden)return;clearTimeout(phoneTimer);$('phone-menu').hidden=false;$('phone-sent').hidden=true;renderPhone();
+// Not in bed or jumping on it; at a meal it is fine (she can order more while she eats).
+function openPhone(fromTap=false){if(state.mode!=='inside'||sleep.on||sleep.jump>=0||sleep.k>0||!$('phone-modal').hidden)return;clearTimeout(phoneTimer);$('phone-menu').hidden=false;$('phone-sent').hidden=true;renderPhone();
  dialog('phone-modal',true);if(fromTap)guardTap($('phone-modal'));gameAudio.effect('phone');
  gameAudio.say(foodSlot(state.food)<0?'Nå er det ikke mer plass til mat i rommet. Spis litt av maten først!':'Mobilen! Hva vil du bestille? Pizza, burger, sushi eller egg?',{id:'food'});}
 function closePhone(){clearTimeout(phoneTimer);if(!$('phone-modal').hidden)dialog('phone-modal',false);}
