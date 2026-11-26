@@ -1,13 +1,13 @@
 /* Synthesized, gesture-unlocked sound design and bounded Norwegian speech queue. */
 // Norwegian letter names, read aloud when a letter is pressed or asked for.
 const LETTER_NAMES={A:'a',B:'be',C:'se',D:'de',E:'e',F:'eff',G:'ge',H:'hå',I:'i',J:'jådd',K:'kå',L:'ell',M:'emm',N:'enn',O:'o',P:'pe',Q:'ku',R:'ærr',S:'ess',T:'te',U:'u',V:'ve',W:'dobbelt ve',X:'eks',Y:'y',Z:'sett',Æ:'æ',Ø:'ø',Å:'å'};
-// En liten pause mellom setningene i den nye stemmen (tempoet er lest inn i klippene: litt roligere enn vanlig, for en femåring).
+// En liten pause mellom setningene i Piper-stemmen (tempoet er lest inn i klippene: litt roligere enn vanlig, for en femåring).
 const SENTENCE_GAP=.22;
 // Beste norske stemme på enheten: Premium foran Forbedret foran vanlig, bokmål foran nynorsk.
 function bestNorwegianVoice(voices){const score=v=>{const id=(v.voiceURI||'')+' '+(v.name||'');return(/^(nb|no)(-|_|$)/i.test(v.lang)?10:/^nn/i.test(v.lang)?5:-99)+(/premium/i.test(id)?3:/enhanced|forbedret/i.test(id)?2:0)+(v.localService?.5:0);};let best=null;for(const v of voices)if(score(v)>0&&(!best||score(v)>score(best)))best=v;return best;}
 class GameAudio {
  constructor(getState){this.getState=getState;this.context=null;this.master=null;this.voiceOut=null;this.engine=null;this.queue=[];this.current=null;this.generation=0;this.voices=[];this.deviceVoice=null;this.synth=window.speechSynthesis;
-  // Den nye norske stemmen (tts.js: ferdige klipp). Mangler den, eller går den ikke på enheten, brukes enhetens egen stemme.
+  // Piper-stemmen «talesyntese» (tts.js: ferdige klipp). Er den slått av, mangler den, eller går den ikke på enheten, brukes enhetens egen stemme.
   this.neural=typeof ClipVoice==='function'&&ClipVoice.supported()?new ClipVoice():null;
   this.neural?.onChange(n=>{if(n.ready&&!this.warmed){this.warmed=true;n.prewarm([...new Set(Object.values(LETTER_NAMES))]);}this.updateVoiceNote();});
   this.refreshVoices=()=>{this.voices=this.synth?.getVoices()||[];this.deviceVoice=bestNorwegianVoice(this.voices);this.updateVoiceNote();};this.refreshVoices();this.synth?.addEventListener?.('voiceschanged',this.refreshVoices);
@@ -15,16 +15,17 @@ class GameAudio {
   // Hvert trykk vekker lyden igjen. iOS kan sette Web Audio på pause («interrupted») etter en samtale, en annen app eller enhetens stemme.
   // På iPad teller bare slipp av fingeren (pointerup, touchend, click) som et trykk som kan starte lyd, ikke pointerdown (25. november 2026).
   this.waitMs=3000;for(const type of ['pointerdown','pointerup','touchend','click','keydown'])document.addEventListener?.(type,()=>this.unlock(),true);}
- // Start nedlastingen av den nye stemmen litt etter oppstart, når 3D-scenen har fått lastet ferdig.
- // Stemmen er på fra start: den lastes uansett om lyden er av eller på, så den er klar når lyden slås på.
+ // Start nedlastingen av Piper-stemmen litt etter oppstart, når 3D-scenen har fått lastet ferdig.
+ // Stemmen er på fra start: den lastes uansett om lyden er av eller på, så den er klar når lyden slås på. Slått av lastes den ikke.
  startNeural(delay=2500){if(!this.neural)return;clearTimeout(this.neuralTimer);this.neuralTimer=setTimeout(()=>{if(this.getState().neural!==false&&!navigator.connection?.saveData)this.neural.load();},delay);}
  neuralOn(){return !!this.neural?.ready&&this.getState().neural!==false;}
  updateVoiceNote(){const label=document.getElementById('voice-note');if(!label)return;const n=this.neural,on=this.getState?.().neural!==false,device=this.voices.some(v=>/^(nb|no|nn)(-|_|$)/i.test(v.lang));
-  label.textContent=on&&n?.ready?'Den nye norske stemmen er klar: en ekte damestemme («ingrid» fra Canora Norwegian), lest inn på forhånd, så den virker også uten nett.'
-  :on&&n?.status==='loading'?`Laster ned den nye norske stemmen: ${Math.round(n.progress*100)} % (ca. 15 MB, bare første gang). Imens leser enheten med sin egen stemme.`
-  :on&&n?.status==='failed'&&(n.error==='stalled'||n.error==='decode')?'Den nye stemmen tar en liten pause, så enhetens egen stemme leser. Den er tilbake av seg selv om et halvt minutt.'
-  :on&&n?.status==='failed'?'Den nye stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
-  :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke den nye stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
+  label.textContent=on&&n?.ready?'Piper-stemmen er klar: «talesyntese» fra Nasjonalbiblioteket, lest inn på forhånd, så den virker også uten nett. Slå den av for å bruke iPadens eller nettleserens egen stemme.'
+  :on&&n?.status==='loading'?`Laster ned Piper-stemmen: ${Math.round(n.progress*100)} % (ca. 8 MB, bare første gang). Imens leser enheten med sin egen stemme.`
+  :on&&n?.status==='failed'&&(n.error==='stalled'||n.error==='decode')?'Piper-stemmen tar en liten pause, så enhetens egen stemme leser. Den er tilbake av seg selv om et halvt minutt.'
+  :on&&n?.status==='failed'?'Piper-stemmen kunne ikke startes nå. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
+  :on&&(!n||n.status==='unsupported')?'Denne nettleseren kan ikke bruke Piper-stemmen. '+(device?'Enhetens norske stemme leser i stedet.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
+  :!on?'Av: iPadens eller nettleserens egen stemme leser. '+(device?'Den beste norske stemmen på enheten brukes.':'Legg gjerne til en norsk stemme i iPad-innstillingene.')
   :device?'Norsk opplesning er klar. Bokstavene leses når du trykker, og fakta leses ved ankomst.':'Bokstaver og fakta leses med norsk stemme når den finnes på enheten. Du kan legge til en norsk stemme i iPad-innstillingene. Spillet fungerer også uten lyd.';}
  unlock(){if(this.getState().muted)return;try{if(!this.context){this.context=new(window.AudioContext||window.webkitAudioContext)();this.master=this.context.createGain();this.master.gain.value=.65;this.master.connect(this.context.destination);}if(this.context.state!=='running'&&this.context.state!=='closed')this.context.resume?.().catch?.(()=>{});}catch{}}
  tone(freq=500,length=.12,shape='sine',volume=.065,delay=0,endFreq=freq){if(this.getState().muted||this.getState().paused)return;this.unlock();if(!this.context)return;const ctx=this.context,o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=shape;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,endFreq),t+length);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+length);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+length+.03);o.onended=()=>{o.disconnect();g.disconnect();};}
