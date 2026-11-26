@@ -103,25 +103,42 @@ console.log('Passed: undoing a reset restores every place, star and setting, add
 
 // Tooth brushing stars are kept by an undo too, added to what was brushed since.
 assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);assert.equal(mergeSaves(fresh,before).brushed,0);
-// The food she orders on the white mobile (25 November 2026): four dishes, at most six on the trolley, one taken at a time, saved and kept by an undo.
-{const {DISHES,FOOD_MAX,orderFood,eatFood,foodChoices,cleanFood}=require('./game-core.js');
- assert.deepEqual(DISHES.map(d=>d.id),['pizza','burger','sushi','egg']);assert.deepEqual(DISHES.map(d=>d.word),['Pizza','Burger','Sushi','Egg']);assert.equal(FOOD_MAX,6);
+// The food she orders on the white mobile (25 November 2026): four dishes; six on the trolley, then the floor (26 November 2026) up to a limit nobody is told,
+// each dish in its own place (an eaten one leaves its place empty for the next), each kind once to choose from, saved and kept by an undo.
+{const {DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,orderFood,eatFood,pickFood,foodSlot,foodCount,foodChoices,cleanFood}=require('./game-core.js');
+ assert.deepEqual(DISHES.map(d=>d.id),['pizza','burger','sushi','egg']);assert.deepEqual(DISHES.map(d=>d.word),['Pizza','Burger','Sushi','Egg']);assert.equal(FOOD_CART,6);
  assert.deepEqual(DISHES.filter(d=>d.hand).map(d=>d.id),['pizza','burger','sushi'],'the egg is eaten with the spoon');
  let food=[];for(const id of ['pizza','sushi','pizza','kake','egg','burger','burger','egg','pizza'])food=orderFood(food,id);
- assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger'],'in order, nothing unknown, full at six');
- assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza2','burger2','sushi1','egg1'],'each kind once, in the menu\'s order, with how many');
- food=eatFood(food,'pizza');assert.deepEqual(food,['sushi','pizza','egg','burger','burger']);assert.deepEqual(eatFood(food,'kake'),food);assert.deepEqual(foodChoices([]),[]);
- assert.deepEqual(cleanFood(['egg','kake',7,'sushi']),['egg','sushi']);assert.deepEqual(cleanFood('pizza'),[]);assert.equal(cleanFood(Array(9).fill('egg')).length,6);
- assert.deepEqual(mergeSaves({...fresh,food:['egg']},{...before,food:['pizza','sushi']}).food,['pizza','sushi','egg'],'an undo keeps both');
- assert.deepEqual(mergeSaves(fresh,{...before,food:'x'}).food,[]);assert.equal(mergeSaves({food:Array(4).fill('egg')},{food:Array(4).fill('pizza')}).food.length,6);
- const src=fs.readFileSync('routines.js','utf8'),game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
+ assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger','egg','pizza'],'in order, nothing unknown; after six they go on the floor');
+ assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza3','burger2','sushi1','egg2'],'each kind once, in the menu\'s order, with how many');
+ assert.equal(pickFood(food,'pizza'),7,'the one farthest out is eaten first');food=eatFood(food,1);assert.deepEqual(food,['pizza',null,'pizza','egg','burger','burger','egg','pizza'],'its place is left empty');
+ assert.equal(foodSlot(food),1);food=orderFood(food,'egg');assert.equal(food[1],'egg','a new one takes the first empty place');assert.deepEqual(eatFood(food,30),food);
+ food=eatFood(eatFood(food,7),6);assert.equal(food.length,6,'no empty places at the end');assert.equal(foodCount([null,'egg',null,'pizza']),2);assert.deepEqual(foodChoices([null]),[]);
+ // the floor: the places nearest the trolley first, inside the room, clear of the furniture and of each other, on the rug a little higher; and a limit
+ assert.ok(FLOOR_FOOD.length>=150,'room to fill the floor: '+FLOOR_FOOD.length);assert.equal(FOOD_LIMIT,FOOD_CART+FLOOR_FOOD.length);
+ const near=([x,z])=>Math.hypot(x-.3,z-3.36);for(let i=1;i<FLOOR_FOOD.length;i++)assert.ok(near([FLOOR_FOOD[i].x,FLOOR_FOOD[i].z])>=near([FLOOR_FOOD[i-1].x,FLOOR_FOOD[i-1].z]),'nearest the trolley first');
+ const src0=fs.readFileSync('routines.js','utf8'),MEAL=eval('('+src0.match(/const MEAL=(\{[\s\S]*?\});/)[1]+')'),BED={idle:[1.7,0,2.05]};
+ for(const f of FLOOR_FOOD){assert.ok(Math.abs(f.x)<4.2&&f.z>-3.1&&f.z<5.4,'on the floor');
+  for(const [p,r,what] of [[MEAL.table,.85,'table'],[MEAL.chair,.45,'chair'],[MEAL.bag,.4,'backpack'],[MEAL.cart,.4,'trolley'],[[-3.45,0,1.25],.6,'desk'],[[3.05,0,-.5],1.2,'bed'],[[0,0,-.6],.6,'projector']])
+   assert.ok(Math.hypot(f.x-p[0],f.z-p[2])>r,`clear of the ${what} at (${f.x.toFixed(2)}, ${f.z.toFixed(2)})`);
+  assert.ok(f.y===0||f.y===.08);}
+ for(let i=0;i<FLOOR_FOOD.length;i++)for(let j=i+1;j<FLOOR_FOOD.length;j++)assert.ok(Math.hypot(FLOOR_FOOD[i].x-FLOOR_FOOD[j].x,FLOOR_FOOD[i].z-FLOOR_FOOD[j].z)>.35,'a dish\'s room each');
+ assert.ok(FLOOR_FOOD.some(f=>f.y>0)&&FLOOR_FOOD.some(f=>f.y===0),'some on the rug');assert.deepEqual(foodFloorSpots({x0:0,x1:1,z0:0,z1:0,gap:.5,from:[1,0]}).map(f=>Math.round(f.x*2)+0),[2,1,0]);
+ food=[];for(let i=0;i<FOOD_LIMIT+5;i++)food=orderFood(food,'egg');assert.equal(food.length,FOOD_LIMIT,'full at the limit');assert.equal(foodSlot(food),-1);
+ assert.deepEqual(cleanFood(['egg','kake',7,'sushi']),['egg',null,null,'sushi'],'an unknown dish leaves an empty place');assert.deepEqual(cleanFood([null,'egg',null,null]),[null,'egg']);
+ assert.deepEqual(cleanFood('pizza'),[]);assert.equal(cleanFood(Array(FOOD_LIMIT+9).fill('egg')).length,FOOD_LIMIT);
+ assert.deepEqual(mergeSaves({...fresh,food:['egg']},{...before,food:['pizza',null,'sushi']}).food,['pizza','sushi','egg'],'an undo keeps both');
+ assert.deepEqual(mergeSaves(fresh,{...before,food:'x'}).food,[]);assert.equal(mergeSaves({food:Array(150).fill('egg')},{food:Array(150).fill('pizza')}).food.length,FOOD_LIMIT);
+ const src=src0,game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
  assert.ok(/progressData\(\)\{return \{[^}]*food:\[\.\.\.state\.food\]/.test(game)&&/state\.food=cleanFood\(saved\?\.food\)/.test(game),'saved with the progress');
- assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.dish\);saveProgress\(\);\}/.test(src),'off the trolley at the first bite');
+ assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.slot\);saveProgress\(\);\}/.test(src),'out of its place at the first bite');
  assert.ok(/\$\('eat-spoon'\)\.onclick=\(\)=>chooseMeal\(\);/.test(src)&&/if\(!list\.length\)\{startMeal\('spoon'\);return;\}/.test(src),'«Spise» asks only when there is food to choose from');
  assert.ok(/openPhone\(true\)/.test(src)&&/chooseMeal\(true\)/.test(src)&&/function guardTap/.test(src),'windows opened by a tap ignore the finger until it is lifted');
+ assert.ok(/pickTarget\(floorDishes\(\),x,y/.test(src)&&/startMeal\('spoon',dish\.id,dish\.slot\)/.test(src),'a dish on the floor is eaten with a tap');
+ assert.ok(!/FOOD_LIMIT|188|194/.test(html)&&!/av \$\{FOOD/.test(src),'the limit is not shown');assert.ok(/d=record;group=nest;try\{/.test(src)&&/finally\{d=drawD;group=drawGroup;\}/.test(src),'the floor is one mesh per colour, and drawing is put back');
  for(const id of ['phone-modal','order-grid','phone-sent','phone-full','phone-count','phone-close','dish-modal','dish-choices','close-dishes'])assert.ok(html.includes(`id="${id}"`),id);
  assert.ok(/modal\.id==='phone-modal'\)closePhone\(\);else if\(modal\.id==='dish-modal'\)/.test(game),'Esc puts them away');}
-console.log('Passed: the white mobile: four dishes, six on the trolley, in order, each kind once to choose from, off the trolley at the first bite, saved, and kept by an undo.');
+console.log('Passed: the white mobile: four dishes, six on the trolley and then the floor up to a hidden limit, each in its own place, each kind once to choose from, out of its place at the first bite, saved, and kept by an undo.');
 // Tooth brushing (teeth.js, 23 November 2026): toothpaste first, every tooth needs a few seconds of brushing however fast the brush goes,
 // the germs let go, the hint blinks when Sofia is stuck, a tap on the cup rinses, and the game says it is done exactly once.
 {const ctx=vm.createContext({Math,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;',ctx);

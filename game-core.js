@@ -83,7 +83,7 @@ function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCou
 // Undoing a reset folds the saved progress back in, so nothing found since the reset is lost either.
 function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[k])?old[k]:[]),...(Array.isArray(now?.[k])?now[k]:[])])],count=k=>(Number.isFinite(old?.[k])?old[k]:0)+(Number.isFinite(now?.[k])?now[k]:0);
  return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship,brushed:count('brushed'),
-  food:cleanFood([...(Array.isArray(old?.food)?old.food:[]),...(Array.isArray(now?.food)?now.food:[])])};}
+  food:cleanFood([...(Array.isArray(old?.food)?old.food:[]),...(Array.isArray(now?.food)?now.food:[])].filter(id=>dishById(id)))};}
 // A tap on the bed while Sofia is awake and standing (24 November 2026): the first time each time the game is opened she jumps on it; after that a tap
 // has a BED_JUMP_AGAIN (20 %) chance of another jump, and otherwise she goes to bed. r is a random number from 0 to 1.
 const BED_JUMP_AGAIN=.2;
@@ -114,18 +114,38 @@ function brushStarSpots(n,{walls,from,gap=.4,r=.12}){
  const first=[...places(0),...places(1)];take(first.filter(c=>!c.wi).sort(near));take(first.filter(c=>c.wi).sort(near));
  for(let round=2,empty=0;out.length<n&&empty<4;round++){const list=places(round);empty=list.length?0:empty+1;take(list.sort((a,b)=>(a.wi?1:0)-(b.wi?1:0)||a.d-b.d));}
  return out;}
-// Food Sofia orders on the white mobile on her table (25 November 2026). What she has ordered waits on the trolley in her room until she eats it,
-// one dish each meal; the list is saved with the rest of the progress. word: on the phone's buttons; name: in «I dag blir det …»; the: «Her kommer …»;
-// hand: eaten with her fingers (the egg, soft-boiled in an egg cup, with the spoon). The trolley holds FOOD_MAX dishes.
+// Food Sofia orders on the white mobile on her table (25 November 2026). word: on the phone's buttons; name: in «I dag blir det …»; the: «Her kommer …»;
+// hand: eaten with her fingers (the egg, soft-boiled in an egg cup, with the spoon).
 const DISHES=[{id:'pizza',word:'Pizza',name:'pizza',the:'pizzaen',emoji:'🍕',hand:true},{id:'burger',word:'Burger',name:'burger',the:'burgeren',emoji:'🍔',hand:true},
  {id:'sushi',word:'Sushi',name:'sushi',the:'sushien',emoji:'🍣',hand:true},{id:'egg',word:'Egg',name:'egg',the:'egget',emoji:'🥚',hand:false}];
-const FOOD_MAX=6;
 const dishById=id=>DISHES.find(d=>d.id===id)||null;
-// Known dishes only, at most FOOD_MAX, in the order they came.
-function cleanFood(list){return Array.isArray(list)?list.filter(id=>dishById(id)).slice(0,FOOD_MAX):[];}
-// A new order goes last on the trolley, unless it is full; a dish she eats is taken from the trolley (the first of its kind).
-function orderFood(list,id){return dishById(id)&&list.length<FOOD_MAX?[...list,id]:list;}
-function eatFood(list,id){const i=list.indexOf(id);return i<0?list:[...list.slice(0,i),...list.slice(i+1)];}
+// (26 November 2026) Six dishes go on the trolley; after that they go on the floor, as many as there are places for: a limit nobody is told (the user:
+// «etter 6 så blir det satt på gulvet, ha en skjult grense og la henne fylle gulvet om hun vil»). She walks through the food on the floor.
+// The list has a place for each dish: 0–5 on the trolley, from FOOD_CART on the floor (FLOOR_FOOD, the nearest the trolley first). A dish she eats leaves its
+// place empty (null), and a new one takes the first empty place, so nothing else moves.
+const FOOD_CART=6;
+// Places on the floor: a grid gap apart (a little out of line, each dish turned a little), inside the floor, clear of what stands on it (skip: [x0,x1,z0,z1]
+// boxes and {x,z,r} circles), raised onto the rug where it lies (rug: an ellipse); the nearest to `from` first.
+function foodFloorSpots({x0,x1,z0,z1,gap,from,skip=[],rug=null}){
+ const hash=(...k)=>{let h=0;for(const v of k)h=Math.sin(h*12.9898+v*78.233+.5)*43758.5453;return h-Math.floor(h);},out=[];
+ for(let i=0;x0+i*gap<=x1+1e-9;i++)for(let j=0;z0+j*gap<=z1+1e-9;j++){const x=x0+i*gap+(hash(i,j,1)-.5)*gap*.25,z=z0+j*gap+(hash(i,j,2)-.5)*gap*.25;
+  if(skip.some(s=>Array.isArray(s)?x>s[0]&&x<s[1]&&z>s[2]&&z<s[3]:Math.hypot(x-s.x,z-s.z)<s.r))continue;
+  const onRug=rug&&((x-rug.x)/rug.rx)**2+((z-rug.z)/rug.rz)**2<1;out.push({x,z,y:onRug?rug.y:0,yaw:(hash(i,j,3)-.5)*1.4,d:Math.hypot(x-from[0],z-from[1])});}
+ return out.sort((a,b)=>a.d-b.d).map(({d,...p})=>p);}
+// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley and the
+// planet game's projector in the middle; the rug is a little higher than the floor.
+const FLOOR_FOOD=foodFloorSpots({x0:-4.1,x1:4.1,z0:-2.95,z1:5.3,gap:.5,from:[.3,3.36],rug:{x:-.5,z:1.45,rx:1.6,rz:1.15,y:.08},
+ skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65}]});
+const FOOD_LIMIT=FOOD_CART+FLOOR_FOOD.length;
+// Known dishes in their places (anything else is an empty place), at most FOOD_LIMIT, without empty places at the end.
+function cleanFood(list){const out=Array.isArray(list)?list.slice(0,FOOD_LIMIT).map(id=>dishById(id)?id:null):[];while(out.length&&out.at(-1)===null)out.pop();return out;}
+// Where the next dish goes: the first empty place, or the next one; −1 when the room is full.
+function foodSlot(list){const i=list.indexOf(null);return i>=0?i:list.length<FOOD_LIMIT?list.length:-1;}
+function orderFood(list,id){const i=foodSlot(list);if(!dishById(id)||i<0)return list;const out=[...list];out[i]=id;return out;}
+// A dish eaten leaves its place empty. pickFood: which of a kind she eats when she chooses it, the one farthest out (the floor is tidied first).
+function eatFood(list,slot){if(!list[slot])return list;const out=[...list];out[slot]=null;while(out.length&&out.at(-1)===null)out.pop();return out;}
+function pickFood(list,id){return list.lastIndexOf(id);}
+const foodCount=list=>list.filter(Boolean).length;
 // What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order.
 function foodChoices(list){return DISHES.map(d=>({...d,n:list.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_MAX,dishById,cleanFood,orderFood,eatFood,foodChoices};
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,foodChoices};
