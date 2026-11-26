@@ -35,11 +35,11 @@ function duck(t,{fly=false,flap=0,fire=false,rider=false,quack=0}={}){
   // The same trail as the rocket's (flame, rainbow or gold coins), streaming back from the tail.
   if(fire)group([0,1.75,-1.65],[.9,.9,.9],[Math.PI/2,0,0],()=>shipFire(t,0,true));
  });}
-// Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z.
-function duckRider(t,fly){const {skin,top,legs}=SOFIA,hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
- d('box',[0,.36,0],[.22,.3,.16],top);sofiaButterfly(t,-.17);
- for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],SOFIA.shoe);
-  d('box',[s*.29,.42,.13],[.08,.2,.08],top,[-.9+hold,0,s*.15]);d('sphere',[s*.27,.3,.34],[.1,.1,.1],skin);}
+// Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z. (26 November 2026: as in the car game, sofia.js.)
+function duckRider(t,fly){const hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
+ d('box',[0,.48,0],[.22,.18,.16],SOFIA.top);sofiaSkirt(.3,.26,.3);
+ for(const s of [-1,1]){const x=s*.11;sofiaLimb([x,.1,.02],[x,.1,.4],.078,SOFIA.skin);sofiaLimb([x,.1,.4],[x,.12,.52],.08,SOFIA.sock);d('box',[x,.16,.58],[.09,.15,.05],SOFIA.shoe);
+  sofiaArm([s*.3,.6,0],[s*.27,.3+hold,.34]);}
  group([0,.93,0],[1,1,1],[0,0,0],()=>sofiaHead(t));}
 // On the home screen: a duck on the launch pad, or the rocket. The duck flaps, tips its bill up and climbs at take-off.
 function homeShip(t,launch,ignite,wiggle){

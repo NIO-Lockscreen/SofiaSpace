@@ -294,18 +294,25 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.ok(/const brushStarsOnWall=\(\)=>Math\.max\(0,state\.brushed-10\);/.test(src),'after the ten on the chart');
  console.log(`Passed: brushing stars without limit: ${onBack} fill the chart's wall first (the nearest first), then the right and left walls, then the gaps (5000 in ${ms.toFixed(0)} ms), clear of everything on the walls.`);}
 
-// Sofia's look (sofia.js): her curls frame her face without covering her eyes or eyebrows, the ringlets in front hang beside her face, the long hair at
-// the back is tucked away while the PEG backpack is on, and with calmer effects she does not blink. Every script is in the page, the build and the server.
+// Sofia's look (sofia.js, 26 November 2026: as in the car game): the fringe and the hair leave her eyes free, the pigtails hang beside her face, the long
+// hair at the back is drawn up out of the way while the PEG backpack is on, the colours are the car game's, and with calmer effects she does not blink.
+// Every script is in the page, the build and the server.
 {const draws=[],faces=[],g2d=new Proxy({},{get:()=>()=>({addColorStop(){}})});
- const ctx=vm.createContext({Math,state:{reduced:true},santaSeason:()=>false,d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7])},document:{createElement:()=>({getContext:()=>g2d})}});
- vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;',ctx);
- for(const h of ctx.SOFIA_HAIR.clumps)if(h.p[2]+h.s[2]>.15)assert.ok(Math.abs(h.p[0])-h.s[0]>=.15||h.p[1]-h.s[1]>=.07,'a curl over her eyes or eyebrows: '+h.p.join(','));
- for(const h of ctx.SOFIA_HAIR.curls.filter(c=>c.front))assert.ok(Math.abs(h.p[0])>.25);
- ctx.sofiaHead(1.3+4.1*3+.05,{});const loose=draws.length;assert.deepEqual([...ctx.sofiaFaces.keys()],['open|smile']);
- draws.length=0;ctx.sofiaHead(0,{tucked:1});assert.ok(draws.length<loose-20,String(draws.length));assert.equal(draws.filter(x=>x.p[2]<-.08&&x.p[1]<-.12).length,0);
- const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
+ const ctx=vm.createContext({Math,state:{reduced:true},santaSeason:()=>false,d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7]),meshes:{skirt:1}},document:{createElement:()=>({getContext:()=>g2d})}});
+ vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA=SOFIA;this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;this.character=character;',ctx);
+ const girl=fs.readFileSync('../Sofiatur/dist/girl.js','utf8');for(const k of ['skin','hair','top','skirt','hem','sock','shoe','tie'])if(fs.existsSync('../Sofiatur/dist/girl.js'))assert.ok(girl.includes(`'${ctx.SOFIA[k]}'`),'the car game\'s '+k);
+ // the eyes on the face picture (.38 rad out, from .22 rad down to .16 up, .13 wide): no piece of hair over any part of them
+ const onHead=(u,v)=>[.31*Math.cos(v)*Math.sin(u),.32*Math.sin(v),.29*Math.cos(v)*Math.cos(u)];
+ for(const h of ctx.SOFIA_HAIR.pieces)for(const s of [-1,1])for(const [du,dv] of [[0,0],[0,.16],[0,-.22],[.13,0],[-.13,0],[.09,.12],[-.09,.12]]){const e=onHead(s*.38+du,-.03+dv),r=-(h.r||0),c=Math.cos(r),n=Math.sin(r);
+  const x=e[0]-h.p[0],y=e[1]-h.p[1],q=[x*c-y*n,x*n+y*c,e[2]-h.p[2]];assert.ok((q[0]/h.s[0])**2+(q[1]/h.s[1])**2+(q[2]/h.s[2])**2>1,`hair over her ${s<0?'right':'left'} eye: ${h.p.join(',')}`);}
+ for(const t of ctx.SOFIA_HAIR.pigtails)assert.ok(Math.abs(t.p[0])>.29&&t.p[2]<0,'pigtails beside her face');
+ ctx.sofiaHead(1.3+4.1*3+.05,{});const loose=draws.slice();assert.deepEqual([...ctx.sofiaFaces.keys()],['open|smile'],'no blinking with calmer effects');
+ const bottom=list=>Math.min(...list.filter(x=>x.mesh==='sphere'&&x.p[2]<-.08).map(x=>x.p[1]-x.s[1]));
+ draws.length=0;ctx.sofiaHead(0,{tucked:1});assert.ok(bottom(loose)<-.4&&bottom(draws)>-.12,`the long hair at the back up for the backpack (${bottom(loose).toFixed(2)} → ${bottom(draws).toFixed(2)})`);
+ draws.length=0;ctx.character(0,false,false,{});assert.ok(draws.some(x=>x.mesh==='skirt')&&draws.filter(x=>x.mesh==='box'&&Math.abs(x.s[2]-.15)<1e-9).length===2,'a skirt, and two shoes');
+const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
  assert.ok(html.includes('sofia.js')&&html.indexOf('sofia.js')<html.indexOf('duck.js'));for(const f of html){assert.ok(build.includes(`'${f}'`),f+' in build.cjs');assert.ok(server.includes(`'${f}'`),f+' in server.cjs');}
- console.log(`Passed: Sofia's curls leave her eyes and eyebrows free, the hair at the back makes room for the backpack (${loose} → ${draws.length} pieces), no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
+ console.log(`Passed: Sofia as in the car game (its colours, a fringe and pigtails that leave her eyes free, a skirt), the hair at the back up for the backpack, no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
 
 // The Santa hat (24 November 2026): all through December, from the device's calendar, or on any day with ?jul=1 (and never with ?jul=0). It sits on top of her
 // curls well above her eyebrows, lies on the pillow in bed, and is on her in the rocket's window and on the space suit's helmet. The red part is a tube that

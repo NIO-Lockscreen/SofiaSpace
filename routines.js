@@ -176,10 +176,10 @@ function drinkPose(){const k=meal.drink;if(meal.kind!=='spoon'||meal.step!=='eat
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
 function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  const dish=mealDish();
- if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
- const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;limb([-.3,.78,0],lh,.085,yellow);d('sphere',lh,[.1,.1,.1],skin);
+ if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];sofiaArm([x*.3,.78,0],h);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
+ const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;sofiaArm([-.3,.78,0],lh);
  if(dp?.held)group(dp.c,[1,1,1],[-dp.tilt,0,0],glassOfWater); // tipped towards her, the top to her mouth
- const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
+ const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;sofiaArm([.3,.78,0],h);
  // pizza, the burger and sushi she eats with her fingers: a bite in her hand on its way to her mouth
  // (held above her fist and a little in front of it, so the hand does not hide it)
  if(dish?.hand){if(b>=.1&&b<.52)dishBite(dish.id,[h[0]-.04*lift,h[1]+.075,h[2]+.04]);return;}
