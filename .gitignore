@@ -4,6 +4,6 @@ node_modules/
 *.log
 dist/tts/
 
-# Canora model and rendered clips (tts/make-voice.mjs)
+# The Piper model and rendered clips (tts/make-voice.mjs)
 tts/.voice-cache/
 __pycache__/
