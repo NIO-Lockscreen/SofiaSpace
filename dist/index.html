@@ -2037,7 +2037,7 @@ $('teeth-speak').onclick=()=>{const s=toothGame?.step;gameAudio.say((TEETH_TEXT[
    legge den i rommet og hvis man trykker på den så starter den å støvsuge opp all maten. Hvis man starter støvsugeren og går ut av huset så kommer man inn
    til rent hus.»
    A round black robot vacuum with a laser tower on top, standing in its black dock against the back wall under the planets, with an anime-eyes sticker on
-   its front: two big eyes with purple irises, shiny highlights and a thick line of lashes. A tap on it, and it drives out of the dock and goes from dish to
+   its lid («legg øyne på toppen av støvsugeren»): two big eyes with purple irises, shiny highlights and a thick line of lashes, looking forward. A tap on it, and it drives out of the dock and goes from dish to
    dish on the floor (always the nearest next), sucking each one up with a slurp, until the floor is clean; then it drives home, turns round and backs into the
    dock. A tap while it runs sends it home. With nothing on the floor it takes a little round of the rug. It cleans the floor only: the trolley's dishes stay.
    If Sofia goes out of the house while it runs, the floor is clean when she comes in again (vacuumAway, from resetMeal), and the voice says so.
@@ -2090,12 +2090,13 @@ function robotModel(t){const black='#1b1d22',lid='#2a2d34',dark='#111216',grey='
  d('box',[-.035,.117,.07],[.014,.003,.022],grey);d('box',[.035,.117,.07],[.014,.003,.022],grey);d('sphere',[0,.118,.105],[.012,.003,.012],running?'#79e4e2':'#cfd3da',[],running?1:.3);
  // the side brush at the front left, turning
  for(let k=0;k<3;k++){const a=spin+k*2.09;d('box',[-.17+Math.sin(a)*.05,.012,.17+Math.cos(a)*.05],[.004,.003,.05],'#8a8f99',[0,a,0]);}
- // The anime-eyes sticker on the front: two tall eyes on the curve of the bumper, purple irises, big shiny highlights, a thick line of lashes over each,
- // with a flick at the outer corner. (Made up: the real sticker's look is not known.)
- for(const s of [-1,1]){const a=s*.3,x=Math.sin(a)*(r+.012),z=Math.cos(a)*(r+.012);group([x,.064,z],[1,1,1],[0,a,0],()=>{
-  d('sphere',[0,0,0],[.052,.04,.006],'#ffffff');d('sphere',[0,-.004,.003],[.036,.034,.006],'#7b4fe0');d('sphere',[0,-.012,.004],[.03,.022,.006],'#4a2aa8');
-  d('sphere',[0,-.006,.006],[.016,.019,.005],'#140c2e');d('sphere',[-s*.012,.009,.009],[.011,.011,.004],'#ffffff',[],.6);d('sphere',[s*.012,-.02,.009],[.005,.005,.003],'#ffffff',[],.6);
-  d('box',[0,.036,.006],[.054,.007,.004],'#0d0d12',[0,0,-s*.12]);d('box',[s*.056,.03,.006],[.014,.005,.004],'#0d0d12',[0,0,-s*.6]);});}}
+ // The anime-eyes sticker on the lid, in front of the laser tower (made up: the real sticker's look is not known): each eye a tall oval with its top towards
+ // the back, so the robot looks forward; a purple iris low in it, a dark pupil, two shiny highlights, and a thick line of lashes along the top with a flick
+ // at the outer corner. A little bigger than a real sticker, as the room is seen from low down.
+ for(const s of [-1,1])group([s*.085,.1165,.1],[1,1,1],[0,0,0],()=>{
+  d('sphere',[0,0,0],[.062,.0025,.08],'#ffffff');d('sphere',[0,.0005,.016],[.046,.003,.058],'#7b4fe0');d('sphere',[0,.001,.024],[.036,.0035,.04],'#4a2aa8');
+  d('sphere',[0,.0015,.018],[.019,.004,.025],'#140c2e');d('sphere',[-s*.015,.002,-.012],[.013,.0045,.013],'#ffffff',[],.6);d('sphere',[s*.016,.002,.042],[.006,.0045,.006],'#ffffff',[],.6);
+  d('box',[0,.0015,-.075],[.066,.003,.007],'#0d0d12',[0,s*.12,0]);d('box',[s*.068,.0015,-.06],[.018,.003,.006],'#0d0d12',[0,-s*.6,0]);});}
 // The dock: a black tower against the wall with a darker front and a light, and a ramp on the floor in front that the robot stands on.
 function dockModel(){const [x,,z]=VAC.dock,back=z-VAC.r-.17;d('box',[x,.26,back],[.24,.26,.13],'#16171b');d('box',[x,.525,back],[.245,.012,.135],'#2a2d34');
  d('box',[x,.33,back+.132],[.17,.12,.004],'#0f1013');d('sphere',[x,.4,back+.136],[.014,.014,.004],vac.mode==='dock'?'#79e4e2':'#3a3d45',[],vac.mode==='dock'?1:.2);
