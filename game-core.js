@@ -132,20 +132,24 @@ function foodFloorSpots({x0,x1,z0,z1,gap,from,skip=[],rug=null}){
   if(skip.some(s=>Array.isArray(s)?x>s[0]&&x<s[1]&&z>s[2]&&z<s[3]:Math.hypot(x-s.x,z-s.z)<s.r))continue;
   const onRug=rug&&((x-rug.x)/rug.rx)**2+((z-rug.z)/rug.rz)**2<1;out.push({x,z,y:onRug?rug.y:0,yaw:(hash(i,j,3)-.5)*1.4,d:Math.hypot(x-from[0],z-from[1])});}
  return out.sort((a,b)=>a.d-b.d).map(({d,...p})=>p);}
-// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley and the
-// planet game's projector in the middle; the rug is a little higher than the floor.
+// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley, the
+// planet game's projector in the middle and the robot vacuum's dock against the back wall (vacuum.js); the rug is a little higher than the floor.
 const FLOOR_FOOD=foodFloorSpots({x0:-4.1,x1:4.1,z0:-2.95,z1:5.3,gap:.5,from:[.3,3.36],rug:{x:-.5,z:1.45,rx:1.6,rz:1.15,y:.08},
- skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65}]});
+ skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65},[-3.15,-2.05,-3.5,-2.3]]});
 const FOOD_LIMIT=FOOD_CART+FLOOR_FOOD.length;
 // Known dishes in their places (anything else is an empty place), at most FOOD_LIMIT, without empty places at the end.
 function cleanFood(list){const out=Array.isArray(list)?list.slice(0,FOOD_LIMIT).map(id=>dishById(id)?id:null):[];while(out.length&&out.at(-1)===null)out.pop();return out;}
 // Where the next dish goes: the first empty place, or the next one; −1 when the room is full.
 function foodSlot(list){const i=list.indexOf(null);return i>=0?i:list.length<FOOD_LIMIT?list.length:-1;}
 function orderFood(list,id){const i=foodSlot(list);if(!dishById(id)||i<0)return list;const out=[...list];out[i]=id;return out;}
-// A dish eaten leaves its place empty. pickFood: which of a kind she eats when she chooses it, the one farthest out (the floor is tidied first).
+// A dish eaten leaves its place empty. pickFood: which one she eats. Food on the floor is always eaten first (the user, 26 November 2026: «når man spiser så
+// velger man alltid mat fra gulvet først»): of a kind, the one farthest out; a tap on one on the trolley takes one like it from the floor if there is one.
 function eatFood(list,slot){if(!list[slot])return list;const out=[...list];out[slot]=null;while(out.length&&out.at(-1)===null)out.pop();return out;}
-function pickFood(list,id){return list.lastIndexOf(id);}
+function pickFood(list,id,slot=-1){const far=list.lastIndexOf(id);if(far>=FOOD_CART)return slot>=FOOD_CART&&list[slot]===id?slot:far;return list[slot]===id?slot:far;}
 const foodCount=list=>list.filter(Boolean).length;
-// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order.
-function foodChoices(list){return DISHES.map(d=>({...d,n:list.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,foodChoices};
+// The robot vacuum has been round: nothing left on the floor (the trolley's six are where they were).
+function clearFloor(list){const out=list.slice(0,FOOD_CART);while(out.length&&out.at(-1)===null)out.pop();return out;}
+// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order; while there is food on the floor, only
+// what is on the floor (the trolley's turn comes when the floor is clear).
+function foodChoices(list){const floor=list.slice(FOOD_CART),from=foodCount(floor)?floor:list;return DISHES.map(d=>({...d,n:from.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,clearFloor,foodChoices};

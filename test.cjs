@@ -110,8 +110,10 @@ assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);a
  assert.deepEqual(DISHES.filter(d=>d.hand).map(d=>d.id),['pizza','burger','sushi'],'the egg is eaten with the spoon');
  let food=[];for(const id of ['pizza','sushi','pizza','kake','egg','burger','burger','egg','pizza'])food=orderFood(food,id);
  assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger','egg','pizza'],'in order, nothing unknown; after six they go on the floor');
- assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza3','burger2','sushi1','egg2'],'each kind once, in the menu\'s order, with how many');
- assert.equal(pickFood(food,'pizza'),7,'the one farthest out is eaten first');food=eatFood(food,1);assert.deepEqual(food,['pizza',null,'pizza','egg','burger','burger','egg','pizza'],'its place is left empty');
+ assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza1','egg1'],'while there is food on the floor, only that: each kind once, in the menu\'s order, with how many');
+ assert.deepEqual(foodChoices(food.slice(0,6)).map(d=>d.id+d.n),['pizza2','burger2','sushi1','egg1'],'then the trolley');
+ assert.equal(pickFood(food,'pizza'),7,'the one farthest out is eaten first');assert.equal(pickFood(food,'pizza',0),7,'a tap on a pizza on the trolley takes the one on the floor');
+ assert.equal(pickFood(food,'burger',4),4,'one that is only on the trolley is that one');assert.equal(pickFood(food,'egg',6),6,'a tap on the floor is that one');food=eatFood(food,1);assert.deepEqual(food,['pizza',null,'pizza','egg','burger','burger','egg','pizza'],'its place is left empty');
  assert.equal(foodSlot(food),1);food=orderFood(food,'egg');assert.equal(food[1],'egg','a new one takes the first empty place');assert.deepEqual(eatFood(food,30),food);
  food=eatFood(eatFood(food,7),6);assert.equal(food.length,6,'no empty places at the end');assert.equal(foodCount([null,'egg',null,'pizza']),2);assert.deepEqual(foodChoices([null]),[]);
  // the floor: the places nearest the trolley first, inside the room, clear of the furniture and of each other, on the rug a little higher; and a limit
@@ -139,6 +141,29 @@ assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);a
  for(const id of ['phone-modal','order-grid','phone-sent','phone-full','phone-count','phone-close','dish-modal','dish-choices','close-dishes'])assert.ok(html.includes(`id="${id}"`),id);
  assert.ok(/modal\.id==='phone-modal'\)closePhone\(\);else if\(modal\.id==='dish-modal'\)/.test(game),'Esc puts them away');}
 console.log('Passed: the white mobile: four dishes, six on the trolley and then the floor up to a hidden limit, each in its own place, each kind once to choose from, out of its place at the first bite, saved, and kept by an undo.');
+// The robot vacuum (vacuum.js, 26 November 2026): a tap starts it; it drives out of the dock, sucks up every dish on the floor (the nearest next), leaves the
+// trolley's six, and backs into the dock again; with an empty floor it takes a little round; a tap while it runs sends it home; out of the house while it
+// runs, the floor is clean when she comes in, and she is told.
+{const {FOOD_CART,FLOOR_FOOD,eatFood,clearFloor}=require('./game-core.js'),said=[],fx=[];let saves=0;
+ const ctx=vm.createContext({Math,Object,state:{food:[],mode:'inside',reduced:false},FOOD_CART,FLOOR_FOOD,eatFood,clearFloor,saveProgress:()=>saves++,
+  gameAudio:{effect:n=>fx.push(n),say:t=>said.push(t)},pickTarget:(list,x,y)=>x==='robot'?list[0]:null,d(){},group(p,s,r,fn){fn();},dishModel(){}});
+ vm.runInContext('var suckingSlot=-1;function floorDishes(){const out=[];for(let slot=FOOD_CART;slot<state.food.length;slot++){const id=state.food[slot];if(id&&slot!==suckingSlot){const f=FLOOR_FOOD[slot-FOOD_CART];out.push({id,slot,base:[f.x,f.y,f.z],yaw:f.yaw});}}return out;}'+fs.readFileSync('vacuum.js','utf8')+';this.vac=vac;this.VAC=VAC;',ctx);
+ const run=(s,dt=1/30)=>{for(let i=0;i<Math.round(s/dt);i++)ctx.updateVacuum(dt);},vac=ctx.vac,ids=['pizza','burger','sushi','egg'];
+ ctx.state.food=Array.from({length:FOOD_CART+40},(_,i)=>ids[i%4]);assert.equal(ctx.tapVacuum('robot',0),true);assert.equal(vac.mode,'out');assert.ok(said.at(-1).startsWith('Støvsugeren starter!'));
+ let n=0,max=0;for(;n<20000&&vac.mode!=='dock';n++){ctx.updateVacuum(1/30);max=Math.max(max,Math.hypot(vac.x,vac.z));assert.ok(Math.abs(vac.x)<4.3&&vac.z>-3&&vac.z<5.5,'in the room');}
+ assert.equal(vac.mode,'dock');assert.equal(ctx.state.food.length,FOOD_CART,'every dish on the floor sucked up, the trolley\'s six left');assert.equal(vac.cleaned,40);
+ assert.ok(n/30<60,'forty dishes in '+(n/30).toFixed(0)+' s');assert.ok(Math.hypot(vac.x-ctx.VAC.dock[0],vac.z-ctx.VAC.dock[2])<1e-9&&vac.yaw===0,'back in the dock, facing out');
+ assert.equal(fx.filter(f=>f==='slurp').length,40);assert.ok(fx.includes('vacuum'));assert.ok(said.at(-1).startsWith('Ferdig! Nå er gulvet rent'));assert.ok(saves>=40,'saved as it goes');
+ ctx.tapVacuum('robot',0);assert.equal(vac.mode,'out');assert.equal(vac.round.length,5,'a little round when the floor is clean');assert.ok(said.at(-1).startsWith('Gulvet er rent allerede'));
+ run(1);ctx.tapVacuum('robot',0);assert.equal(vac.stop,true);assert.equal(said.at(-1),'Støvsugeren kjører hjem til laderen.');run(30);assert.equal(vac.mode,'dock','home when asked');
+ ctx.state.food=Array.from({length:FOOD_CART+60},(_,i)=>ids[i%4]);ctx.tapVacuum('robot',0);run(3);assert.ok(ctx.state.food.length>FOOD_CART);
+ ctx.vacuumAway();assert.equal(vac.mode,'dock');assert.equal(ctx.state.food.length,FOOD_CART,'out of the house: the floor is clean');assert.equal(ctx.suckingSlot,-1);
+ said.length=0;ctx.vacuumWelcome();assert.deepEqual(said,['Mens du var ute, har støvsugeren støvsuget opp all maten på gulvet.']);ctx.vacuumWelcome();assert.equal(said.length,1,'told once');
+ ctx.vacuumAway();ctx.vacuumWelcome();assert.equal(said.length,1,'and not when it was in its dock');
+ assert.deepEqual(clearFloor(['egg',null,'pizza',null,null,null,'sushi']),['egg',null,'pizza']);
+ const src=fs.readFileSync('routines.js','utf8');assert.ok(/updateMeal\(dt\)\{updateOrders\(\);updateVacuum\(dt\);/.test(src)&&/vacuumAway\(\);renderBedConsole\(\);\}/.test(src)&&/if\(tapVacuum\(x,y\)\)return true;/.test(src),'run, put away and tapped from the room');
+ assert.ok(/speak\(insideProgress\(\)\);vacuumWelcome\(\);/.test(fs.readFileSync('game.js','utf8')),'told when she comes in');}
+console.log('Passed: the robot vacuum sucks up every dish on the floor, leaves the trolley, goes home to its dock, takes a round of a clean floor, comes home when asked, and cleans while she is out.');
 // Tooth brushing (teeth.js, 23 November 2026): toothpaste first, every tooth needs a few seconds of brushing however fast the brush goes,
 // the germs let go, the hint blinks when Sofia is stuck, a tap on the cup rinses, and the game says it is done exactly once.
 {const ctx=vm.createContext({Math,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;',ctx);

@@ -318,23 +318,27 @@ function foodFloorSpots({x0,x1,z0,z1,gap,from,skip=[],rug=null}){
   if(skip.some(s=>Array.isArray(s)?x>s[0]&&x<s[1]&&z>s[2]&&z<s[3]:Math.hypot(x-s.x,z-s.z)<s.r))continue;
   const onRug=rug&&((x-rug.x)/rug.rx)**2+((z-rug.z)/rug.rz)**2<1;out.push({x,z,y:onRug?rug.y:0,yaw:(hash(i,j,3)-.5)*1.4,d:Math.hypot(x-from[0],z-from[1])});}
  return out.sort((a,b)=>a.d-b.d).map(({d,...p})=>p);}
-// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley and the
-// planet game's projector in the middle; the rug is a little higher than the floor.
+// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley, the
+// planet game's projector in the middle and the robot vacuum's dock against the back wall (vacuum.js); the rug is a little higher than the floor.
 const FLOOR_FOOD=foodFloorSpots({x0:-4.1,x1:4.1,z0:-2.95,z1:5.3,gap:.5,from:[.3,3.36],rug:{x:-.5,z:1.45,rx:1.6,rz:1.15,y:.08},
- skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65}]});
+ skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65},[-3.15,-2.05,-3.5,-2.3]]});
 const FOOD_LIMIT=FOOD_CART+FLOOR_FOOD.length;
 // Known dishes in their places (anything else is an empty place), at most FOOD_LIMIT, without empty places at the end.
 function cleanFood(list){const out=Array.isArray(list)?list.slice(0,FOOD_LIMIT).map(id=>dishById(id)?id:null):[];while(out.length&&out.at(-1)===null)out.pop();return out;}
 // Where the next dish goes: the first empty place, or the next one; −1 when the room is full.
 function foodSlot(list){const i=list.indexOf(null);return i>=0?i:list.length<FOOD_LIMIT?list.length:-1;}
 function orderFood(list,id){const i=foodSlot(list);if(!dishById(id)||i<0)return list;const out=[...list];out[i]=id;return out;}
-// A dish eaten leaves its place empty. pickFood: which of a kind she eats when she chooses it, the one farthest out (the floor is tidied first).
+// A dish eaten leaves its place empty. pickFood: which one she eats. Food on the floor is always eaten first (the user, 26 November 2026: «når man spiser så
+// velger man alltid mat fra gulvet først»): of a kind, the one farthest out; a tap on one on the trolley takes one like it from the floor if there is one.
 function eatFood(list,slot){if(!list[slot])return list;const out=[...list];out[slot]=null;while(out.length&&out.at(-1)===null)out.pop();return out;}
-function pickFood(list,id){return list.lastIndexOf(id);}
+function pickFood(list,id,slot=-1){const far=list.lastIndexOf(id);if(far>=FOOD_CART)return slot>=FOOD_CART&&list[slot]===id?slot:far;return list[slot]===id?slot:far;}
 const foodCount=list=>list.filter(Boolean).length;
-// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order.
-function foodChoices(list){return DISHES.map(d=>({...d,n:list.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,foodChoices};
+// The robot vacuum has been round: nothing left on the floor (the trolley's six are where they were).
+function clearFloor(list){const out=list.slice(0,FOOD_CART);while(out.length&&out.at(-1)===null)out.pop();return out;}
+// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order; while there is food on the floor, only
+// what is on the floor (the trolley's turn comes when the floor is clear).
+function foodChoices(list){const floor=list.slice(FOOD_CART),from=foodCount(floor)?floor:list;return DISHES.map(d=>({...d,n:from.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,clearFloor,foodChoices};
 
 </script><script>
 /* Tiny dependency-free WebGL renderer: true perspective, depth buffer and lit 3D meshes. */
@@ -708,6 +712,10 @@ class GameAudio {
  case 'phone':[0,.09].forEach((d,i)=>this.tone(1175+i*392,.07,'sine',.035,d));break;
  case 'order':this.swoosh(.45,.045);this.tone(880,.14,'sine',.04,0,1320);break;
  case 'doorbell':[[659,0],[523,.42]].forEach(([f,d])=>{this.tone(f,.75,'sine',.07,d);this.tone(f*2,.4,'sine',.014,d);});break;
+ // The robot vacuum (26 November 2026): a low hum while it runs (again every half second), a slurp for each dish, and a little tune when it starts and stops.
+ case 'vacuum':this.tone(98,.5,'sawtooth',.012,0,104);this.swoosh(.48,.014,false);break;
+ case 'slurp':this.tone(240,.16,'sine',.05,0,900);this.swoosh(.18,.03);break;
+ case 'robot':[523,659,784].forEach((f,i)=>this.tone(f,.13,'sine',.045,i*.09));break;
  case 'scrub':this.swoosh(.13,.028,true);break;
  case 'squeeze':this.tone(230,.32,'triangle',.05,0,140);this.swoosh(.35,.035,false);break;
  case 'rinse':this.swoosh(1.2,.06,false);[0,.22,.44,.66].forEach((d,i)=>this.tone(240+i*40,.12,'sine',.04,.3+d,170));break;
@@ -810,7 +818,7 @@ function insideTitle(){title('INNE HOS SOFIA','Rommet til Sofia','Trykk på bord
  scene.setAttribute('aria-label','Inne i huset til Sofia. Navnet SOFIA står på veggen, med de besøkte planetene under. Senga står til høyre: trykk på den, så legger Sofia seg. Foran står et lite bord med skål og skje og en hvit mobil, og PEG-sekken hennes står på gulvet ved bordet. Dra for å se deg rundt.');}
 function enterHouse(){if(!['home','quiz'].includes(state.mode))return;state.mode='inside';resetFx();resetSleep();resetMeal();state.angle=0;state.dragging=false;showConsole('inside');
  $('world-hint').hidden=false;$('scene-caption').hidden=true;insideTitle();
- tone(300,.1);speak(insideProgress());}
+ tone(300,.1);speak(insideProgress());vacuumWelcome();}
 function drawThumbnail(c,p){PlanetArt.thumbnail(c,p,moonModeOn()&&!p.parent?moonsOf(p.id):[]);}
 function renderMap(){const grid=$('planet-grid');grid.replaceChildren();$('map-note').textContent=moonModeOn()?'Månene går i bane rundt planeten sin. Merkur og Venus har ingen måner. Sola er en stjerne, Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.':'Sola er en stjerne. Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.';for(const p of destinations()){const btn=document.createElement('button');const seen=state.visited.has(p.id);btn.className='planet-card'+(p.parent?' moon-card':'')+(seen?' visited':'')+(state.selected.id===p.id?' selected':'')+(state.location.id===p.id?' current':'');btn.setAttribute('aria-label',`${p.name}. ${p.type}. ${seen?'Besøkt. ':''}${state.location.id===p.id?'Du er her':p.id==='earth'?'Hjem med én gang':formatTime(duration(state.location,p))+' ved vanlig fart'}`);btn.setAttribute('aria-pressed',String(state.selected.id===p.id));btn.dataset.planet=p.id;const c=document.createElement('canvas');c.setAttribute('aria-hidden','true');btn.append(c);drawThumbnail(c,p);const name=document.createElement('b');name.textContent=p.name;btn.append(name);const label=document.createElement('small');label.textContent=state.location.id===p.id?'Du er her':p.type;btn.append(label);if(seen){const s=document.createElement('span');s.className='stamp';s.textContent='✓';s.setAttribute('aria-hidden','true');btn.append(s);}btn.onclick=()=>{state.selected=p;selectPlanet();tone(390,.06);speak(p.name);};grid.append(btn);}selectPlanet();}
 function selectPlanet(){for(const el of $('planet-grid').children){const selected=el.dataset.planet===state.selected.id;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));}const p=state.selected,here=p.id===state.location.id;const sec=duration(state.location,p);$('selection-title').textContent=p.name+' · '+p.type;$('selection-info').textContent=here?'Her er du nå. Velg et nytt sted!':p.id==='earth'?'Hjem igjen med én gang · ingen reisetid':p.id==='sun'?`${formatTime(sec)} · Veldig varm! Raketten vil brenne opp.`:`${formatTime(sec)} fra ${state.location.name.toLowerCase()} · Bokstavkraft gjør turen raskere!`;const route=p.id==='earth'?[]:tripRoute(state.location,p);$('map-route-preview').textContent=route.length?'På veien passerer vi: '+route.map(s=>s.body.name).join(' → '):'';$('launch').disabled=here;$('launch').textContent=here?'Du er her':p.id==='earth'?'⌂ Rett hjem':`Reis til ${p.name}`;}
@@ -1695,6 +1703,8 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
  // the white mobile, and the trolley with the food she has ordered
  group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);floorFood();
+ // the robot vacuum and its dock (vacuum.js)
+ vacuumScene(t);
  // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes. After ten they go on the walls (brushWall).
  const [hx,hy,hz]=MEAL.chart;d('box',[hx,hy,hz],[.78,.5,.02],'#fffaf0');d('box',[hx,hy+.38,hz+.02],[.78,.12,.012],'#79e4e2');
  d('sphere',[hx-.55,hy+.03,hz+.04],[.15,.17,.03],'#ffffff');for(const x of [-.07,.07])d('sphere',[hx-.55+x,hy-.13,hz+.04],[.06,.08,.03],'#ffffff');
@@ -1738,9 +1748,9 @@ function foodLeft(){if(meal.kind!=='spoon'||meal.step==='back'||!meal.dish&&meal
 function glassOfWater(){d('cylinder',[0,0,0],[.074,.084,.074],'#ffde71');d('cylinder',[0,.083,0],[.061,.0025,.061],'#9fd8f0');}
 // ---- Starting, the steps, and stopping ----
 function mealBusy(){return sleep.on||sleep.jump>=0||sleep.k>0||!!meal.kind;}
-// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it), or else the one farthest out (pickFood).
+// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it); pickFood takes one from the floor first.
 function startMeal(kind,dish=null,slot=-1){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;
- if(kind!=='spoon'||!dishById(dish))dish=null;else{if(state.food[slot]!==dish)slot=pickFood(state.food,dish);if(slot<0)dish=null;}
+ if(kind!=='spoon'||!dishById(dish))dish=null;else{slot=pickFood(state.food,dish,slot);if(slot<0)dish=null;}
  Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,slot:dish?slot:-1,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
  if(kind==='spoon'){if(!dish)meal.food=(meal.food+1)%FOODS.length;title('MATTID','Sofia skal spise',`I dag blir det ${foodName()}!`,(mealDish()?.emoji||'🥄')+' Nam nam');gameAudio.say(`Mat! I dag blir det ${foodName()}. Sofia setter seg ved bordet.`,{id:'meal'});}
  else{title('MATTID','Mat med PEG','Maten går gjennom slangen og rett i magen.','🎒 PEG-sekken');gameAudio.say('Nå skal Sofia få mat gjennom PEG-slangen. Hun tar på seg sekken med pumpen.',{id:'meal'});}
@@ -1768,10 +1778,10 @@ function finishMeal(){if(!meal.kind)return;
  if(meal.kind==='peg'){const i=MEAL_STEPS.peg.indexOf(meal.step);if(meal.step==='walk'){endMeal();return;}if(i<=1)return;if(i<=4){meal.step=i<=3?'unplug':'beep';meal.s=0;onStep(meal.step);renderBedConsole();}}} // before the pump has run the tube just comes off
 function endMeal(){if(!meal.kind)return;meal.kind=null;meal.step='';if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};renderBedConsole();insideTitle();}
 function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,slot:-1,taken:false});stopBrushing(true);
- deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;renderBedConsole();}
+ deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;vacuumAway();renderBedConsole();}
 function stepTime(){if(meal.step==='walk'||meal.step==='back'){const [a,b]=walkEnds();return Math.max(.4,Math.hypot(b[0]-a[0],b[2]-a[2])/MEAL.speed);}return MEAL_TIME[meal.step]??Infinity;}
 function walkEnds(){const spot=meal.kind==='spoon'?MEAL.side:MEAL.stand;return meal.step==='walk'?[meal.from,spot]:[spot,BED.idle];}
-function updateMeal(dt){updateOrders();meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
+function updateMeal(dt){updateOrders();updateVacuum(dt);meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
  // A drink from the glass: «glugg» while it is tipped at her mouth, «ahh» when it comes down, then any spoonful that was tapped meanwhile.
  if(meal.step==='eat'&&meal.drink>=0){const was=meal.drink;meal.drink+=dt;if(was<.8&&meal.drink>=.8)gameAudio.effect('glugg');
   if(was<1.45&&meal.drink>=1.45&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Ahh, godt med vann!','Glugg, glugg!','Mmm, deilig vann!'][meal.sips%3],{id:'meal'});meal.sips++;}
@@ -1857,6 +1867,7 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
  if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
+ if(tapVacuum(x,y))return true;
  // The glass and the mobile lie close on a small screen: the one nearer the finger.
  const near=pickTarget([{k:'glass',p:MEAL.cup,r:.1},{k:'phone',p:MEAL.phone,r:.13}],x,y,o=>o.p,o=>o.r,32);
  if(near?.k==='glass'){startMeal('spoon');if(meal.kind==='spoon')meal.drinkNext=true;return true;}
@@ -1926,9 +1937,10 @@ function dishBite(id,[x,y,z]){if(id==='pizza'){sliceMesh();group([x,y+.04,z],[1,
   for(const [px,pz,r] of [[0,.05,.012],[.012,.028,.009]])d('cylinder',[px,.009,pz],[r,.002,r],'#c8382b');});}
  else if(id==='burger'){d('sphere',[x,y+.014,z],[.042,.03,.042],'#e7a556');d('cylinder',[x,y-.008,z],[.045,.009,.045],'#6b3b22');d('cylinder',[x,y-.022,z],[.04,.008,.04],'#d7934a');}
  else if(id==='sushi')sushiPiece([x,y-.028,z],BITES-meal.bites);}
-// The dishes there are to see, each in its place: not those still on their way, nor the one on the table.
+// The dishes there are to see, each in its place: not those still on their way, nor the one on the table, nor the one the robot vacuum is sucking up.
+let suckingSlot=-1;
 function shownFood(from,to){const out=[];for(let slot=from;slot<Math.min(to,state.food.length);slot++){const id=state.food[slot];
- if(id&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
+ if(id&&slot!==suckingSlot&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
 // On the trolley: places 0–5, the top shelf first.
 function cartDishes(){const [cx,,cz]=MEAL.cart;return shownFood(0,FOOD_CART).map(o=>{const base=[cx+(o.slot%3-1)*.4,o.slot<3?.605:.24,cz];return {...o,base,p:[base[0],base[1]+.07,base[2]]};});}
 // On the floor: the places after those, in FLOOR_FOOD (on the rug a little higher).
@@ -1944,7 +1956,8 @@ function foodCart(t){const items=cartDishes();if(!items.length&&!(mealDish()&&me
 // A floor full of food is close to two hundred dishes of a dozen pieces or more: drawn one piece at a time that would be thousands of draws each frame.
 // So the floor's dishes are made into one mesh per colour (as the brushing stars are), again only when a dish comes or goes. bakeShapes: the engine's
 // shapes (box, sphere, cylinder) and the pizza slice, a little coarser; each triangle wound so that it faces out (the software renderer drops the back).
-let bakeShapes=null,floorBuilt={key:null,colours:[]};
+// The floor is made in pieces of FLOOR_CHUNK places, so a dish that goes (the robot vacuum takes one every half second) makes only its own piece again.
+const FLOOR_CHUNK=32;let bakeShapes=null,floorBuilt=[];
 function shapes(){if(bakeShapes)return bakeShapes;
  const tri=(out,a,b,c,na,nb,nc,o)=>{if(dot(cross(sub(b,a),sub(c,a)),o)<0){[b,c]=[c,b];[nb,nc]=[nc,nb];}out.push(...a,...na,...b,...nb,...c,...nc);};
  const flat=(out,a,b,c,n)=>tri(out,a,b,c,n,n,n,n),quad=(out,a,b,c,e,n)=>{flat(out,a,b,c,n);flat(out,a,c,e,n);};
@@ -1964,9 +1977,10 @@ function bakeDishes(items){const base=shapes(),by=new Map(),stack=[M.identity()]
  const nest=(p,s,r,fn)=>{stack.push(M.mul(stack.at(-1),M.model(p,s,r)));try{fn();}finally{stack.pop();}};
  d=record;group=nest;try{for(const o of items)nest(o.base,[.9,.9,.9],[0,o.yaw,0],()=>dishModel(o.id,1,0));}finally{d=drawD;group=drawGroup;}
  return by;}
-function floorFood(){const items=floorDishes(),key=items.map(o=>o.slot+o.id).join();
- if(key!==floorBuilt.key){floorBuilt.colours.forEach((c,k)=>renderer.setMesh('floorFood'+k,[]));floorBuilt={key,colours:[...bakeDishes(items)].map(([colour,data],k)=>{renderer.setMesh('floorFood'+k,data);return colour;})};}
- floorBuilt.colours.forEach((c,k)=>{if(renderer.meshes['floorFood'+k])renderer.draw('floorFood'+k,[0,0,0],[1,1,1],c);});}
+function floorFood(){const items=floorDishes(),chunks=[];for(const o of items)(chunks[Math.floor((o.slot-FOOD_CART)/FLOOR_CHUNK)]??=[]).push(o);
+ for(let c=0;c<Math.ceil(FLOOR_FOOD.length/FLOOR_CHUNK);c++){const list=chunks[c]||[],key=list.map(o=>o.slot+o.id).join(),b=floorBuilt[c]??={key:'',colours:[]};
+  if(key!==b.key){b.colours.forEach((col,k)=>renderer.setMesh(`floorFood${c}_${k}`,[]));b.key=key;b.colours=[...bakeDishes(list)].map(([colour,data],k)=>{renderer.setMesh(`floorFood${c}_${k}`,data);return colour;});}
+  b.colours.forEach((col,k)=>{const name=`floorFood${c}_${k}`;if(renderer.meshes[name])renderer.draw(name,[0,0,0],[1,1,1],col);});}}
 // The doorbell for each order that has come: «Ding dong!», sparkles where it stands, on the trolley or the floor.
 function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=[...cartDishes(),...floorDishes()].find(c=>c.slot===o.slot);
  gameAudio.effect('doorbell');if(spot)burst(spot.p,['#ffde71','#ffffff','#ff9ec4','#79e4e2'],14,1.5,{size:.06});
@@ -2017,6 +2031,78 @@ function stopBrushing(quiet=false){if(!toothGame||!toothGame.running&&state.mode
  if(state.mode==='teeth'){state.mode='inside';showConsole('inside');$('world-hint').hidden=false;insideTitle();if(!quiet)gameAudio.stopSpeech();}}
 $('brush-teeth').onclick=startBrushing;$('teeth-done').onclick=()=>stopBrushing();
 $('teeth-speak').onclick=()=>{const s=toothGame?.step;gameAudio.say((TEETH_TEXT[s]||TEETH_TEXT.paste)[1],{force:true,id:'teeth'});};
+
+</script><script>
+/* The robot vacuum in Sofia's room (26 November 2026). The user: «vi har en svart roborock støvsuger med dock. Vi har anime øyne klistermerke på den.
+   legge den i rommet og hvis man trykker på den så starter den å støvsuge opp all maten. Hvis man starter støvsugeren og går ut av huset så kommer man inn
+   til rent hus.»
+   A round black robot vacuum with a laser tower on top, standing in its black dock against the back wall under the planets, with an anime-eyes sticker on
+   its front: two big eyes with purple irises, shiny highlights and a thick line of lashes. A tap on it, and it drives out of the dock and goes from dish to
+   dish on the floor (always the nearest next), sucking each one up with a slurp, until the floor is clean; then it drives home, turns round and backs into the
+   dock. A tap while it runs sends it home. With nothing on the floor it takes a little round of the rug. It cleans the floor only: the trolley's dishes stay.
+   If Sofia goes out of the house while it runs, the floor is clean when she comes in again (vacuumAway, from resetMeal), and the voice says so.
+   It drives straight, under the table and the bed as real ones do; she and the food on the floor are no obstacles to it. */
+// Where things are: the dock (the middle of the robot in it; the tower is behind it, against the wall), the spot in front of it where it turns, its size
+// (radius, the top's height), its speed (m/s), how fast it turns (rad/s), and how long a dish takes to suck up (s).
+const VAC={dock:[-2.6,0,-2.73],out:[-2.6,0,-2.05],r:.28,h:.115,speed:2.2,turn:9,suck:.2,
+ round:[[-2.6,0,-.9],[-2.6,0,2.75],[1.6,0,2.75],[1.6,0,-.9],[-2.6,0,-2.05]]}; // a little round of the rug, back to the spot in front of the dock
+// mode: 'dock', 'out' (driving out), 'clean', 'round', 'home' (to the spot in front of the dock), 'back' (backing in); target: the place of the dish it is going
+// to; suck: the dish it is sucking up {slot, id, t, base, yaw}; stop: a tap asked it home; cleaned: dishes so far; away: it cleaned while she was out.
+const vac={mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0,target:-1,suck:null,stop:false,round:[],cleaned:0,hum:0,brush:0,away:false};
+const vacTurn=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+// Drive towards p: turn first, then go forward (or backwards, reverse). Returns true when there.
+function vacDrive(p,dt,reverse=false,near=.04){const dx=p[0]-vac.x,dz=p[2]-vac.z,dist=Math.hypot(dx,dz);if(dist<near)return true;
+ const want=Math.atan2(dx,dz)+(reverse?Math.PI:0),turn=vacTurn(vac.yaw,want);vac.yaw+=Math.sign(turn)*Math.min(Math.abs(turn),VAC.turn*dt);
+ if(Math.abs(turn)<.35){const step=Math.min(dist,VAC.speed*(reverse?.5:1)*dt);vac.x+=dx/dist*step;vac.z+=dz/dist*step;}return dist-VAC.speed*dt<near&&Math.abs(turn)<.35;}
+// The nearest dish on the floor (floorDishes in routines.js: not those on their way, nor one on the table).
+function vacNearest(){let best=null,d=Infinity;for(const o of floorDishes()){const e=Math.hypot(o.base[0]-vac.x,o.base[2]-vac.z);if(e<d){d=e;best=o;}}return best;}
+function startVacuum(){if(vac.mode!=='dock')return;const any=floorDishes().length>0;Object.assign(vac,{mode:'out',target:-1,suck:null,stop:false,cleaned:0,hum:0,round:any?[]:VAC.round.map(p=>[...p])});
+ gameAudio.effect('robot');gameAudio.say(any?'Støvsugeren starter! Den suger opp all maten på gulvet.':'Gulvet er rent allerede, men støvsugeren tar en liten runde.',{id:'vacuum'});}
+function homeVacuum(){if(vac.mode==='dock'||vac.stop)return;vac.stop=true;gameAudio.effect('robot');gameAudio.say('Støvsugeren kjører hjem til laderen.',{id:'vacuum'});}
+function updateVacuum(dt){if(vac.mode==='dock')return;vac.brush+=dt*(vac.mode==='back'?4:16);vac.hum-=dt;if(vac.hum<=0){vac.hum=.45;gameAudio.effect('vacuum');}
+ if(vac.suck){vac.suck.t+=dt;if(vac.suck.t>=VAC.suck){state.food=eatFood(state.food,vac.suck.slot);saveProgress();vac.cleaned++;vac.suck=null;suckingSlot=-1;}return;}
+ if(vac.mode==='out'){if(vacDrive(VAC.out,dt))vac.mode=vac.round.length?'round':'clean';return;}
+ if(vac.mode==='clean'){if(vac.stop){vac.mode='home';return;}
+  let dish=floorDishes().find(o=>o.slot===vac.target);if(!dish){dish=vacNearest();vac.target=dish?dish.slot:-1;}if(!dish){vac.mode='home';return;}
+  if(vacDrive(dish.base,dt,false,.05)){vac.suck={slot:dish.slot,id:dish.id,t:0,base:dish.base,yaw:dish.yaw};suckingSlot=dish.slot;vac.target=-1;gameAudio.effect('slurp');}return;}
+ if(vac.mode==='round'){if(vac.stop||!vac.round.length){vac.mode='home';return;}if(vacDrive(vac.round[0],dt,false,.08))vac.round.shift();return;}
+ if(vac.mode==='home'){if(vacDrive(VAC.out,dt))vac.mode='back';return;}
+ // backing into the dock: facing out of it, as it stands there
+ if(vac.mode==='back'&&vacDrive(VAC.dock,dt,true,.02)){Object.assign(vac,{mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0});gameAudio.effect('robot');
+  gameAudio.say(vac.cleaned?'Ferdig! Nå er gulvet rent, og støvsugeren står i laderen igjen.':'Støvsugeren er tilbake i laderen.',{id:'vacuum'});}}
+// A tap on the robot (or its dock): start it, or send it home.
+function tapVacuum(x,y){if(state.mode!=='inside')return false;const hit=pickTarget([{p:[vac.x,.12,vac.z],r:VAC.r},{p:[VAC.dock[0],.3,VAC.dock[2]-.42],r:.25}],x,y,o=>o.p,o=>o.r,34);
+ if(!hit)return false;if(vac.mode==='dock')startVacuum();else homeVacuum();return true;}
+// Out of the house while it runs (or the room is reset): it finishes the floor at once and is back in its dock; she is told when she comes in.
+function vacuumAway(){suckingSlot=-1;if(vac.mode==='dock')return;const had=floorDishes().length>0||!!vac.suck;state.food=clearFloor(state.food);saveProgress();
+ Object.assign(vac,{mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0,target:-1,suck:null,stop:false,round:[],away:vac.away||had});}
+function vacuumWelcome(){if(!vac.away)return;vac.away=false;gameAudio.say('Mens du var ute, har støvsugeren støvsuget opp all maten på gulvet.',{id:'vacuum',queue:true});}
+// ---- The robot and its dock ----
+// The robot in its own coordinates: the middle of its bottom at the origin, the front towards +z.
+function robotModel(t){const black='#1b1d22',lid='#2a2d34',dark='#111216',grey='#4a4e57',r=VAC.r,running=vac.mode!=='dock',spin=state.reduced?0:vac.brush;
+ d('cylinder',[0,.06,0],[r,.05,r],black);d('cylinder',[0,.112,0],[r-.018,.004,r-.018],lid);
+ // the bumper round the front half, a little darker
+ for(let i=-4;i<=4;i++){const a=i*.34;d('box',[Math.sin(a)*(r+.004),.055,Math.cos(a)*(r+.004)],[.038,.035,.008],dark,[0,a,0]);}
+ // the laser tower towards the back, its little window turning while it runs
+ d('cylinder',[0,.14,-.07],[.075,.026,.075],'#15161a');d('cylinder',[0,.167,-.07],[.068,.003,.068],lid);
+ d('box',[Math.sin(spin*.6)*.073,.142,-.07+Math.cos(spin*.6)*.073],[.022,.01,.004],'#3a6fd8',[0,spin*.6,0],running?.7:.2);
+ // two buttons and a light: cyan while it runs, dim white at home
+ d('box',[-.035,.117,.07],[.014,.003,.022],grey);d('box',[.035,.117,.07],[.014,.003,.022],grey);d('sphere',[0,.118,.105],[.012,.003,.012],running?'#79e4e2':'#cfd3da',[],running?1:.3);
+ // the side brush at the front left, turning
+ for(let k=0;k<3;k++){const a=spin+k*2.09;d('box',[-.17+Math.sin(a)*.05,.012,.17+Math.cos(a)*.05],[.004,.003,.05],'#8a8f99',[0,a,0]);}
+ // The anime-eyes sticker on the front: two tall eyes on the curve of the bumper, purple irises, big shiny highlights, a thick line of lashes over each,
+ // with a flick at the outer corner. (Made up: the real sticker's look is not known.)
+ for(const s of [-1,1]){const a=s*.3,x=Math.sin(a)*(r+.012),z=Math.cos(a)*(r+.012);group([x,.064,z],[1,1,1],[0,a,0],()=>{
+  d('sphere',[0,0,0],[.052,.04,.006],'#ffffff');d('sphere',[0,-.004,.003],[.036,.034,.006],'#7b4fe0');d('sphere',[0,-.012,.004],[.03,.022,.006],'#4a2aa8');
+  d('sphere',[0,-.006,.006],[.016,.019,.005],'#140c2e');d('sphere',[-s*.012,.009,.009],[.011,.011,.004],'#ffffff',[],.6);d('sphere',[s*.012,-.02,.009],[.005,.005,.003],'#ffffff',[],.6);
+  d('box',[0,.036,.006],[.054,.007,.004],'#0d0d12',[0,0,-s*.12]);d('box',[s*.056,.03,.006],[.014,.005,.004],'#0d0d12',[0,0,-s*.6]);});}}
+// The dock: a black tower against the wall with a darker front and a light, and a ramp on the floor in front that the robot stands on.
+function dockModel(){const [x,,z]=VAC.dock,back=z-VAC.r-.17;d('box',[x,.26,back],[.24,.26,.13],'#16171b');d('box',[x,.525,back],[.245,.012,.135],'#2a2d34');
+ d('box',[x,.33,back+.132],[.17,.12,.004],'#0f1013');d('sphere',[x,.4,back+.136],[.014,.014,.004],vac.mode==='dock'?'#79e4e2':'#3a3d45',[],vac.mode==='dock'?1:.2);
+ d('box',[x,.006,z-.06],[.3,.006,.3],'#24262c');}
+function vacuumScene(t){dockModel();group([vac.x,0,vac.z],[1,1,1],[0,vac.yaw,0],()=>robotModel(t));
+ // the dish it is sucking up: smaller and smaller, drawn into the robot
+ const s=vac.suck;if(s){const k=Math.min(1,s.t/VAC.suck),e=k*k;group([s.base[0]+(vac.x-s.base[0])*e,s.base[1]+.03*Math.sin(k*Math.PI),s.base[2]+(vac.z-s.base[2])*e],[.9*(1-e),.9*(1-e),.9*(1-e)],[0,s.yaw+k*3,0],()=>dishModel(s.id,1,t));}}
 
 </script><script>
 /* Something fun on every world: short tap games that count up and cannot be lost. */

@@ -69,6 +69,8 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
  // the white mobile, and the trolley with the food she has ordered
  group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);floorFood();
+ // the robot vacuum and its dock (vacuum.js)
+ vacuumScene(t);
  // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes. After ten they go on the walls (brushWall).
  const [hx,hy,hz]=MEAL.chart;d('box',[hx,hy,hz],[.78,.5,.02],'#fffaf0');d('box',[hx,hy+.38,hz+.02],[.78,.12,.012],'#79e4e2');
  d('sphere',[hx-.55,hy+.03,hz+.04],[.15,.17,.03],'#ffffff');for(const x of [-.07,.07])d('sphere',[hx-.55+x,hy-.13,hz+.04],[.06,.08,.03],'#ffffff');
@@ -112,9 +114,9 @@ function foodLeft(){if(meal.kind!=='spoon'||meal.step==='back'||!meal.dish&&meal
 function glassOfWater(){d('cylinder',[0,0,0],[.074,.084,.074],'#ffde71');d('cylinder',[0,.083,0],[.061,.0025,.061],'#9fd8f0');}
 // ---- Starting, the steps, and stopping ----
 function mealBusy(){return sleep.on||sleep.jump>=0||sleep.k>0||!!meal.kind;}
-// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it), or else the one farthest out (pickFood).
+// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it); pickFood takes one from the floor first.
 function startMeal(kind,dish=null,slot=-1){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;
- if(kind!=='spoon'||!dishById(dish))dish=null;else{if(state.food[slot]!==dish)slot=pickFood(state.food,dish);if(slot<0)dish=null;}
+ if(kind!=='spoon'||!dishById(dish))dish=null;else{slot=pickFood(state.food,dish,slot);if(slot<0)dish=null;}
  Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,slot:dish?slot:-1,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
  if(kind==='spoon'){if(!dish)meal.food=(meal.food+1)%FOODS.length;title('MATTID','Sofia skal spise',`I dag blir det ${foodName()}!`,(mealDish()?.emoji||'🥄')+' Nam nam');gameAudio.say(`Mat! I dag blir det ${foodName()}. Sofia setter seg ved bordet.`,{id:'meal'});}
  else{title('MATTID','Mat med PEG','Maten går gjennom slangen og rett i magen.','🎒 PEG-sekken');gameAudio.say('Nå skal Sofia få mat gjennom PEG-slangen. Hun tar på seg sekken med pumpen.',{id:'meal'});}
@@ -142,10 +144,10 @@ function finishMeal(){if(!meal.kind)return;
  if(meal.kind==='peg'){const i=MEAL_STEPS.peg.indexOf(meal.step);if(meal.step==='walk'){endMeal();return;}if(i<=1)return;if(i<=4){meal.step=i<=3?'unplug':'beep';meal.s=0;onStep(meal.step);renderBedConsole();}}} // before the pump has run the tube just comes off
 function endMeal(){if(!meal.kind)return;meal.kind=null;meal.step='';if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};renderBedConsole();insideTitle();}
 function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,slot:-1,taken:false});stopBrushing(true);
- deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;renderBedConsole();}
+ deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;vacuumAway();renderBedConsole();}
 function stepTime(){if(meal.step==='walk'||meal.step==='back'){const [a,b]=walkEnds();return Math.max(.4,Math.hypot(b[0]-a[0],b[2]-a[2])/MEAL.speed);}return MEAL_TIME[meal.step]??Infinity;}
 function walkEnds(){const spot=meal.kind==='spoon'?MEAL.side:MEAL.stand;return meal.step==='walk'?[meal.from,spot]:[spot,BED.idle];}
-function updateMeal(dt){updateOrders();meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
+function updateMeal(dt){updateOrders();updateVacuum(dt);meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
  // A drink from the glass: «glugg» while it is tipped at her mouth, «ahh» when it comes down, then any spoonful that was tapped meanwhile.
  if(meal.step==='eat'&&meal.drink>=0){const was=meal.drink;meal.drink+=dt;if(was<.8&&meal.drink>=.8)gameAudio.effect('glugg');
   if(was<1.45&&meal.drink>=1.45&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Ahh, godt med vann!','Glugg, glugg!','Mmm, deilig vann!'][meal.sips%3],{id:'meal'});meal.sips++;}
@@ -231,6 +233,7 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
  if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
+ if(tapVacuum(x,y))return true;
  // The glass and the mobile lie close on a small screen: the one nearer the finger.
  const near=pickTarget([{k:'glass',p:MEAL.cup,r:.1},{k:'phone',p:MEAL.phone,r:.13}],x,y,o=>o.p,o=>o.r,32);
  if(near?.k==='glass'){startMeal('spoon');if(meal.kind==='spoon')meal.drinkNext=true;return true;}
@@ -300,9 +303,10 @@ function dishBite(id,[x,y,z]){if(id==='pizza'){sliceMesh();group([x,y+.04,z],[1,
   for(const [px,pz,r] of [[0,.05,.012],[.012,.028,.009]])d('cylinder',[px,.009,pz],[r,.002,r],'#c8382b');});}
  else if(id==='burger'){d('sphere',[x,y+.014,z],[.042,.03,.042],'#e7a556');d('cylinder',[x,y-.008,z],[.045,.009,.045],'#6b3b22');d('cylinder',[x,y-.022,z],[.04,.008,.04],'#d7934a');}
  else if(id==='sushi')sushiPiece([x,y-.028,z],BITES-meal.bites);}
-// The dishes there are to see, each in its place: not those still on their way, nor the one on the table.
+// The dishes there are to see, each in its place: not those still on their way, nor the one on the table, nor the one the robot vacuum is sucking up.
+let suckingSlot=-1;
 function shownFood(from,to){const out=[];for(let slot=from;slot<Math.min(to,state.food.length);slot++){const id=state.food[slot];
- if(id&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
+ if(id&&slot!==suckingSlot&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
 // On the trolley: places 0–5, the top shelf first.
 function cartDishes(){const [cx,,cz]=MEAL.cart;return shownFood(0,FOOD_CART).map(o=>{const base=[cx+(o.slot%3-1)*.4,o.slot<3?.605:.24,cz];return {...o,base,p:[base[0],base[1]+.07,base[2]]};});}
 // On the floor: the places after those, in FLOOR_FOOD (on the rug a little higher).
@@ -318,7 +322,8 @@ function foodCart(t){const items=cartDishes();if(!items.length&&!(mealDish()&&me
 // A floor full of food is close to two hundred dishes of a dozen pieces or more: drawn one piece at a time that would be thousands of draws each frame.
 // So the floor's dishes are made into one mesh per colour (as the brushing stars are), again only when a dish comes or goes. bakeShapes: the engine's
 // shapes (box, sphere, cylinder) and the pizza slice, a little coarser; each triangle wound so that it faces out (the software renderer drops the back).
-let bakeShapes=null,floorBuilt={key:null,colours:[]};
+// The floor is made in pieces of FLOOR_CHUNK places, so a dish that goes (the robot vacuum takes one every half second) makes only its own piece again.
+const FLOOR_CHUNK=32;let bakeShapes=null,floorBuilt=[];
 function shapes(){if(bakeShapes)return bakeShapes;
  const tri=(out,a,b,c,na,nb,nc,o)=>{if(dot(cross(sub(b,a),sub(c,a)),o)<0){[b,c]=[c,b];[nb,nc]=[nc,nb];}out.push(...a,...na,...b,...nb,...c,...nc);};
  const flat=(out,a,b,c,n)=>tri(out,a,b,c,n,n,n,n),quad=(out,a,b,c,e,n)=>{flat(out,a,b,c,n);flat(out,a,c,e,n);};
@@ -338,9 +343,10 @@ function bakeDishes(items){const base=shapes(),by=new Map(),stack=[M.identity()]
  const nest=(p,s,r,fn)=>{stack.push(M.mul(stack.at(-1),M.model(p,s,r)));try{fn();}finally{stack.pop();}};
  d=record;group=nest;try{for(const o of items)nest(o.base,[.9,.9,.9],[0,o.yaw,0],()=>dishModel(o.id,1,0));}finally{d=drawD;group=drawGroup;}
  return by;}
-function floorFood(){const items=floorDishes(),key=items.map(o=>o.slot+o.id).join();
- if(key!==floorBuilt.key){floorBuilt.colours.forEach((c,k)=>renderer.setMesh('floorFood'+k,[]));floorBuilt={key,colours:[...bakeDishes(items)].map(([colour,data],k)=>{renderer.setMesh('floorFood'+k,data);return colour;})};}
- floorBuilt.colours.forEach((c,k)=>{if(renderer.meshes['floorFood'+k])renderer.draw('floorFood'+k,[0,0,0],[1,1,1],c);});}
+function floorFood(){const items=floorDishes(),chunks=[];for(const o of items)(chunks[Math.floor((o.slot-FOOD_CART)/FLOOR_CHUNK)]??=[]).push(o);
+ for(let c=0;c<Math.ceil(FLOOR_FOOD.length/FLOOR_CHUNK);c++){const list=chunks[c]||[],key=list.map(o=>o.slot+o.id).join(),b=floorBuilt[c]??={key:'',colours:[]};
+  if(key!==b.key){b.colours.forEach((col,k)=>renderer.setMesh(`floorFood${c}_${k}`,[]));b.key=key;b.colours=[...bakeDishes(list)].map(([colour,data],k)=>{renderer.setMesh(`floorFood${c}_${k}`,data);return colour;});}
+  b.colours.forEach((col,k)=>{const name=`floorFood${c}_${k}`;if(renderer.meshes[name])renderer.draw(name,[0,0,0],[1,1,1],col);});}}
 // The doorbell for each order that has come: «Ding dong!», sparkles where it stands, on the trolley or the floor.
 function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=[...cartDishes(),...floorDishes()].find(c=>c.slot===o.slot);
  gameAudio.effect('doorbell');if(spot)burst(spot.p,['#ffde71','#ffffff','#ff9ec4','#79e4e2'],14,1.5,{size:.06});
