@@ -103,25 +103,67 @@ console.log('Passed: undoing a reset restores every place, star and setting, add
 
 // Tooth brushing stars are kept by an undo too, added to what was brushed since.
 assert.equal(mergeSaves({...fresh,brushed:2},{...before,brushed:5}).brushed,7);assert.equal(mergeSaves(fresh,before).brushed,0);
-// The food she orders on the white mobile (25 November 2026): four dishes, at most six on the trolley, one taken at a time, saved and kept by an undo.
-{const {DISHES,FOOD_MAX,orderFood,eatFood,foodChoices,cleanFood}=require('./game-core.js');
- assert.deepEqual(DISHES.map(d=>d.id),['pizza','burger','sushi','egg']);assert.deepEqual(DISHES.map(d=>d.word),['Pizza','Burger','Sushi','Egg']);assert.equal(FOOD_MAX,6);
+// The food she orders on the white mobile (25 November 2026): four dishes; six on the trolley, then the floor (26 November 2026) up to a limit nobody is told,
+// each dish in its own place (an eaten one leaves its place empty for the next), each kind once to choose from, saved and kept by an undo.
+{const {DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,orderFood,eatFood,pickFood,foodSlot,foodCount,foodChoices,cleanFood}=require('./game-core.js');
+ assert.deepEqual(DISHES.map(d=>d.id),['pizza','burger','sushi','egg']);assert.deepEqual(DISHES.map(d=>d.word),['Pizza','Burger','Sushi','Egg']);assert.equal(FOOD_CART,6);
  assert.deepEqual(DISHES.filter(d=>d.hand).map(d=>d.id),['pizza','burger','sushi'],'the egg is eaten with the spoon');
  let food=[];for(const id of ['pizza','sushi','pizza','kake','egg','burger','burger','egg','pizza'])food=orderFood(food,id);
- assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger'],'in order, nothing unknown, full at six');
- assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza2','burger2','sushi1','egg1'],'each kind once, in the menu\'s order, with how many');
- food=eatFood(food,'pizza');assert.deepEqual(food,['sushi','pizza','egg','burger','burger']);assert.deepEqual(eatFood(food,'kake'),food);assert.deepEqual(foodChoices([]),[]);
- assert.deepEqual(cleanFood(['egg','kake',7,'sushi']),['egg','sushi']);assert.deepEqual(cleanFood('pizza'),[]);assert.equal(cleanFood(Array(9).fill('egg')).length,6);
- assert.deepEqual(mergeSaves({...fresh,food:['egg']},{...before,food:['pizza','sushi']}).food,['pizza','sushi','egg'],'an undo keeps both');
- assert.deepEqual(mergeSaves(fresh,{...before,food:'x'}).food,[]);assert.equal(mergeSaves({food:Array(4).fill('egg')},{food:Array(4).fill('pizza')}).food.length,6);
- const src=fs.readFileSync('routines.js','utf8'),game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
+ assert.deepEqual(food,['pizza','sushi','pizza','egg','burger','burger','egg','pizza'],'in order, nothing unknown; after six they go on the floor');
+ assert.deepEqual(foodChoices(food).map(d=>d.id+d.n),['pizza1','egg1'],'while there is food on the floor, only that: each kind once, in the menu\'s order, with how many');
+ assert.deepEqual(foodChoices(food.slice(0,6)).map(d=>d.id+d.n),['pizza2','burger2','sushi1','egg1'],'then the trolley');
+ assert.equal(pickFood(food,'pizza'),7,'the one farthest out is eaten first');assert.equal(pickFood(food,'pizza',0),7,'a tap on a pizza on the trolley takes the one on the floor');
+ assert.equal(pickFood(food,'burger',4),4,'one that is only on the trolley is that one');assert.equal(pickFood(food,'egg',6),6,'a tap on the floor is that one');food=eatFood(food,1);assert.deepEqual(food,['pizza',null,'pizza','egg','burger','burger','egg','pizza'],'its place is left empty');
+ assert.equal(foodSlot(food),1);food=orderFood(food,'egg');assert.equal(food[1],'egg','a new one takes the first empty place');assert.deepEqual(eatFood(food,30),food);
+ food=eatFood(eatFood(food,7),6);assert.equal(food.length,6,'no empty places at the end');assert.equal(foodCount([null,'egg',null,'pizza']),2);assert.deepEqual(foodChoices([null]),[]);
+ // the floor: the places nearest the trolley first, inside the room, clear of the furniture and of each other, on the rug a little higher; and a limit
+ assert.ok(FLOOR_FOOD.length>=150,'room to fill the floor: '+FLOOR_FOOD.length);assert.equal(FOOD_LIMIT,FOOD_CART+FLOOR_FOOD.length);
+ const near=([x,z])=>Math.hypot(x-.3,z-3.36);for(let i=1;i<FLOOR_FOOD.length;i++)assert.ok(near([FLOOR_FOOD[i].x,FLOOR_FOOD[i].z])>=near([FLOOR_FOOD[i-1].x,FLOOR_FOOD[i-1].z]),'nearest the trolley first');
+ const src0=fs.readFileSync('routines.js','utf8'),MEAL=eval('('+src0.match(/const MEAL=(\{[\s\S]*?\});/)[1]+')'),BED={idle:[1.7,0,2.05]};
+ for(const f of FLOOR_FOOD){assert.ok(Math.abs(f.x)<4.2&&f.z>-3.1&&f.z<5.4,'on the floor');
+  for(const [p,r,what] of [[MEAL.table,.85,'table'],[MEAL.chair,.45,'chair'],[MEAL.bag,.4,'backpack'],[MEAL.cart,.4,'trolley'],[[-3.45,0,1.25],.6,'desk'],[[3.05,0,-.5],1.2,'bed'],[[0,0,-.6],.6,'projector']])
+   assert.ok(Math.hypot(f.x-p[0],f.z-p[2])>r,`clear of the ${what} at (${f.x.toFixed(2)}, ${f.z.toFixed(2)})`);
+  assert.ok(f.y===0||f.y===.08);}
+ for(let i=0;i<FLOOR_FOOD.length;i++)for(let j=i+1;j<FLOOR_FOOD.length;j++)assert.ok(Math.hypot(FLOOR_FOOD[i].x-FLOOR_FOOD[j].x,FLOOR_FOOD[i].z-FLOOR_FOOD[j].z)>.35,'a dish\'s room each');
+ assert.ok(FLOOR_FOOD.some(f=>f.y>0)&&FLOOR_FOOD.some(f=>f.y===0),'some on the rug');assert.deepEqual(foodFloorSpots({x0:0,x1:1,z0:0,z1:0,gap:.5,from:[1,0]}).map(f=>Math.round(f.x*2)+0),[2,1,0]);
+ food=[];for(let i=0;i<FOOD_LIMIT+5;i++)food=orderFood(food,'egg');assert.equal(food.length,FOOD_LIMIT,'full at the limit');assert.equal(foodSlot(food),-1);
+ assert.deepEqual(cleanFood(['egg','kake',7,'sushi']),['egg',null,null,'sushi'],'an unknown dish leaves an empty place');assert.deepEqual(cleanFood([null,'egg',null,null]),[null,'egg']);
+ assert.deepEqual(cleanFood('pizza'),[]);assert.equal(cleanFood(Array(FOOD_LIMIT+9).fill('egg')).length,FOOD_LIMIT);
+ assert.deepEqual(mergeSaves({...fresh,food:['egg']},{...before,food:['pizza',null,'sushi']}).food,['pizza','sushi','egg'],'an undo keeps both');
+ assert.deepEqual(mergeSaves(fresh,{...before,food:'x'}).food,[]);assert.equal(mergeSaves({food:Array(150).fill('egg')},{food:Array(150).fill('pizza')}).food.length,FOOD_LIMIT);
+ const src=src0,game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
  assert.ok(/progressData\(\)\{return \{[^}]*food:\[\.\.\.state\.food\]/.test(game)&&/state\.food=cleanFood\(saved\?\.food\)/.test(game),'saved with the progress');
- assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.dish\);saveProgress\(\);\}/.test(src),'off the trolley at the first bite');
+ assert.ok(/meal\.bites\+\+;gameAudio\.effect\('nam'\);if\(meal\.dish&&!meal\.taken\)\{meal\.taken=true;state\.food=eatFood\(state\.food,meal\.slot\);saveProgress\(\);\}/.test(src),'out of its place at the first bite');
  assert.ok(/\$\('eat-spoon'\)\.onclick=\(\)=>chooseMeal\(\);/.test(src)&&/if\(!list\.length\)\{startMeal\('spoon'\);return;\}/.test(src),'«Spise» asks only when there is food to choose from');
  assert.ok(/openPhone\(true\)/.test(src)&&/chooseMeal\(true\)/.test(src)&&/function guardTap/.test(src),'windows opened by a tap ignore the finger until it is lifted');
+ assert.ok(/pickTarget\(floorDishes\(\),x,y/.test(src)&&/startMeal\('spoon',dish\.id,dish\.slot\)/.test(src),'a dish on the floor is eaten with a tap');
+ assert.ok(!/FOOD_LIMIT|188|194/.test(html)&&!/av \$\{FOOD/.test(src),'the limit is not shown');assert.ok(/d=record;group=nest;try\{/.test(src)&&/finally\{d=drawD;group=drawGroup;\}/.test(src),'the floor is one mesh per colour, and drawing is put back');
  for(const id of ['phone-modal','order-grid','phone-sent','phone-full','phone-count','phone-close','dish-modal','dish-choices','close-dishes'])assert.ok(html.includes(`id="${id}"`),id);
  assert.ok(/modal\.id==='phone-modal'\)closePhone\(\);else if\(modal\.id==='dish-modal'\)/.test(game),'Esc puts them away');}
-console.log('Passed: the white mobile: four dishes, six on the trolley, in order, each kind once to choose from, off the trolley at the first bite, saved, and kept by an undo.');
+console.log('Passed: the white mobile: four dishes, six on the trolley and then the floor up to a hidden limit, each in its own place, each kind once to choose from, out of its place at the first bite, saved, and kept by an undo.');
+// The robot vacuum (vacuum.js, 26 November 2026): a tap starts it; it drives out of the dock, sucks up every dish on the floor (the nearest next), leaves the
+// trolley's six, and backs into the dock again; with an empty floor it takes a little round; a tap while it runs sends it home; out of the house while it
+// runs, the floor is clean when she comes in, and she is told.
+{const {FOOD_CART,FLOOR_FOOD,eatFood,clearFloor}=require('./game-core.js'),said=[],fx=[];let saves=0;
+ const ctx=vm.createContext({Math,Object,state:{food:[],mode:'inside',reduced:false},FOOD_CART,FLOOR_FOOD,eatFood,clearFloor,saveProgress:()=>saves++,
+  gameAudio:{effect:n=>fx.push(n),say:t=>said.push(t)},pickTarget:(list,x,y)=>x==='robot'?list[0]:null,d(){},group(p,s,r,fn){fn();},dishModel(){}});
+ vm.runInContext('var suckingSlot=-1;function floorDishes(){const out=[];for(let slot=FOOD_CART;slot<state.food.length;slot++){const id=state.food[slot];if(id&&slot!==suckingSlot){const f=FLOOR_FOOD[slot-FOOD_CART];out.push({id,slot,base:[f.x,f.y,f.z],yaw:f.yaw});}}return out;}'+fs.readFileSync('vacuum.js','utf8')+';this.vac=vac;this.VAC=VAC;',ctx);
+ const run=(s,dt=1/30)=>{for(let i=0;i<Math.round(s/dt);i++)ctx.updateVacuum(dt);},vac=ctx.vac,ids=['pizza','burger','sushi','egg'];
+ ctx.state.food=Array.from({length:FOOD_CART+40},(_,i)=>ids[i%4]);assert.equal(ctx.tapVacuum('robot',0),true);assert.equal(vac.mode,'out');assert.ok(said.at(-1).startsWith('Støvsugeren starter!'));
+ let n=0,max=0;for(;n<20000&&vac.mode!=='dock';n++){ctx.updateVacuum(1/30);max=Math.max(max,Math.hypot(vac.x,vac.z));assert.ok(Math.abs(vac.x)<4.3&&vac.z>-3&&vac.z<5.5,'in the room');}
+ assert.equal(vac.mode,'dock');assert.equal(ctx.state.food.length,FOOD_CART,'every dish on the floor sucked up, the trolley\'s six left');assert.equal(vac.cleaned,40);
+ assert.ok(n/30<60,'forty dishes in '+(n/30).toFixed(0)+' s');assert.ok(Math.hypot(vac.x-ctx.VAC.dock[0],vac.z-ctx.VAC.dock[2])<1e-9&&vac.yaw===0,'back in the dock, facing out');
+ assert.equal(fx.filter(f=>f==='slurp').length,40);assert.ok(fx.includes('vacuum'));assert.ok(said.at(-1).startsWith('Ferdig! Nå er gulvet rent'));assert.ok(saves>=40,'saved as it goes');
+ ctx.tapVacuum('robot',0);assert.equal(vac.mode,'out');assert.equal(vac.round.length,5,'a little round when the floor is clean');assert.ok(said.at(-1).startsWith('Gulvet er rent allerede'));
+ run(1);ctx.tapVacuum('robot',0);assert.equal(vac.stop,true);assert.equal(said.at(-1),'Støvsugeren kjører hjem til laderen.');run(30);assert.equal(vac.mode,'dock','home when asked');
+ ctx.state.food=Array.from({length:FOOD_CART+60},(_,i)=>ids[i%4]);ctx.tapVacuum('robot',0);run(3);assert.ok(ctx.state.food.length>FOOD_CART);
+ ctx.vacuumAway();assert.equal(vac.mode,'dock');assert.equal(ctx.state.food.length,FOOD_CART,'out of the house: the floor is clean');assert.equal(ctx.suckingSlot,-1);
+ said.length=0;ctx.vacuumWelcome();assert.deepEqual(said,['Mens du var ute, har støvsugeren støvsuget opp all maten på gulvet.']);ctx.vacuumWelcome();assert.equal(said.length,1,'told once');
+ ctx.vacuumAway();ctx.vacuumWelcome();assert.equal(said.length,1,'and not when it was in its dock');
+ assert.deepEqual(clearFloor(['egg',null,'pizza',null,null,null,'sushi']),['egg',null,'pizza']);
+ const src=fs.readFileSync('routines.js','utf8');assert.ok(/updateMeal\(dt\)\{updateOrders\(\);updateVacuum\(dt\);/.test(src)&&/vacuumAway\(\);renderBedConsole\(\);\}/.test(src)&&/if\(tapVacuum\(x,y\)\)return true;/.test(src),'run, put away and tapped from the room');
+ assert.ok(/speak\(insideProgress\(\)\);vacuumWelcome\(\);/.test(fs.readFileSync('game.js','utf8')),'told when she comes in');}
+console.log('Passed: the robot vacuum sucks up every dish on the floor, leaves the trolley, goes home to its dock, takes a round of a clean floor, comes home when asked, and cleans while she is out.');
 // Tooth brushing (teeth.js, 23 November 2026): toothpaste first, every tooth needs a few seconds of brushing however fast the brush goes,
 // the germs let go, the hint blinks when Sofia is stuck, a tap on the cup rinses, and the game says it is done exactly once.
 {const ctx=vm.createContext({Math,performance:{now:()=>0}});vm.runInContext(fs.readFileSync('teeth.js','utf8')+';this.createToothGame=createToothGame;',ctx);
@@ -258,18 +300,25 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.ok(/const brushStarsOnWall=\(\)=>Math\.max\(0,state\.brushed-10\);/.test(src),'after the ten on the chart');
  console.log(`Passed: brushing stars without limit: ${onBack} fill the chart's wall first (the nearest first), then the right and left walls, then the gaps (5000 in ${ms.toFixed(0)} ms), clear of everything on the walls.`);}
 
-// Sofia's look (sofia.js): her curls frame her face without covering her eyes or eyebrows, the ringlets in front hang beside her face, the long hair at
-// the back is tucked away while the PEG backpack is on, and with calmer effects she does not blink. Every script is in the page, the build and the server.
+// Sofia's look (sofia.js, 26 November 2026: as in the car game): the fringe and the hair leave her eyes free, the pigtails hang beside her face, the long
+// hair at the back is drawn up out of the way while the PEG backpack is on, the colours are the car game's, and with calmer effects she does not blink.
+// Every script is in the page, the build and the server.
 {const draws=[],faces=[],g2d=new Proxy({},{get:()=>()=>({addColorStop(){}})});
- const ctx=vm.createContext({Math,state:{reduced:true},santaSeason:()=>false,d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7])},document:{createElement:()=>({getContext:()=>g2d})}});
- vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;',ctx);
- for(const h of ctx.SOFIA_HAIR.clumps)if(h.p[2]+h.s[2]>.15)assert.ok(Math.abs(h.p[0])-h.s[0]>=.15||h.p[1]-h.s[1]>=.07,'a curl over her eyes or eyebrows: '+h.p.join(','));
- for(const h of ctx.SOFIA_HAIR.curls.filter(c=>c.front))assert.ok(Math.abs(h.p[0])>.25);
- ctx.sofiaHead(1.3+4.1*3+.05,{});const loose=draws.length;assert.deepEqual([...ctx.sofiaFaces.keys()],['open|smile']);
- draws.length=0;ctx.sofiaHead(0,{tucked:1});assert.ok(draws.length<loose-20,String(draws.length));assert.equal(draws.filter(x=>x.p[2]<-.08&&x.p[1]<-.12).length,0);
- const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
+ const ctx=vm.createContext({Math,state:{reduced:true},santaSeason:()=>false,d:(mesh,p,s)=>draws.push({mesh,p,s}),group:(p,s,r,fn)=>fn(),renderer:{draw:(...a)=>faces.push(a[7]),meshes:{skirt:1}},document:{createElement:()=>({getContext:()=>g2d})}});
+ vm.runInContext(fs.readFileSync('sofia.js','utf8')+';this.SOFIA=SOFIA;this.SOFIA_HAIR=SOFIA_HAIR;this.sofiaHead=sofiaHead;this.sofiaFaces=sofiaFaces;this.character=character;',ctx);
+ const girl=fs.readFileSync('../Sofiatur/dist/girl.js','utf8');for(const k of ['skin','hair','top','skirt','hem','sock','shoe','tie'])if(fs.existsSync('../Sofiatur/dist/girl.js'))assert.ok(girl.includes(`'${ctx.SOFIA[k]}'`),'the car game\'s '+k);
+ // the eyes on the face picture (.38 rad out, from .22 rad down to .16 up, .13 wide): no piece of hair over any part of them
+ const onHead=(u,v)=>[.31*Math.cos(v)*Math.sin(u),.32*Math.sin(v),.29*Math.cos(v)*Math.cos(u)];
+ for(const h of ctx.SOFIA_HAIR.pieces)for(const s of [-1,1])for(const [du,dv] of [[0,0],[0,.16],[0,-.22],[.13,0],[-.13,0],[.09,.12],[-.09,.12]]){const e=onHead(s*.38+du,-.03+dv),r=-(h.r||0),c=Math.cos(r),n=Math.sin(r);
+  const x=e[0]-h.p[0],y=e[1]-h.p[1],q=[x*c-y*n,x*n+y*c,e[2]-h.p[2]];assert.ok((q[0]/h.s[0])**2+(q[1]/h.s[1])**2+(q[2]/h.s[2])**2>1,`hair over her ${s<0?'right':'left'} eye: ${h.p.join(',')}`);}
+ for(const t of ctx.SOFIA_HAIR.pigtails)assert.ok(Math.abs(t.p[0])>.29&&t.p[2]<0,'pigtails beside her face');
+ ctx.sofiaHead(1.3+4.1*3+.05,{});const loose=draws.slice();assert.deepEqual([...ctx.sofiaFaces.keys()],['open|smile'],'no blinking with calmer effects');
+ const bottom=list=>Math.min(...list.filter(x=>x.mesh==='sphere'&&x.p[2]<-.08).map(x=>x.p[1]-x.s[1]));
+ draws.length=0;ctx.sofiaHead(0,{tucked:1});assert.ok(bottom(loose)<-.4&&bottom(draws)>-.12,`the long hair at the back up for the backpack (${bottom(loose).toFixed(2)} → ${bottom(draws).toFixed(2)})`);
+ draws.length=0;ctx.character(0,false,false,{});assert.ok(draws.some(x=>x.mesh==='skirt')&&draws.filter(x=>x.mesh==='box'&&Math.abs(x.s[2]-.15)<1e-9).length===2,'a skirt, and two shoes');
+const html=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([\w.-]+\.js)"><\/script>/g)].map(m=>m[1]),build=fs.readFileSync('build.cjs','utf8'),server=fs.readFileSync('server.cjs','utf8');
  assert.ok(html.includes('sofia.js')&&html.indexOf('sofia.js')<html.indexOf('duck.js'));for(const f of html){assert.ok(build.includes(`'${f}'`),f+' in build.cjs');assert.ok(server.includes(`'${f}'`),f+' in server.cjs');}
- console.log(`Passed: Sofia's curls leave her eyes and eyebrows free, the hair at the back makes room for the backpack (${loose} → ${draws.length} pieces), no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
+ console.log(`Passed: Sofia as in the car game (its colours, a fringe and pigtails that leave her eyes free, a skirt), the hair at the back up for the backpack, no blinking with calmer effects, and all ${html.length} scripts are built and served.`);}
 
 // The Santa hat (24 November 2026): all through December, from the device's calendar, or on any day with ?jul=1 (and never with ?jul=0). It sits on top of her
 // curls well above her eyebrows, lies on the pillow in bed, and is on her in the rocket's window and on the space suit's helmet. The red part is a tube that
@@ -335,7 +384,7 @@ console.log('Passed: new Norwegian voice in the speech queue, sentence pauses, l
  assert.deepEqual(core.mergeVowelClusters(['h','a','ɪ',' ','a','ʊ','a'],[['a','ɪ'],['a','ʊ']]),['h','aɪ',' ','aʊ','a']);assert.equal(core.cleanText('🦆 Hei, ★ Sofia! ☀ [[x]]'),'Hei, Sofia! x');
  // The food on the mobile as the clips say it, with make-voice.mjs's PHONEME_FIXES: «pitsa», «børger», «sushi» with sj, and «mobilen» stressed on «bi».
  const said=t=>core.fixPhonemes(ipa(t),make.PHONEME_FIXES);
- for(const [word,expected] of [['pizza','pˈɪtsɑ'],['pizzaen','pˈɪtsɑən'],['burger','bˈœrɡər'],['burgeren','bˈœrɡərən'],['sushi','sˈʉːʃiː'],['sushien','sˈʉːʃiːʲən'],['mobilen','mʊbˈiːlən'],['trillebordet','trˈɪləbˌuːrda']])assert.equal(said(word),expected,word);
+ for(const [word,expected] of [['pizza','pˈɪtsɑ'],['pizzaen','pˈɪtsɑən'],['burger','bˈœrɡər'],['burgeren','bˈœrɡərən'],['sushi','sˈʉːʃiː'],['sushien','sˈʉːʃiːʲən'],['mobilen','mʊbˈiːlən'],['trillebordet','trˈɪləbˌuːrda'],['støvsugeren','stˈœvsʉːɡərən'],['laderen','lˈɑːdərən']])assert.equal(said(word),expected,word);
  // What the voice learned stays as espeak says it: ʲ between vowels («Vi er»), «igjen».
  assert.equal(said('Vi er fremme.'),'viːʲ ˌɛːr frˈɛmma');assert.equal(said('igjen'),'ˈɪjən');
  // The player (ClipVoice) with a pretend network, cache and MP3 decoder: a clip decodes to as many samples as it has bytes.

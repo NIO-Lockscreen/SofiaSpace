@@ -180,7 +180,7 @@
 <div id="pause-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal small-modal"><div class="eyebrow">EN LITEN PUSTEPAUSE</div><h2 id="pause-title">Raketten venter på deg</h2><p>Eventyret fortsetter akkurat der du var.</p><button class="primary" id="resume">Fortsett reisen ▶</button><button class="secondary" id="cancel-trip" style="width:100%;margin-top:15px">Avbryt og dra hjem</button></div></div>
 <div id="settings-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden><div class="modal small-modal"><div class="modal-head"><h2 id="settings-title">For store og små</h2><button class="icon-btn" id="close-settings" aria-label="Lukk innstillinger">✕</button></div><div class="setting-row"><span>Hjelp med neste bokstav</span><button class="toggle on" id="hint-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Les bokstaver og fakta høyt</span><button class="toggle on" id="voice-toggle" aria-pressed="true">På</button></div><div class="setting-row"><span>Piper-stemme (av: iPadens egen)</span><button class="toggle on" id="neural-toggle" aria-pressed="true">På</button></div><p class="pause-note" id="voice-note" aria-live="polite">Opplesning bruker en norsk stemme hvis enheten har det. Spillet fungerer også uten lyd.</p><div class="setting-row"><span>Roligere effekter</span><button class="toggle" id="motion-toggle" aria-pressed="false">Av</button></div><p>Trykk på bokstavene i navnet. Riktig bokstav gir mer fart. Feil bremser litt, og du kan prøve igjen. Du kommer frem selv uten å skrive!</p><p class="pause-note">Det finnes ingen fartsgrense: jo raskere Sofia staver, jo fortere flyr raketten. Stopper hun opp, glir farten rolig tilbake til vanlig fart.</p><p class="pause-note">Nærmeste planet i spillet, Venus, tar 1 minutt fra jorda ved vanlig fart. Mars tar 1 minutt og 10 sekunder, og Pluto tar 5 minutter. Avstander er forenklet med gjennomsnittlige planetbaner. Vi følger en forenklet reiserute for å lære planetenes rekkefølge. I virkeligheten står ikke planetene på rekke, og man trenger ikke fly forbi alle på vei utover. Dette er ikke virkelige avstander eller reisetider.</p><p class="pause-note">På gass- og iskjempene flyr vi forbi: de har ingen fast overflate vi kan lande på. Ved sola brenner raketten opp. Sofia kommer trygt hjem i en redningskapsel.</p><p class="pause-note">På hver planet venter en lek: meteorer på Merkur, skyer på Venus, robotbil på Mars, måner å telle ved Jupiter, is i Saturns ringer, diamantregn ved Uranus, bokstavstorm ved Neptun og snømann på Pluto. På månene kan Sofia hoppe høyt. Ingen av lekene kan tapes. Inne i huset står Planetspillet: se en planet og trykk på riktig navn. Det begynner med to navn og får flere etter hvert som Sofia leser mer. Trykk på senga, så legger Sofia seg og drømmer om planeter og kometer. Ved bordet kan hun spise med skje, eller få mat gjennom PEG-slangen med pumpen i sekken. I tannpusslek pusser hun alle tennene til de skinner, og får en stjerne på tannpusskartet.</p><p class="pause-note" id="rewards-info"></p><p class="pause-note">Knappen for stor skjerm øverst til høyre rydder bort overskriften slik at 3D-bildet fyller alt. Dobbelttrykk på bildet gjør det samme. Trykk på knappen igjen for å gå tilbake. Nettlesere som tillater ekte fullskjerm bruker den i tillegg.</p><p class="pause-note">Sofias oppdagelser og rakettbelønninger lagres på denne enheten.</p><p class="pause-note">Fakta: <a href="https://science.nasa.gov/solar-system/planets/" target="_blank" rel="noopener">NASA – planetene</a> · <a href="https://science.nasa.gov/dwarf-planets/pluto/" target="_blank" rel="noopener">Pluto</a></p><div class="reset-box"><h3>Starte på nytt</h3><p class="pause-note">For voksne: sletter oppdagelser, belønninger og stjerner på denne enheten. Du får spørsmål før noe slettes, og kan angre etterpå.</p><div class="reset-actions"><button class="danger-soft" id="open-reset">Nullstill fremgang …</button><button class="secondary" id="undo-reset" hidden>↶ Angre nullstilling</button></div></div></div></div>
 <div id="reset-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="reset-title" hidden><div class="modal small-modal reset-modal"><div class="modal-head"><h2 id="reset-title">Starte helt på nytt?</h2><button class="icon-btn" id="close-reset" aria-label="Avbryt">✕</button></div><p id="reset-summary"></p><p class="pause-note">For voksne: skriv svaret på regnestykket for å låse opp knappen.</p><label class="reset-gate"><span id="reset-question">7 × 8 =</span><input id="reset-answer" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Svar på regnestykket"></label><button class="danger" id="confirm-reset" disabled>Slett fremgangen</button><button class="primary" id="cancel-reset">Nei, behold alt</button><p class="pause-note">Etterpå kan du angre med «Angre nullstilling» i innstillingene.</p></div></div>
-<div id="phone-modal" class="modal-shade phone-shade" role="dialog" aria-modal="true" aria-labelledby="phone-title" hidden><div class="phone"><div class="phone-top" aria-hidden="true"><span class="phone-cam"></span></div><div class="phone-screen"><div id="phone-menu" class="phone-page"><div class="phone-app">🛵 Matbud</div><h2 id="phone-title">Hva vil du bestille?</h2><div id="order-grid" class="order-grid" role="group" aria-label="Mat"></div><p id="phone-full" class="phone-full" hidden>Trillebordet er fullt. Spis litt først!</p><p id="phone-count" class="phone-count"></p></div><div id="phone-sent" class="phone-page phone-sent" role="status" hidden><span id="sent-emoji" class="sent-emoji" aria-hidden="true">🍕</span><h2><span id="sent-what">Pizza</span> er bestilt!</h2><p>🛵 Maten er på vei.</p></div></div><button id="phone-close" class="phone-home">Legg bort mobilen</button></div></div>
+<div id="phone-modal" class="modal-shade phone-shade" role="dialog" aria-modal="true" aria-labelledby="phone-title" hidden><div class="phone"><div class="phone-top" aria-hidden="true"><span class="phone-cam"></span></div><div class="phone-screen"><div id="phone-menu" class="phone-page"><div class="phone-app">🛵 Matbud</div><h2 id="phone-title">Hva vil du bestille?</h2><div id="order-grid" class="order-grid" role="group" aria-label="Mat"></div><p id="phone-full" class="phone-full" hidden>Rommet er fullt av mat. Spis litt først!</p><p id="phone-count" class="phone-count"></p></div><div id="phone-sent" class="phone-page phone-sent" role="status" hidden><span id="sent-emoji" class="sent-emoji" aria-hidden="true">🍕</span><h2><span id="sent-what">Pizza</span> er bestilt!</h2><p>🛵 Maten er på vei.</p></div></div><button id="phone-close" class="phone-home">Legg bort mobilen</button></div></div>
 <div id="dish-modal" class="modal-shade" role="dialog" aria-modal="true" aria-labelledby="dish-title" hidden><div class="modal small-modal dish-modal"><div class="modal-head"><h2 id="dish-title">Hva vil du spise?</h2><button class="icon-btn" id="close-dishes" aria-label="Lukk">✕</button></div><div id="dish-choices" class="dish-choices"></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div><div id="fallback" class="fallback" hidden><h2>Vi får ikke startet 3D akkurat nå</h2><p>Prøv å laste siden på nytt i Safari på iPaden. Hvis du åpnet spillet i en filvisning, åpne nettadressen i Safari i stedet.</p><button class="primary" onclick="location.reload()">Prøv igjen</button></div>
 </main><script>
@@ -269,7 +269,7 @@ function quizRound(correct,recent=[],rand=Math.random){const count=quizChoiceCou
 // Undoing a reset folds the saved progress back in, so nothing found since the reset is lost either.
 function mergeSaves(now,old){const list=k=>[...new Set([...(Array.isArray(old?.[k])?old[k]:[]),...(Array.isArray(now?.[k])?now[k]:[])])],count=k=>(Number.isFinite(old?.[k])?old[k]:0)+(Number.isFinite(now?.[k])?now[k]:0);
  return {visited:list('visited'),played:list('played'),quizStars:count('quizStars'),quizCorrect:count('quizCorrect'),shipColor:old?.shipColor??now?.shipColor,moonMode:old?.moonMode??now?.moonMode,ship:old?.ship??now?.ship,brushed:count('brushed'),
-  food:cleanFood([...(Array.isArray(old?.food)?old.food:[]),...(Array.isArray(now?.food)?now.food:[])])};}
+  food:cleanFood([...(Array.isArray(old?.food)?old.food:[]),...(Array.isArray(now?.food)?now.food:[])].filter(id=>dishById(id)))};}
 // A tap on the bed while Sofia is awake and standing (24 November 2026): the first time each time the game is opened she jumps on it; after that a tap
 // has a BED_JUMP_AGAIN (20 %) chance of another jump, and otherwise she goes to bed. r is a random number from 0 to 1.
 const BED_JUMP_AGAIN=.2;
@@ -300,21 +300,45 @@ function brushStarSpots(n,{walls,from,gap=.4,r=.12}){
  const first=[...places(0),...places(1)];take(first.filter(c=>!c.wi).sort(near));take(first.filter(c=>c.wi).sort(near));
  for(let round=2,empty=0;out.length<n&&empty<4;round++){const list=places(round);empty=list.length?0:empty+1;take(list.sort((a,b)=>(a.wi?1:0)-(b.wi?1:0)||a.d-b.d));}
  return out;}
-// Food Sofia orders on the white mobile on her table (25 November 2026). What she has ordered waits on the trolley in her room until she eats it,
-// one dish each meal; the list is saved with the rest of the progress. word: on the phone's buttons; name: in «I dag blir det …»; the: «Her kommer …»;
-// hand: eaten with her fingers (the egg, soft-boiled in an egg cup, with the spoon). The trolley holds FOOD_MAX dishes.
+// Food Sofia orders on the white mobile on her table (25 November 2026). word: on the phone's buttons; name: in «I dag blir det …»; the: «Her kommer …»;
+// hand: eaten with her fingers (the egg, soft-boiled in an egg cup, with the spoon).
 const DISHES=[{id:'pizza',word:'Pizza',name:'pizza',the:'pizzaen',emoji:'🍕',hand:true},{id:'burger',word:'Burger',name:'burger',the:'burgeren',emoji:'🍔',hand:true},
  {id:'sushi',word:'Sushi',name:'sushi',the:'sushien',emoji:'🍣',hand:true},{id:'egg',word:'Egg',name:'egg',the:'egget',emoji:'🥚',hand:false}];
-const FOOD_MAX=6;
 const dishById=id=>DISHES.find(d=>d.id===id)||null;
-// Known dishes only, at most FOOD_MAX, in the order they came.
-function cleanFood(list){return Array.isArray(list)?list.filter(id=>dishById(id)).slice(0,FOOD_MAX):[];}
-// A new order goes last on the trolley, unless it is full; a dish she eats is taken from the trolley (the first of its kind).
-function orderFood(list,id){return dishById(id)&&list.length<FOOD_MAX?[...list,id]:list;}
-function eatFood(list,id){const i=list.indexOf(id);return i<0?list:[...list.slice(0,i),...list.slice(i+1)];}
-// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order.
-function foodChoices(list){return DISHES.map(d=>({...d,n:list.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
-if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_MAX,dishById,cleanFood,orderFood,eatFood,foodChoices};
+// (26 November 2026) Six dishes go on the trolley; after that they go on the floor, as many as there are places for: a limit nobody is told (the user:
+// «etter 6 så blir det satt på gulvet, ha en skjult grense og la henne fylle gulvet om hun vil»). She walks through the food on the floor.
+// The list has a place for each dish: 0–5 on the trolley, from FOOD_CART on the floor (FLOOR_FOOD, the nearest the trolley first). A dish she eats leaves its
+// place empty (null), and a new one takes the first empty place, so nothing else moves.
+const FOOD_CART=6;
+// Places on the floor: a grid gap apart (a little out of line, each dish turned a little), inside the floor, clear of what stands on it (skip: [x0,x1,z0,z1]
+// boxes and {x,z,r} circles), raised onto the rug where it lies (rug: an ellipse); the nearest to `from` first.
+function foodFloorSpots({x0,x1,z0,z1,gap,from,skip=[],rug=null}){
+ const hash=(...k)=>{let h=0;for(const v of k)h=Math.sin(h*12.9898+v*78.233+.5)*43758.5453;return h-Math.floor(h);},out=[];
+ for(let i=0;x0+i*gap<=x1+1e-9;i++)for(let j=0;z0+j*gap<=z1+1e-9;j++){const x=x0+i*gap+(hash(i,j,1)-.5)*gap*.25,z=z0+j*gap+(hash(i,j,2)-.5)*gap*.25;
+  if(skip.some(s=>Array.isArray(s)?x>s[0]&&x<s[1]&&z>s[2]&&z<s[3]:Math.hypot(x-s.x,z-s.z)<s.r))continue;
+  const onRug=rug&&((x-rug.x)/rug.rx)**2+((z-rug.z)/rug.rz)**2<1;out.push({x,z,y:onRug?rug.y:0,yaw:(hash(i,j,3)-.5)*1.4,d:Math.hypot(x-from[0],z-from[1])});}
+ return out.sort((a,b)=>a.d-b.d).map(({d,...p})=>p);}
+// Sofia's room in the space game: the floor in front of the walls, clear of the bed, the desk, the table with her chair, the PEG backpack, the trolley, the
+// planet game's projector in the middle and the robot vacuum's dock against the back wall (vacuum.js); the rug is a little higher than the floor.
+const FLOOR_FOOD=foodFloorSpots({x0:-4.1,x1:4.1,z0:-2.95,z1:5.3,gap:.5,from:[.3,3.36],rug:{x:-.5,z:1.45,rx:1.6,rz:1.15,y:.08},
+ skip:[[1.7,4.5,-3.5,1.55],[-4.5,-2.45,-.15,2.65],[-3.2,-1.4,2.05,4.2],[-1.8,-.9,2.9,3.75],[-.55,1.2,2.88,3.85],{x:0,z:-.6,r:.65},[-3.15,-2.05,-3.5,-2.3]]});
+const FOOD_LIMIT=FOOD_CART+FLOOR_FOOD.length;
+// Known dishes in their places (anything else is an empty place), at most FOOD_LIMIT, without empty places at the end.
+function cleanFood(list){const out=Array.isArray(list)?list.slice(0,FOOD_LIMIT).map(id=>dishById(id)?id:null):[];while(out.length&&out.at(-1)===null)out.pop();return out;}
+// Where the next dish goes: the first empty place, or the next one; −1 when the room is full.
+function foodSlot(list){const i=list.indexOf(null);return i>=0?i:list.length<FOOD_LIMIT?list.length:-1;}
+function orderFood(list,id){const i=foodSlot(list);if(!dishById(id)||i<0)return list;const out=[...list];out[i]=id;return out;}
+// A dish eaten leaves its place empty. pickFood: which one she eats. Food on the floor is always eaten first (the user, 26 November 2026: «når man spiser så
+// velger man alltid mat fra gulvet først»): of a kind, the one farthest out; a tap on one on the trolley takes one like it from the floor if there is one.
+function eatFood(list,slot){if(!list[slot])return list;const out=[...list];out[slot]=null;while(out.length&&out.at(-1)===null)out.pop();return out;}
+function pickFood(list,id,slot=-1){const far=list.lastIndexOf(id);if(far>=FOOD_CART)return slot>=FOOD_CART&&list[slot]===id?slot:far;return list[slot]===id?slot:far;}
+const foodCount=list=>list.filter(Boolean).length;
+// The robot vacuum has been round: nothing left on the floor (the trolley's six are where they were).
+function clearFloor(list){const out=list.slice(0,FOOD_CART);while(out.length&&out.at(-1)===null)out.pop();return out;}
+// What there is to choose from when she is going to eat: each kind once, with how many, in the menu's order; while there is food on the floor, only
+// what is on the floor (the trolley's turn comes when the floor is clear).
+function foodChoices(list){const floor=list.slice(FOOD_CART),from=foodCount(floor)?floor:list;return DISHES.map(d=>({...d,n:from.filter(id=>id===d.id).length})).filter(d=>d.n>0);}
+if(typeof module!=='undefined')module.exports={BED_JUMP_AGAIN,bedTap,santaSeason,brushStarSpots,BODIES,MOONS,SHIP_COLORS,BELT,PLAYS,duration,accelerate,relaxSpeed,formatTime,buildRoute,tripRoute,earnedRewards,shipPaint,shipColorsFor,moonsOf,playFor,quizChoiceCount,quizRound,mergeSaves,DISHES,FOOD_CART,FLOOR_FOOD,FOOD_LIMIT,foodFloorSpots,dishById,cleanFood,foodSlot,orderFood,eatFood,pickFood,foodCount,clearFloor,foodChoices};
 
 </script><script>
 /* Tiny dependency-free WebGL renderer: true perspective, depth buffer and lit 3D meshes. */
@@ -692,6 +716,10 @@ class GameAudio {
  case 'phone':[0,.09].forEach((d,i)=>this.tone(1175+i*392,.07,'sine',.035,d));break;
  case 'order':this.swoosh(.45,.045);this.tone(880,.14,'sine',.04,0,1320);break;
  case 'doorbell':[[659,0],[523,.42]].forEach(([f,d])=>{this.tone(f,.75,'sine',.07,d);this.tone(f*2,.4,'sine',.014,d);});break;
+ // The robot vacuum (26 November 2026): a low hum while it runs (again every half second), a slurp for each dish, and a little tune when it starts and stops.
+ case 'vacuum':this.tone(98,.5,'sawtooth',.012,0,104);this.swoosh(.48,.014,false);break;
+ case 'slurp':this.tone(240,.16,'sine',.05,0,900);this.swoosh(.18,.03);break;
+ case 'robot':[523,659,784].forEach((f,i)=>this.tone(f,.13,'sine',.045,i*.09));break;
  case 'scrub':this.swoosh(.13,.028,true);break;
  case 'squeeze':this.tone(230,.32,'triangle',.05,0,140);this.swoosh(.35,.035,false);break;
  case 'rinse':this.swoosh(1.2,.06,false);[0,.22,.44,.66].forEach((d,i)=>this.tone(240+i*40,.12,'sine',.04,.3+d,170));break;
@@ -795,7 +823,7 @@ function insideTitle(){title('INNE HOS SOFIA','Rommet til Sofia','Trykk på bord
  scene.setAttribute('aria-label','Inne i huset til Sofia. Navnet SOFIA står på veggen, med de besøkte planetene under. Senga står til høyre: trykk på den, så legger Sofia seg. Foran står et lite bord med skål og skje og en hvit mobil, og PEG-sekken hennes står på gulvet ved bordet. Dra for å se deg rundt.');}
 function enterHouse(){if(!['home','quiz'].includes(state.mode))return;state.mode='inside';resetFx();resetSleep();resetMeal();state.angle=0;state.dragging=false;showConsole('inside');
  $('world-hint').hidden=false;$('scene-caption').hidden=true;insideTitle();
- tone(300,.1);speak(insideProgress());}
+ tone(300,.1);speak(insideProgress());vacuumWelcome();}
 function drawThumbnail(c,p){PlanetArt.thumbnail(c,p,moonModeOn()&&!p.parent?moonsOf(p.id):[]);}
 function renderMap(){const grid=$('planet-grid');grid.replaceChildren();$('map-note').textContent=moonModeOn()?'Månene går i bane rundt planeten sin. Merkur og Venus har ingen måner. Sola er en stjerne, Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.':'Sola er en stjerne. Pluto er en dvergplanet. Størrelser og reisetider er tilpasset spillet.';for(const p of destinations()){const btn=document.createElement('button');const seen=state.visited.has(p.id);btn.className='planet-card'+(p.parent?' moon-card':'')+(seen?' visited':'')+(state.selected.id===p.id?' selected':'')+(state.location.id===p.id?' current':'');btn.setAttribute('aria-label',`${p.name}. ${p.type}. ${seen?'Besøkt. ':''}${state.location.id===p.id?'Du er her':p.id==='earth'?'Hjem med én gang':formatTime(duration(state.location,p))+' ved vanlig fart'}`);btn.setAttribute('aria-pressed',String(state.selected.id===p.id));btn.dataset.planet=p.id;const c=document.createElement('canvas');c.setAttribute('aria-hidden','true');btn.append(c);drawThumbnail(c,p);const name=document.createElement('b');name.textContent=p.name;btn.append(name);const label=document.createElement('small');label.textContent=state.location.id===p.id?'Du er her':p.type;btn.append(label);if(seen){const s=document.createElement('span');s.className='stamp';s.textContent='✓';s.setAttribute('aria-hidden','true');btn.append(s);}btn.onclick=()=>{state.selected=p;selectPlanet();tone(390,.06);speak(p.name);};grid.append(btn);}selectPlanet();}
 function selectPlanet(){for(const el of $('planet-grid').children){const selected=el.dataset.planet===state.selected.id;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));}const p=state.selected,here=p.id===state.location.id;const sec=duration(state.location,p);$('selection-title').textContent=p.name+' · '+p.type;$('selection-info').textContent=here?'Her er du nå. Velg et nytt sted!':p.id==='earth'?'Hjem igjen med én gang · ingen reisetid':p.id==='sun'?`${formatTime(sec)} · Veldig varm! Raketten vil brenne opp.`:`${formatTime(sec)} fra ${state.location.name.toLowerCase()} · Bokstavkraft gjør turen raskere!`;const route=p.id==='earth'?[]:tripRoute(state.location,p);$('map-route-preview').textContent=route.length?'På veien passerer vi: '+route.map(s=>s.body.name).join(' → '):'';$('launch').disabled=here;$('launch').textContent=here?'Du er her':p.id==='earth'?'⌂ Rett hjem':`Reis til ${p.name}`;}
@@ -975,71 +1003,41 @@ if(duckNews){saveProgress();setTimeout(()=>notify('🦆 Ny overraskelse: Nå fly
 
 </script><script>
 'use strict';
-// Sofia herself (24 November 2026), drawn after two photos of her. Big, curly, dark brown hair that is lighter towards the ends, pushed back from
-// the forehead and falling in curls past her ears to her shoulders, with a few corkscrew ringlets; strong dark eyebrows; blue-grey eyes; rosy cheeks
-// and a wide smile with her top teeth showing. She wears her raspberry jumper with the sequin butterfly on the front.
-// The face is painted on a picture wrapped round the head (one per expression, made once), so the eyes, brows and smile stay sharp up close.
-// It goes straight to renderer.draw, since d() does not pass a picture on.
+// Sofia herself (26 November 2026): the same girl as in Sofia's car game (Sofiatur, girl.js), which the user likes better («Jeg liker også sofia modellen
+// fra bilturen bedre enn den nye i romspillet. Bytt så de er like, bruk den fra bilturen.»). Brown hair with a fringe and two pigtails tied with pink
+// bobbles, dark oval eyes with a white glint, rosy cheeks and a smile; a raspberry top with short sleeves, a purple flared skirt with a lilac hem, white
+// socks and purple shoes. Made with this game's own shapes, in its own sizes (the head is as big as before, as everything in this game, so she still
+// fits the table, the bed, the duck, the space suit and the rocket's window, and the spoon still reaches her mouth). The face is painted on a picture
+// wrapped round the head (one per expression, made once), so it stays sharp up close; it goes straight to renderer.draw, since d() does not pass a
+// picture on. (24 November 2026 to today she had big curls and a butterfly jumper, after two photos; that is in the git history.)
 // Every scene that shows her uses this: at home, in her room, at the table, in bed, in the planet quiz, on the duck, in the space suit and behind the
 // rocket's window.
-const SOFIA={skin:'#f3caa6',hair:'#533526',hairMid:'#6d4833',hairLight:'#8c6141',hairTip:'#ab7d51',brow:'#3b2418',
- top:'#c95f78',topDark:'#a94c63',legs:'#34426d',shoe:'#f6ede0'};
+const SOFIA={skin:'#f4cba9',hair:'#6b4226',top:'#e5528f',skirt:'#8e4fd0',hem:'#b98cf0',sock:'#fbfbf6',shoe:'#6a3fb0',tie:'#ff8cc0',
+ eye:'#2a1a14',cheek:'#ff9aa8',mouth:'#b83a4b'};
 
 // ---- The face picture ----
 // The sphere wraps the picture from +x round the front (+z) to −x, so the front of the head is a quarter of the way across. The painter works in
 // radians on the head, x to the right and y up as you look at her, and mirrors the picture so it reads the right way round on the head.
+// As in the car game: big dark oval eyes with a white glint (shut: two little arcs), round pink cheeks, and a smile (open when she laughs).
 const sofiaFaces=new Map();
 function sofiaFace(eyes='open',mouth='smile'){const key=eyes+'|'+mouth;if(sofiaFaces.has(key))return sofiaFaces.get(key);
  const W=1024,H=512,c=document.createElement('canvas');c.width=W;c.height=H;c.mipmap=true;const g=c.getContext('2d'),R=W/(Math.PI*2);
  g.fillStyle=SOFIA.skin;g.fillRect(0,0,W,H);g.setTransform(-R,0,0,-R,W/4,H/2);g.lineCap='round';g.lineJoin='round';
  const ellipse=(x,y,rx,ry,fill)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=fill;g.fill();};
- const glow=(x,y,r,color)=>{const f=g.createRadialGradient(x,y,0,x,y,r);f.addColorStop(0,color);f.addColorStop(1,color.slice(0,7)+'00');g.fillStyle=f;g.fillRect(x-r,y-r,r*2,r*2);};
- // Rosy cheeks and a soft shade under the hairline.
- for(const s of [-1,1])glow(s*.5,-.3,.19,'#f2848088');
- // The eyebrows: thick and dark, a gentle arch, thickest at the inner end.
- for(const s of [-1,1]){const ex=s*.33;g.beginPath();g.moveTo(ex-s*.115,.135);g.quadraticCurveTo(ex+s*.0,.21,ex+s*.13,.15);g.quadraticCurveTo(ex+s*.02,.175,ex-s*.115,.095);g.closePath();g.fillStyle=SOFIA.brow;g.fill();g.strokeStyle=SOFIA.brow;g.lineWidth=.02;g.stroke();}
- // The eyes: blue-grey with a dark rim, a white sparkle, and lashes along the top. Shut, they are two soft curves with lashes.
- for(const s of [-1,1]){const ex=s*.33,ey=-.05;
-  if(eyes==='open'){ellipse(ex,ey,.105,.12,'#fdfbf7');g.save();g.beginPath();g.ellipse(ex,ey,.105,.12,0,0,Math.PI*2);g.clip();
-   const iris=g.createRadialGradient(ex,ey-.02,.01,ex,ey-.015,.085);iris.addColorStop(0,'#b9ccd2');iris.addColorStop(.55,'#7f9caa');iris.addColorStop(1,'#465f6d');ellipse(ex,ey-.015,.082,.09,iris);
-   ellipse(ex,ey-.015,.04,.045,'#151b21');g.restore();
-   ellipse(ex-.032,ey+.03,.026,.028,'#ffffff');ellipse(ex+.03,ey-.05,.012,.012,'#ffffffcc');
-   g.beginPath();g.ellipse(ex,ey,.11,.125,0,Math.PI*.08,Math.PI*.92);g.strokeStyle='#2a1812';g.lineWidth=.03;g.stroke();
-   for(const k of [0,1]){const a=Math.PI*(s>0?.1+k*.1:.9-k*.1),x0=ex+Math.cos(a)*.11,y0=ey+Math.sin(a)*.125;g.beginPath();g.moveTo(x0,y0);g.lineTo(x0+s*(.045-k*.012),y0+.03+k*.01);g.lineWidth=.016;g.stroke();}
-   g.beginPath();g.ellipse(ex,ey,.1,.115,0,Math.PI*1.2,Math.PI*1.8);g.strokeStyle='#c99a80';g.lineWidth=.008;g.stroke();}
-  else{g.beginPath();g.moveTo(ex-.1,ey+.01);g.quadraticCurveTo(ex,ey-.085,ex+.1,ey+.01);g.strokeStyle='#2a1812';g.lineWidth=.026;g.stroke();
-   for(const k of [-1,0,1]){const x0=ex+k*.055,y0=ey-.035-(k?0:.01);g.beginPath();g.moveTo(x0,y0);g.lineTo(x0+k*.02,y0-.035);g.lineWidth=.012;g.stroke();}}}
- // A small nose: a little shade and a curve underneath.
- glow(0,-.24,.06,'#d9967a55');g.beginPath();g.moveTo(-.038,-.255);g.quadraticCurveTo(0,-.29,.038,-.255);g.strokeStyle='#c98668';g.lineWidth=.014;g.stroke();ellipse(-.012,-.215,.014,.01,'#ffe6d2aa');
- // The mouth.
- const lip='#a8404d',dark='#6f2230';
- if(mouth==='smile'||mouth==='open'){const big=mouth==='open',top=-.375,w=big?.23:.26,low=big?-.79:-.64;
-  const path=()=>{g.beginPath();g.moveTo(-w,top+.02);g.quadraticCurveTo(0,top-(big?.03:.06),w,top+.02);g.quadraticCurveTo(w*.72,low+.06,0,low+(big?.07:.09));g.quadraticCurveTo(-w*.72,low+.06,-w,top+.02);g.closePath();};
-  path();g.fillStyle=dark;g.fill();g.save();path();g.clip();
-  ellipse(0,low+.04,w*.62,big?.11:.075,'#e06f7c');
-  g.fillStyle='#fffaf1';g.beginPath();g.moveTo(-w,top+.03);g.quadraticCurveTo(0,top-(big?.03:.06),w,top+.03);g.lineTo(w,top-.06);g.lineTo(-w,top-.06);g.closePath();g.fill();
-  g.beginPath();g.moveTo(-w*.9,top-.005);g.quadraticCurveTo(0,top-(big?.115:.135),w*.9,top-.005);g.lineTo(w*.9,top+.05);g.lineTo(-w*.9,top+.05);g.closePath();g.fill();
-  g.strokeStyle='#e6dccd';g.lineWidth=.006;for(const x of [-.13,-.045,.045,.13]){g.beginPath();g.moveTo(x,top+.02);g.lineTo(x,top-(big?.075:.095)+Math.abs(x)*.25);g.stroke();}
-  g.restore();path();g.strokeStyle=lip;g.lineWidth=.018;g.stroke();
-  for(const s of [-1,1]){g.beginPath();g.moveTo(s*(w+.005),top+.045);g.quadraticCurveTo(s*(w+.03),top+.01,s*(w+.012),top-.02);g.strokeStyle='#d89a82';g.lineWidth=.01;g.stroke();}}
- else if(mouth.startsWith('chew')){const h=[.022,.038,.055][+mouth.slice(4)||0];ellipse(0,-.46,.085,h,'#c75966');ellipse(0,-.46,.06,h*.45,dark);}
- else{g.beginPath();g.moveTo(-.14,-.43);g.quadraticCurveTo(0,-.51,.14,-.43);g.strokeStyle=lip;g.lineWidth=.024;g.stroke();}
+ for(const s of [-1,1])ellipse(s*.6,-.36,.22,.15,SOFIA.cheek);
+ for(const s of [-1,1]){const ex=s*.38,ey=-.03;
+  if(eyes==='open'){ellipse(ex,ey,.13,.19,SOFIA.eye);ellipse(ex+s*.04,ey+.065,.05,.065,'#ffffff');}
+  else{g.beginPath();g.arc(ex,ey+.06,.15,Math.PI*1.15,Math.PI*1.85);g.strokeStyle=SOFIA.eye;g.lineWidth=.05;g.stroke();}}
+ if(mouth==='open')ellipse(0,-.44,.23,.18,SOFIA.mouth);
+ else if(mouth.startsWith('chew'))ellipse(0,-.45,.12,[.035,.06,.085][+mouth.slice(4)||0],SOFIA.mouth);
+ else{const r=mouth==='rest'?.13:.25;g.beginPath();g.arc(0,-.36,r,Math.PI*1.08,Math.PI*1.92);g.strokeStyle=SOFIA.mouth;g.lineWidth=mouth==='rest'?.04:.06;g.stroke();}
  sofiaFaces.set(key,c);return c;}
 
 // ---- The hair ----
-// Curl clumps in rings round the back and sides, wider and lighter further down, leaving the face free; the scalp under them; small curls on top;
-// corkscrew ringlets along the bottom edge and two in front of her ears. Worked out once; the head only moves them a little.
-const SOFIA_HAIR=(()=>{const hash=i=>{const x=Math.sin(i*127.1+11.7)*43758.5453;return x-Math.floor(x);},tones=[SOFIA.hair,SOFIA.hairMid,SOFIA.hairLight,SOFIA.hairTip],clumps=[],curls=[];
- // y, radius out from the head, how many, the size of each clump, where the gap for the face starts (radians from straight ahead), and the tone.
- const rows=[[.27,.2,6,.11,.6,0],[.17,.3,10,.125,1.05,0],[.05,.35,11,.13,1.2,1],[-.08,.38,12,.135,1.22,1],[-.2,.4,12,.135,1.15,2],[-.31,.4,12,.13,.98,2],[-.41,.36,11,.115,1.0,3]];
- let n=0;for(const [y,r,count,size,gap,tone] of rows)for(let i=0;i<count;i++){const k=(i+.5)/count,phi=gap+(Math.PI*2-gap*2)*k,j=hash(++n),s=size*(.85+.3*hash(n+50));
-  clumps.push({p:[Math.sin(phi)*r*(.96+.08*j),y+(hash(n+90)-.5)*.05,Math.cos(phi)*r*.82-.07],s:[s,s*(.9+.2*j),s],c:tones[Math.max(0,Math.min(3,tone+(j>.68?1:j<.12?-1:0)))],ph:j*6.28,y});}
- for(let i=0;i<9;i++){const phi=(i%2?.5:-.5)*(.35+i*.13),j=hash(i+300),r=.27;clumps.push({p:[Math.sin(phi)*r*.9,.3-i*.008+j*.03,Math.cos(phi)*r*.55-.12-i*.02],s:[.075+j*.02,.06,.075+j*.02],c:tones[j>.6?1:0],ph:j*6.28,y:.3});}
- // Small curls along the hairline, so it is soft and curly rather than a straight edge.
- for(let i=0;i<11;i++){const a=(i/10-.5)*2.5,j=hash(i+400),s=.042+j*.02;clumps.push({p:[Math.sin(a)*.3,.165-Math.abs(a)*.075+j*.02,Math.cos(a)*.245-.02],s:[s,s*.85,s*.8],c:tones[j>.55?1:0],ph:j*6.28,y:.16});}
- for(let i=0;i<12;i++){const k=(i+.5)/12,phi=1.05+(Math.PI*2-2.1)*k,j=hash(i+200),r=.33;curls.push({p:[Math.sin(phi)*r,-.44-j*.05,Math.cos(phi)*r*.82-.07],len:.15+j*.07,c:j>.5?SOFIA.hairTip:SOFIA.hairLight,ph:j*6.28,tilt:Math.sin(phi)*.25});}
- for(const s of [-1,1])curls.push({p:[s*.285,.02,.095],len:.27,c:SOFIA.hairLight,ph:s+1,tilt:s*.12,front:true});
- return {clumps,curls};})();
+// The car game's hair in this head's sizes: a cap over the top and back, the long hair at the back, a fringe over the forehead with a piece to each side,
+// and a pigtail on each side tied with a pink bobble. pieces: {p, s, r (turned about z), back (the long hair at the back)}; pigtails: where each hangs from.
+const SOFIA_HAIR={pieces:[{p:[0,.086,-.04],s:[.336,.3,.32]},{p:[0,-.074,-.18],s:[.31,.345,.17],back:true},{p:[0,.17,.235],s:[.29,.11,.11]},
+ {p:[-.142,.155,.25],s:[.18,.1,.097],r:.5},{p:[.142,.155,.25],s:[.18,.1,.097],r:-.5}],pigtails:[-1,1].map(s=>({s,p:[s*.304,.074,-.073]}))};
 
 // ---- The Santa hat (24 November 2026) ----
 // All through December Sofia wears a Santa hat: at home, in her room, at the table, in bed, in the planet quiz, on the duck, on top of the space suit's helmet
@@ -1060,43 +1058,51 @@ function santaHat(t,lying=false){if(lying)group([0,.26,0],[.33,.33,.33],[.45,0,0
 
 // Her head, centred on the origin and facing +z. o.eyes: 'open' or 'shut'; o.mouth: 'smile', 'open', 'chew' or 'rest'; o.compact keeps the hair
 // inside the space suit's helmet; o.tucked (0..1) draws the long hair at the back up out of the way of the PEG backpack; o.lying: in bed, for the Santa hat.
-// She blinks now and then.
-function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!still&&(t+1.3)%4.1<.13);
+// She blinks now and then, and her pigtails swing a little.
+function sofiaHead(t,o={}){const still=state.reduced,shut=o.eyes==='shut'||(!still&&(t+1.3)%4.1<.13),tuck=o.tucked||0;
  let mouth=o.mouth||'smile';if(mouth==='chew')mouth='chew'+(still?1:Math.min(2,Math.floor(Math.abs(Math.sin(t*14))*3)));
  renderer.draw('sphere',[0,0,0],[.31,.32,.29],SOFIA.skin,[0,0,0],.35,0,sofiaFace(shut?'shut':'open',mouth));
- d('sphere',[0,.055,-.045],[.336,.315,.315],SOFIA.hair);
- const tuck=o.tucked||0;
- for(const h of SOFIA_HAIR.clumps){if(o.compact&&h.y<-.25)continue;const back=h.p[2]<-.08&&h.y<-.12?1-tuck:1;if(back<=0)continue;const b=still?0:Math.sin(t*1.9+h.ph)*.006,sq=o.compact?.86:1;d('sphere',[h.p[0]*sq,h.p[1]+b+(1-back)*.12,h.p[2]*sq],h.s.map(v=>v*back),h.c);}
+ for(const s of [-1,1])d('sphere',[s*.31,-.012,0],[.057,.074,.053],SOFIA.skin);
+ for(const h of SOFIA_HAIR.pieces){if(h.back){const sy=h.s[1]*(1-.45*tuck)*(o.compact?.8:1);d('sphere',[h.p[0],h.p[1]+h.s[1]-sy,h.p[2]],[h.s[0],sy,h.s[2]],SOFIA.hair);}else d('sphere',h.p,h.s,SOFIA.hair,[0,0,h.r||0]);}
+ for(const {s,p} of SOFIA_HAIR.pigtails)group(p,[1,1,1],[0,0,still||o.lying?0:Math.sin(t*2.2+s)*.08],()=>{d('sphere',[0,0,0],[.066,.066,.066],SOFIA.tie);
+  d('sphere',[s*.026,-.185,0],[.11,o.compact?.17:.246,.11],SOFIA.hair);if(!o.compact)d('sphere',[s*.041,-.381,.01],[.093,.123,.093],SOFIA.hair);});
  if(o.compact)return;
- if(santaOn())santaHat(t,o.lying);
- for(const h of SOFIA_HAIR.curls){const back=h.p[2]<-.05?1-tuck:1;if(back<=0)continue;const sway=still?0:Math.sin(t*1.6+h.ph)*.12;d('curl',h.p,[.055,h.len*back,.055],h.c,[sway*.6,(h.ph-3.1)*.3,h.tilt+sway*(h.front?.3:1)]);}}
+ if(santaOn())santaHat(t,o.lying);}
 
 // ---- The whole of her ----
+// A box or cylinder from a to b, w thick: her arms and legs.
+function sofiaLimb(a,b,w,color,mesh='cylinder'){const v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],len=Math.hypot(...v)||1e-6;d(mesh,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[w,len/2,w],color,[Math.atan2(v[2],v[1]),0,-Math.asin(Math.max(-1,Math.min(1,v[0]/len)))]);}
+// An arm from the shoulder a to the hand h: a short raspberry sleeve, then her arm and hand.
+function sofiaArm(a,h){const m=a.map((v,i)=>v+(h[i]-v)*.34);sofiaLimb(a,m,.085,SOFIA.top);sofiaLimb(m,h,.058,SOFIA.skin);d('sphere',h,[.08,.08,.08],SOFIA.skin);}
+// The flared skirt: a cone cut off at the top (top radius .78 of the bottom), y from −1 to 1. Made the first time she is drawn.
+function sofiaSkirtMesh(){if(renderer.meshes.skirt)return;const out=[],n=24,T=.78;
+ const tri=(a,b,c,o)=>{if(dot(cross(sub(b,a),sub(c,a)),o)<0)[b,c]=[c,b];const nn=norm(cross(sub(b,a),sub(c,a)));for(const q of [a,b,c])out.push(...q,...nn);};
+ for(let i=0;i<n;i++){const a0=i*Math.PI*2/n,a1=(i+1)*Math.PI*2/n,P=(a,y,r)=>[Math.cos(a)*r,y,Math.sin(a)*r],o=[Math.cos((a0+a1)/2),.2,Math.sin((a0+a1)/2)];
+  tri(P(a0,-1,1),P(a1,-1,1),P(a1,1,T),o);tri(P(a0,-1,1),P(a1,1,T),P(a0,1,T),o);tri([0,-1,0],P(a1,-1,1),P(a0,-1,1),[0,-1,0]);}
+ renderer.setMesh('skirt',out);}
+// Her skirt from the waist (y) down to the hem (y − h), r wide at the hem.
+function sofiaSkirt(y,h,r){sofiaSkirtMesh();d('skirt',[0,y-h/2,0],[r,h/2,r*.78],SOFIA.skirt);d('cylinder',[0,y-h+.02,0],[r*1.01,.022,r*.79],SOFIA.hem);d('box',[0,y+.012,0],[.228,.02,.168],SOFIA.hem);}
+// A leg from the hip down: her leg, a white sock and a purple shoe (pointing +z). top: the hip; foot: the ankle.
+function sofiaLeg(top,foot){const k=.55,m=top.map((v,i)=>v+(foot[i]-v)*k);sofiaLimb(top,m,.072,SOFIA.skin);sofiaLimb(m,foot,.078,SOFIA.sock);d('box',[foot[0],foot[1]-.005,foot[2]+.05],[.09,.045,.15],SOFIA.shoe);}
 // Asleep, her eyes are shut and she stops waving. Cheering (jumping on the bed), both arms are up and she laughs.
 // o (23 November 2026, mealtime): sit (her shins hang this far down from the seat), arms (draws her arms instead), mouth ('open', 'chew' or 'smile'),
 // bag (0..1, the PEG backpack going on her back: her long hair at the back is tucked away so the backpack shows).
 function character(t,asleep=false,cheer=false,o={}){const C=SOFIA;
- d('box',[0,.52,0],[.22,.33,.16],C.top);d('box',[0,.215,0],[.228,.035,.168],C.topDark);sofiaButterfly(t);
+ // the top from the waist up (a box, so the PEG backpack's straps lie flat on it), and the skirt
+ d('box',[0,.65,0],[.22,.2,.16],C.top);sofiaSkirt(.44,.29,.3);
  group([0,1.09,0],[1,1,1],[0,0,0],()=>sofiaHead(t,{lying:asleep,eyes:asleep?'shut':'open',mouth:asleep?'rest':o.mouth||(cheer?'open':'smile'),tucked:o.bag}));
- if(o.sit)for(const x of [-.115,.115]){d('box',[x,.215,.15],[.09,.085,.16],C.legs);d('box',[x,.215-o.sit/2,.3],[.085,o.sit/2,.09],C.legs);d('sphere',[x,.25-o.sit,.36],[.12,.07,.17],C.shoe);}
- else for(const x of [-.115,.115]){d('box',[x,.13,0],[.09,.19,.105],C.legs);d('sphere',[x,.015,.06],[.12,.07,.17],C.shoe);}
+ if(o.sit)for(const x of [-.115,.115]){sofiaLimb([x,.215,0],[x,.215,.3],.078,C.skin);sofiaLeg([x,.215,.3],[x,.25-o.sit,.3]);}
+ else for(const x of [-.115,.115])sofiaLeg([x,.36,0],[x,.05,0]);
  if(o.arms){o.arms();return;}
- const arm=(x,y,rz,hx,hy,w=.08)=>{d('box',[x,y,0],[w,.24,.09],C.top,[0,0,rz]);d('box',[x+(hx-x)*.82,y+(hy-y)*.82,0],[w+.012,.035,.1],C.topDark,[0,0,rz]);d('sphere',[hx,hy,0],[.10,.10,.10],C.skin);};
- if(cheer)arm(-.36,.8,.65-Math.sin(t*3)*.15,-.5,.96);else arm(-.34,.59,-.3,-.4,.36,.09);
- if(asleep)arm(.34,.59,.3,.4,.36,.09);else arm(.36,.8,-.65+Math.sin(t*3)*.15,.5,.96);}
+ const wave=state.reduced?0:Math.sin(t*3)*.04;
+ sofiaArm([-.3,.78,0],cheer?[-.5,.96+wave,0]:[-.4,.36,0]);sofiaArm([.3,.78,0],asleep?[.4,.36,0]:[.5,.96-wave,0]);}
 
-// The sequin butterfly on the front of her jumper: pink and coral wings, a golden body, and sequins that catch the light.
-// dy moves it up or down (she sits lower on the duck); z is the front of her jumper.
-function sofiaButterfly(t,dy=0,z=.162){for(const s of [-1,1]){d('sphere',[s*.058,.63+dy,z],[.06,.048,.008],'#ff8fbd',[0,0,s*.45]);d('sphere',[s*.046,.545+dy,z],[.042,.036,.008],'#f7a080',[0,0,-s*.5]);
-  for(let i=0;i<2;i++){const tw=state.reduced?.4:.25+.5*Math.max(0,Math.sin(t*2.3+i*2+s));d('sphere',[s*(.055+i*.02),.64-i*.035+dy,z+.007],[.011,.011,.005],i?'#8fe3ff':'#fff2b0',[],tw);}}
- d('box',[0,.59+dy,z+.002],[.009,.055,.008],'#e5c46a',[],.3);}
-
-// Her face behind a round window (the rocket's, the rescue capsule's), with her curls round it. p is the middle of her face, r its radius. In December her Santa
-// hat is squeezed in above her curls, flopping over to the side, and her face moves down a little to make room.
+// Her face behind a round window (the rocket's, the rescue capsule's): her hair round it, the fringe over her forehead and the pigtails with their bobbles.
+// p is the middle of her face, r its radius. In December her Santa hat is squeezed in above, flopping over to the side, and her face moves down to make room.
 function sofiaWindow(p,r,t=0){if(santaOn()){p=[p[0],p[1]-r*.2,p[2]];r*=.85;group([p[0],p[1]+r*1.12,p[2]-.004*r/.13],[r*.95,r*.8,r*.3],[0,0,.15],()=>santaHatShape(t));}
-const [x,y,z]=p,k=r/.13;d('sphere',[x,y+.012*k,z-.008*k],[r*1.32,r*1.25,.02*k],SOFIA.hair);
- for(let i=0;i<9;i++){const a=-.5+i*(Math.PI+1)/8;d('sphere',[x+Math.cos(a)*r*1.17,y+Math.sin(a)*r*1.1,z-.004*k],[.046*k,.046*k,.02*k],i%2?SOFIA.hairLight:SOFIA.hairMid);}
- renderer.draw('sphere',[x,y,z],[r*.95,r*1.05,r*.2],SOFIA.skin,[0,0,0],.35,0,sofiaFace());}
+ const [x,y,z]=p,k=r/.13;d('sphere',[x,y+.012*k,z-.008*k],[r*1.22,r*1.2,.02*k],SOFIA.hair);
+ for(const s of [-1,1]){d('sphere',[x+s*r*1.18,y-r*.25,z-.004*k],[.038*k,.07*k,.02*k],SOFIA.hair);d('sphere',[x+s*r*1.08,y+r*.38,z-.002*k],[.022*k,.022*k,.014*k],SOFIA.tie);}
+ renderer.draw('sphere',[x,y,z],[r*.95,r*1.05,r*.2],SOFIA.skin,[0,0,0],.35,0,sofiaFace());d('sphere',[x,y+r*.74,z+.006*k],[r*.88,r*.3,.03*k],SOFIA.hair);}
 
 </script><script>
 /* Shared play effects: tapping things in 3D, sparkles and confetti, comets and the asteroid belt. */
@@ -1227,11 +1233,11 @@ function duck(t,{fly=false,flap=0,fire=false,rider=false,quack=0}={}){
   // The same trail as the rocket's (flame, rainbow or gold coins), streaming back from the tail.
   if(fire)group([0,1.75,-1.65],[.9,.9,.9],[Math.PI/2,0,0],()=>shipFire(t,0,true));
  });}
-// Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z.
-function duckRider(t,fly){const {skin,top,legs}=SOFIA,hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
- d('box',[0,.36,0],[.22,.3,.16],top);sofiaButterfly(t,-.17);
- for(const s of [-1,1]){d('box',[s*.11,.06,.26],[.09,.08,.27],legs);d('sphere',[s*.11,.13,.58],[.1,.12,.08],SOFIA.shoe);
-  d('box',[s*.29,.42,.13],[.08,.2,.08],top,[-.9+hold,0,s*.15]);d('sphere',[s*.27,.3,.34],[.1,.1,.1],skin);}
+// Sofia sitting on the duck's back with her legs out in front, holding on. Seat at y = 0, facing +z. (26 November 2026: as in the car game, sofia.js.)
+function duckRider(t,fly){const hold=fly&&!state.reduced?Math.sin(t*3)*.05:0;
+ d('box',[0,.48,0],[.22,.18,.16],SOFIA.top);sofiaSkirt(.3,.26,.3);
+ for(const s of [-1,1]){const x=s*.11;sofiaLimb([x,.1,.02],[x,.1,.4],.078,SOFIA.skin);sofiaLimb([x,.1,.4],[x,.12,.52],.08,SOFIA.sock);d('box',[x,.16,.58],[.09,.15,.05],SOFIA.shoe);
+  sofiaArm([s*.3,.6,0],[s*.27,.3+hold,.34]);}
  group([0,.93,0],[1,1,1],[0,0,0],()=>sofiaHead(t));}
 // On the home screen: a duck on the launch pad, or the rocket. The duck flaps, tips its bill up and climbs at take-off.
 function homeShip(t,launch,ignite,wiggle){
@@ -1618,7 +1624,8 @@ function createToothGame({canvas,say=()=>{},sound=()=>{},onStep=()=>{},onDone=()
    (24 November 2026) The food lies in a heap in the bowl that gets smaller with each spoonful, so the bowl is empty just as the last one is eaten, and a tap
    on the glass of water by the bowl makes her drink: she takes it with her free hand, lifts it to her mouth, tips it, «glugg glugg», and puts it back.
    (25 November 2026) A white mobile lies on the table in plain sight. A tap on it, and she orders pizza, a burger, sushi or an egg; the doorbell rings and
-   the dish waits on a trolley by the table. «🥄 Spise» then asks what she wants: a dish she has ordered, or the bowl as before. */
+   the dish waits on a trolley by the table. «🥄 Spise» then asks what she wants: a dish she has ordered, or the bowl as before.
+   (26 November 2026) Six on the trolley; after that the food goes on the floor, as much as there is room for (a limit nobody is told), and she walks through it. */
 // Where things are in the room: her chair (she sits facing the room), the seat's height, the table, where she stands beside the chair, the backpack
 // on the floor by the table, where she stands with it on, the bowl, the middle of the glass and the brushing chart on the back wall over the bed.
 // The mobile lies at the front of the table on the side nearest the room, so it is on the screen even when the table is half off it (a phone held
@@ -1633,8 +1640,9 @@ const MEAL_TIME={sit:.6,full:2,up:.5,pick:1.2,plug:.9,beep:1.5,unplug:.7,drop:1.
 // kind: null, 'spoon' or 'peg'; s: seconds into the step; bite: seconds into a spoonful (−1 between); queued: taps waiting; pump: seconds the pump has run;
 // dance: seconds into a twirl with the backpack (−1 when not); view: how far the camera has glided in to the meal (0..1); food: which food today;
 // drink: seconds into a drink from the glass (−1 when not); drinkNext: the glass was tapped while she was busy, so she drinks next; sips: how many so far.
-// dish: the id of a dish she ordered, eaten instead of the bowl (null for the bowl); taken: it has left the trolley for good (at the first bite).
-const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,sips:0,view:0,food:-1,dish:null,taken:false,from:null,last:-9};
+// dish: the id of a dish she ordered, eaten instead of the bowl (null for the bowl); slot: its place (on the trolley or the floor); taken: it has left its
+// place for good (at the first bite).
+const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,sips:0,view:0,food:-1,dish:null,slot:-1,taken:false,from:null,last:-9};
 const mealEase=k=>k*k*(3-2*k);
 // A box (or cylinder) from a to b, w thick: arms, straps, the spoon and the tube.
 function limb(a,b,w,color,mesh='box',glow=0){const v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],len=Math.hypot(...v)||1e-6;d(mesh,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[w,len/2,w],color,[Math.atan2(v[2],v[1]),0,-Math.asin(Math.max(-1,Math.min(1,v[0]/len)))],glow);}
@@ -1677,7 +1685,9 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  // the backpack on the floor by the table, the light off
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
  // the white mobile, and the trolley with the food she has ordered
- group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);
+ group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);floorFood();
+ // the robot vacuum and its dock (vacuum.js)
+ vacuumScene(t);
  // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes. After ten they go on the walls (brushWall).
  const [hx,hy,hz]=MEAL.chart;d('box',[hx,hy,hz],[.78,.5,.02],'#fffaf0');d('box',[hx,hy+.38,hz+.02],[.78,.12,.012],'#79e4e2');
  d('sphere',[hx-.55,hy+.03,hz+.04],[.15,.17,.03],'#ffffff');for(const x of [-.07,.07])d('sphere',[hx-.55+x,hy-.13,hz+.04],[.06,.08,.03],'#ffffff');
@@ -1721,9 +1731,10 @@ function foodLeft(){if(meal.kind!=='spoon'||meal.step==='back'||!meal.dish&&meal
 function glassOfWater(){d('cylinder',[0,0,0],[.074,.084,.074],'#ffde71');d('cylinder',[0,.083,0],[.061,.0025,.061],'#9fd8f0');}
 // ---- Starting, the steps, and stopping ----
 function mealBusy(){return sleep.on||sleep.jump>=0||sleep.k>0||!!meal.kind;}
-// dish: the id of a dish from the trolley to eat at the table instead of the bowl.
-function startMeal(kind,dish=null){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;if(kind!=='spoon'||!state.food.includes(dish))dish=null;
- Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
+// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it); pickFood takes one from the floor first.
+function startMeal(kind,dish=null,slot=-1){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;
+ if(kind!=='spoon'||!dishById(dish))dish=null;else{slot=pickFood(state.food,dish,slot);if(slot<0)dish=null;}
+ Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,slot:dish?slot:-1,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
  if(kind==='spoon'){if(!dish)meal.food=(meal.food+1)%FOODS.length;title('MATTID','Sofia skal spise',`I dag blir det ${foodName()}!`,(mealDish()?.emoji||'🥄')+' Nam nam');gameAudio.say(`Mat! I dag blir det ${foodName()}. Sofia setter seg ved bordet.`,{id:'meal'});}
  else{title('MATTID','Mat med PEG','Maten går gjennom slangen og rett i magen.','🎒 PEG-sekken');gameAudio.say('Nå skal Sofia få mat gjennom PEG-slangen. Hun tar på seg sekken med pumpen.',{id:'meal'});}
  tone(420,.08);renderBedConsole();}
@@ -1749,16 +1760,16 @@ function finishMeal(){if(!meal.kind)return;
  if(meal.kind==='spoon'&&['walk','sit','eat'].includes(meal.step)){if(meal.step==='walk'){endMeal();return;}meal.step='up';meal.s=0;meal.bite=-1;meal.queued=0;meal.drink=-1;meal.drinkNext=false;gameAudio.say('Takk for maten!',{id:'meal'});renderBedConsole();return;}
  if(meal.kind==='peg'){const i=MEAL_STEPS.peg.indexOf(meal.step);if(meal.step==='walk'){endMeal();return;}if(i<=1)return;if(i<=4){meal.step=i<=3?'unplug':'beep';meal.s=0;onStep(meal.step);renderBedConsole();}}} // before the pump has run the tube just comes off
 function endMeal(){if(!meal.kind)return;meal.kind=null;meal.step='';if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};renderBedConsole();insideTitle();}
-function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,taken:false});stopBrushing(true);
- deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;renderBedConsole();}
+function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,slot:-1,taken:false});stopBrushing(true);
+ deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;vacuumAway();renderBedConsole();}
 function stepTime(){if(meal.step==='walk'||meal.step==='back'){const [a,b]=walkEnds();return Math.max(.4,Math.hypot(b[0]-a[0],b[2]-a[2])/MEAL.speed);}return MEAL_TIME[meal.step]??Infinity;}
 function walkEnds(){const spot=meal.kind==='spoon'?MEAL.side:MEAL.stand;return meal.step==='walk'?[meal.from,spot]:[spot,BED.idle];}
-function updateMeal(dt){updateOrders();meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
+function updateMeal(dt){updateOrders();updateVacuum(dt);meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
  // A drink from the glass: «glugg» while it is tipped at her mouth, «ahh» when it comes down, then any spoonful that was tapped meanwhile.
  if(meal.step==='eat'&&meal.drink>=0){const was=meal.drink;meal.drink+=dt;if(was<.8&&meal.drink>=.8)gameAudio.effect('glugg');
   if(was<1.45&&meal.drink>=1.45&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Ahh, godt med vann!','Glugg, glugg!','Mmm, deilig vann!'][meal.sips%3],{id:'meal'});meal.sips++;}
   if(meal.drink>=DRINK){meal.drink=-1;if(meal.bites>=BITES){nextStep();return;}if(meal.queued>0){meal.queued--;meal.bite=0;}}}
- else if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.dish&&!meal.taken){meal.taken=true;state.food=eatFood(state.food,meal.dish);saveProgress();}if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
+ else if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.dish&&!meal.taken){meal.taken=true;state.food=eatFood(state.food,meal.slot);saveProgress();}if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
   if(meal.bite>=BITE){meal.bite=-1;if(meal.drinkNext){meal.drinkNext=false;meal.drink=0;}else if(meal.bites>=BITES){nextStep();return;}else if(meal.queued>0){meal.queued--;meal.bite=0;}}}
  if(meal.step==='pump'){meal.pump+=dt;if(Math.floor(meal.pump/2)!==Math.floor((meal.pump-dt)/2))burst(sofiaPoint(MEAL.stand,0,[.05,.5,.22]),['#fff3d2','#ffde71','#ff9ec4'],4,.8,{size:.04});
   if(meal.pump>=PUMP){meal.step='beep';meal.s=0;onStep('beep');renderBedConsole();}if(Math.floor(meal.pump)!==Math.floor(meal.pump-dt))renderBedConsole();}
@@ -1782,10 +1793,10 @@ function drinkPose(){const k=meal.drink;if(meal.kind!=='spoon'||meal.step!=='eat
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
 function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  const dish=mealDish();
- if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
- const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;limb([-.3,.78,0],lh,.085,yellow);d('sphere',lh,[.1,.1,.1],skin);
+ if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];sofiaArm([x*.3,.78,0],h);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
+ const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;sofiaArm([-.3,.78,0],lh);
  if(dp?.held)group(dp.c,[1,1,1],[-dp.tilt,0,0],glassOfWater); // tipped towards her, the top to her mouth
- const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
+ const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;sofiaArm([.3,.78,0],h);
  // pizza, the burger and sushi she eats with her fingers: a bite in her hand on its way to her mouth
  // (held above her fist and a little in front of it, so the hand does not hide it)
  if(dish?.hand){if(b>=.1&&b<.52)dishBite(dish.id,[h[0]-.04*lift,h[1]+.075,h[2]+.04]);return;}
@@ -1839,11 +1850,12 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
  if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
+ if(tapVacuum(x,y))return true;
  // The glass and the mobile lie close on a small screen: the one nearer the finger.
  const near=pickTarget([{k:'glass',p:MEAL.cup,r:.1},{k:'phone',p:MEAL.phone,r:.13}],x,y,o=>o.p,o=>o.r,32);
  if(near?.k==='glass'){startMeal('spoon');if(meal.kind==='spoon')meal.drinkNext=true;return true;}
  if(near?.k==='phone'){openPhone(true);return true;}
- const dish=pickTarget(cartDishes(),x,y,o=>o.p,()=>.2,38);if(dish){startMeal('spoon',dish.id);return true;}
+ const dish=pickTarget(cartDishes(),x,y,o=>o.p,()=>.2,38)||pickTarget(floorDishes(),x,y,o=>o.p,()=>.2,26);if(dish){startMeal('spoon',dish.id,dish.slot);return true;}
  // The table and the backpack together, so a tap between them goes to the nearer; both answer at least 56 px round them, as the backpack is small.
  const hit=pickTarget([{kind:'spoon',p:[MEAL.table[0],.62,MEAL.table[2]],r:.6},{kind:'peg',p:[MEAL.bag[0],.3,MEAL.bag[2]],r:.5}],x,y,o=>o.p,o=>o.r,56);
  if(hit){if(hit.kind==='spoon')chooseMeal(true);else startMeal('peg');return true;}
@@ -1866,20 +1878,23 @@ $('meal-action').onclick=()=>{if(meal.step==='eat')takeBite();else if(meal.step=
 // ---- The white mobile and the food she orders (25 November 2026) ----
 // The mobile lies on the table in plain sight, and nothing says it is there: now and then its screen lights up, as if a message came in. A tap opens
 // it (the phone in index.html), and she orders pizza, a burger, sushi or an egg. The order is saved at once; a moment later the doorbell rings and the
-// dish stands on a trolley at the front of the room (the trolley rolls in with the first dish, and is gone again when the food is eaten). It holds
-// FOOD_MAX dishes. «🥄 Spise» or a tap on the table asks what she wants: a dish from the trolley or the bowl as before, and a tap on a dish on the trolley
-// eats that one. The dish leaves the trolley for good at the first bite, so a meal stopped before that leaves it there.
+// dish stands on a trolley at the front of the room (the trolley rolls in with the first dish, and is gone again when its food is eaten). It holds
+// FOOD_CART dishes; after that they go on the floor (26 November 2026), the places nearest the trolley first (FLOOR_FOOD), until the room is full (FOOD_LIMIT,
+// which nobody is told). Each dish keeps its place; a new one takes the first empty one. She walks through the food on the floor.
+// «🥄 Spise» or a tap on the table asks what she wants: a dish she has ordered or the bowl as before, and a tap on a dish on the trolley or the floor eats
+// that one. The dish leaves its place for good at the first bite, so a meal stopped before that leaves it there.
 const DELIVERY=2.2,PHONE_SENT=1.5; // seconds from the order to the doorbell; how long the phone shows «Bestilt!» before it is put away
-const deliveries=[];let phoneTimer=0; // orders on their way: {id, at: when the doorbell rings (state.clock)}
+const deliveries=[];let phoneTimer=0; // orders on their way: {id, slot, at: when the doorbell rings (state.clock)}
 // The mobile, lying flat (its top towards −z): white, with a dark screen that glows now and then, and the camera at the top.
 function mobile(t){const lit=!$('phone-modal').hidden?1:state.reduced?.3:Math.pow(Math.max(0,Math.sin(t*1.3)),8);
  d('box',[0,0,0],[.062,.009,.118],'#f8f9fc');d('box',[0,.0092,.006],[.052,.0012,.098],mixHex('#1d2540','#9fd3ff',lit),[0,0,0],lit*.8);
  d('sphere',[0,.0095,-.106],[.007,.002,.007],'#2a2f3a');}
 // A slice of pizza (a fifth of a round), a mesh of its own: the tip at the middle, the crust towards +z, y from −1 to 1. Made the first time it is drawn.
-function sliceMesh(){if(renderer.meshes.slice)return;const out=[],seg=6,w=Math.PI*2/5,a0=-w/2,P=(a,y)=>[Math.sin(a),y,Math.cos(a)];
+function sliceData(){const out=[],seg=6,w=Math.PI*2/5,a0=-w/2,P=(a,y)=>[Math.sin(a),y,Math.cos(a)];
  const tri=(a,b,c)=>{const n=norm(cross(sub(b,a),sub(c,a)));for(const q of [a,b,c])out.push(...q,...n);};
  for(let i=0;i<seg;i++){const a=a0+i*w/seg,b=a0+(i+1)*w/seg;tri([0,1,0],P(a,1),P(b,1));tri([0,-1,0],P(b,-1),P(a,-1));tri(P(a,-1),P(b,-1),P(b,1));tri(P(a,-1),P(b,1),P(a,1));}
- tri([0,-1,0],P(a0,1),[0,1,0]);tri([0,-1,0],P(a0,-1),P(a0,1));tri([0,-1,0],[0,1,0],P(-a0,1));tri([0,-1,0],P(-a0,1),P(-a0,-1));renderer.setMesh('slice',out);}
+ tri([0,-1,0],P(a0,1),[0,1,0]);tri([0,-1,0],P(a0,-1),P(a0,1));tri([0,-1,0],[0,1,0],P(-a0,1));tri([0,-1,0],P(-a0,1),P(-a0,-1));return out;}
+function sliceMesh(){if(!renderer.meshes.slice)renderer.setMesh('slice',sliceData());}
 // A dish, standing on the table (y = 0) with its middle at the origin; left: how much is left (1 whole, 0 eaten). Pizza: five slices, one fewer each
 // bite. The burger gets smaller. Sushi: five pieces on a board, maki and nigiri, eaten from her right. The egg: soft-boiled in a yellow egg cup, eaten
 // from the top with the spoon, the yolk showing once it is opened.
@@ -1905,36 +1920,69 @@ function dishBite(id,[x,y,z]){if(id==='pizza'){sliceMesh();group([x,y+.04,z],[1,
   for(const [px,pz,r] of [[0,.05,.012],[.012,.028,.009]])d('cylinder',[px,.009,pz],[r,.002,r],'#c8382b');});}
  else if(id==='burger'){d('sphere',[x,y+.014,z],[.042,.03,.042],'#e7a556');d('cylinder',[x,y-.008,z],[.045,.009,.045],'#6b3b22');d('cylinder',[x,y-.022,z],[.04,.008,.04],'#d7934a');}
  else if(id==='sushi')sushiPiece([x,y-.028,z],BITES-meal.bites);}
-// What stands on the trolley, and where: the dishes she has ordered in order, the top shelf first, without those still on their way and the one on the table.
-function cartDishes(){const shown=[...state.food],[cx,,cz]=MEAL.cart;
- for(const o of deliveries){const i=shown.lastIndexOf(o.id);if(i>=0)shown.splice(i,1);}
- if(meal.kind==='spoon'&&meal.dish&&!meal.taken){const i=shown.indexOf(meal.dish);if(i>=0)shown.splice(i,1);}
- return shown.map((id,i)=>{const base=[cx+(i%3-1)*.4,i<3?.605:.24,cz];return {id,i,base,p:[base[0],base[1]+.07,base[2]]};});}
+// The dishes there are to see, each in its place: not those still on their way, nor the one on the table, nor the one the robot vacuum is sucking up.
+let suckingSlot=-1;
+function shownFood(from,to){const out=[];for(let slot=from;slot<Math.min(to,state.food.length);slot++){const id=state.food[slot];
+ if(id&&slot!==suckingSlot&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
+// On the trolley: places 0–5, the top shelf first.
+function cartDishes(){const [cx,,cz]=MEAL.cart;return shownFood(0,FOOD_CART).map(o=>{const base=[cx+(o.slot%3-1)*.4,o.slot<3?.605:.24,cz];return {...o,base,p:[base[0],base[1]+.07,base[2]]};});}
+// On the floor: the places after those, in FLOOR_FOOD (on the rug a little higher).
+function floorDishes(){return shownFood(FOOD_CART,FOOD_LIMIT).map(o=>{const f=FLOOR_FOOD[o.slot-FOOD_CART];return {...o,base:[f.x,f.y,f.z],yaw:f.yaw,p:[f.x,f.y+.07,f.z]};});}
 // The trolley: white shelves with a mint rim, grey legs on little wheels and a pink handle; there while it has food on it, or while she eats a dish from it.
-function foodCart(t){const items=cartDishes();if(!items.length&&!mealDish())return;const [cx,,cz]=MEAL.cart,white='#fdfbf7',mint='#79e4e2',steel='#c9ced8';
+function foodCart(t){const items=cartDishes();if(!items.length&&!(mealDish()&&meal.slot<FOOD_CART))return;const [cx,,cz]=MEAL.cart,white='#fdfbf7',mint='#79e4e2',steel='#c9ced8';
  d('box',[cx,.58,cz],[.62,.025,.26],white);for(const k of [-1,1]){d('box',[cx,.615,cz+k*.255],[.62,.012,.01],mint);d('box',[cx+k*.615,.615,cz],[.01,.012,.26],mint);}
  d('box',[cx,.22,cz],[.6,.02,.24],white);
  for(const [x,z] of [[-.58,-.22],[.58,-.22],[-.58,.22],[.58,.22]]){d('cylinder',[cx+x,.34,cz+z],[.022,.27,.022],steel);d('sphere',[cx+x,.05,cz+z],[.05,.05,.05],'#3a3a40');}
  for(const k of [-1,1])d('box',[cx+.64,.7,cz+k*.2],[.014,.1,.014],steel);d('box',[cx+.66,.8,cz],[.022,.022,.24],'#ff9ec4');
  for(const o of items)group(o.base,[.85,.85,.85],[0,0,0],()=>dishModel(o.id,1,t));}
-// The doorbell for each order that has come: «Ding dong!», sparkles where it stands on the trolley.
-function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=cartDishes().reverse().find(c=>c.id===o.id);
+// ---- The food on the floor, as one mesh per colour ----
+// A floor full of food is close to two hundred dishes of a dozen pieces or more: drawn one piece at a time that would be thousands of draws each frame.
+// So the floor's dishes are made into one mesh per colour (as the brushing stars are), again only when a dish comes or goes. bakeShapes: the engine's
+// shapes (box, sphere, cylinder) and the pizza slice, a little coarser; each triangle wound so that it faces out (the software renderer drops the back).
+// The floor is made in pieces of FLOOR_CHUNK places, so a dish that goes (the robot vacuum takes one every half second) makes only its own piece again.
+const FLOOR_CHUNK=32;let bakeShapes=null,floorBuilt=[];
+function shapes(){if(bakeShapes)return bakeShapes;
+ const tri=(out,a,b,c,na,nb,nc,o)=>{if(dot(cross(sub(b,a),sub(c,a)),o)<0){[b,c]=[c,b];[nb,nc]=[nc,nb];}out.push(...a,...na,...b,...nb,...c,...nc);};
+ const flat=(out,a,b,c,n)=>tri(out,a,b,c,n,n,n,n),quad=(out,a,b,c,e,n)=>{flat(out,a,b,c,n);flat(out,a,c,e,n);};
+ const box=[];for(const [ax,s] of [[0,1],[0,-1],[1,1],[1,-1],[2,1],[2,-1]]){const n=[0,0,0];n[ax]=s;const u=(ax+1)%3,v=(ax+2)%3,P=(i,j)=>{const p=[0,0,0];p[ax]=s;p[u]=i;p[v]=j;return p;};quad(box,P(-1,-1),P(1,-1),P(1,1),P(-1,1),n);}
+ const sphere=(R,C)=>{const out=[],pt=(i,j)=>{const t=i*Math.PI/R,q=j*Math.PI*2/C;return [Math.sin(t)*Math.cos(q),Math.cos(t),Math.sin(t)*Math.sin(q)];};
+  for(let i=0;i<R;i++)for(let j=0;j<C;j++){const a=pt(i,j),b=pt(i+1,j),c=pt(i+1,j+1),e=pt(i,j+1),m=norm(a.map((v,k)=>v+b[k]+c[k]+e[k]));tri(out,a,b,c,a,b,c,m);tri(out,a,c,e,a,c,e,m);}return out;};
+ const cylinder=S=>{const out=[];for(let i=0;i<S;i++){const q0=i*Math.PI*2/S,q1=(i+1)*Math.PI*2/S,c0=[Math.cos(q0),0,Math.sin(q0)],c1=[Math.cos(q1),0,Math.sin(q1)],o=norm([c0[0]+c1[0],0,c0[2]+c1[2]]);
+  tri(out,[c0[0],-1,c0[2]],[c1[0],-1,c1[2]],[c1[0],1,c1[2]],c0,c1,c1,o);tri(out,[c0[0],-1,c0[2]],[c1[0],1,c1[2]],[c0[0],1,c0[2]],c0,c1,c0,o);
+  flat(out,[0,1,0],[c0[0],1,c0[2]],[c1[0],1,c1[2]],[0,1,0]);flat(out,[0,-1,0],[c1[0],-1,c1[2]],[c0[0],-1,c0[2]],[0,-1,0]);}return out;};
+ // the small pieces (pepperoni, sesame seeds, the salmon in a roll) coarser still: on the floor they are a few pixels across
+ return bakeShapes={box,sphere:sphere(6,10),cylinder:cylinder(10),sphereSmall:sphere(3,5),cylinderSmall:cylinder(6),slice:sliceData()};}
+// The pieces of the given dishes (dishModel, run with d and group recording instead of drawing), by colour: Map colour → [x,y,z,nx,ny,nz, …].
+function bakeDishes(items){const base=shapes(),by=new Map(),stack=[M.identity()],drawD=d,drawGroup=group;
+ const record=(mesh,p,s,c,r=[0,0,0])=>{const data=Math.max(...s)<.035&&base[mesh+'Small']||base[mesh];if(!data)return;const m=M.mul(stack.at(-1),M.model(p,s,r));let out=by.get(c);if(!out)by.set(c,out=[]);
+  for(let i=0;i<data.length;i+=6){const x=data[i],y=data[i+1],z=data[i+2],nx=data[i+3]/s[0],ny=data[i+4]/s[1],nz=data[i+5]/s[2];
+   out.push(m[0]*x+m[4]*y+m[8]*z+m[12],m[1]*x+m[5]*y+m[9]*z+m[13],m[2]*x+m[6]*y+m[10]*z+m[14]);const n=norm([m[0]*nx+m[4]*ny+m[8]*nz,m[1]*nx+m[5]*ny+m[9]*nz,m[2]*nx+m[6]*ny+m[10]*nz]);out.push(...n);}};
+ const nest=(p,s,r,fn)=>{stack.push(M.mul(stack.at(-1),M.model(p,s,r)));try{fn();}finally{stack.pop();}};
+ d=record;group=nest;try{for(const o of items)nest(o.base,[.9,.9,.9],[0,o.yaw,0],()=>dishModel(o.id,1,0));}finally{d=drawD;group=drawGroup;}
+ return by;}
+function floorFood(){const items=floorDishes(),chunks=[];for(const o of items)(chunks[Math.floor((o.slot-FOOD_CART)/FLOOR_CHUNK)]??=[]).push(o);
+ for(let c=0;c<Math.ceil(FLOOR_FOOD.length/FLOOR_CHUNK);c++){const list=chunks[c]||[],key=list.map(o=>o.slot+o.id).join(),b=floorBuilt[c]??={key:'',colours:[]};
+  if(key!==b.key){b.colours.forEach((col,k)=>renderer.setMesh(`floorFood${c}_${k}`,[]));b.key=key;b.colours=[...bakeDishes(list)].map(([colour,data],k)=>{renderer.setMesh(`floorFood${c}_${k}`,data);return colour;});}
+  b.colours.forEach((col,k)=>{const name=`floorFood${c}_${k}`;if(renderer.meshes[name])renderer.draw(name,[0,0,0],[1,1,1],col);});}}
+// The doorbell for each order that has come: «Ding dong!», sparkles where it stands, on the trolley or the floor.
+function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=[...cartDishes(),...floorDishes()].find(c=>c.slot===o.slot);
  gameAudio.effect('doorbell');if(spot)burst(spot.p,['#ffde71','#ffffff','#ff9ec4','#79e4e2'],14,1.5,{size:.06});
- gameAudio.say(`Ding dong! Her kommer ${dish.the}. Maten står på trillebordet.`,{id:'food',queue:true});notify(dish.emoji+' '+dish.word+' er levert!');}}
-// The phone: the menu with a button for each dish, «Bestilt!» while the order is sent, and a note when the trolley is full.
-function renderPhone(){const full=state.food.length>=FOOD_MAX;$('phone-full').hidden=!full;
- for(const b of $('order-grid').children)b.disabled=full;$('phone-count').textContent=state.food.length?`På trillebordet: ${state.food.length} av ${FOOD_MAX}`:'';}
+ gameAudio.say(`Ding dong! Her kommer ${dish.the}.`+(o.slot<FOOD_CART?' Maten står på trillebordet.':' Trillebordet er fullt, så maten står på gulvet.'),{id:'food',queue:true});notify(dish.emoji+' '+dish.word+' er levert!');}}
+// The phone: the menu with a button for each dish, «Bestilt!» while the order is sent, how much there is (never how much there may be), and a note
+// when the room is full.
+function renderPhone(){const full=foodSlot(state.food)<0,cart=foodCount(state.food.slice(0,FOOD_CART)),floor=foodCount(state.food)-cart;$('phone-full').hidden=!full;
+ for(const b of $('order-grid').children)b.disabled=full;$('phone-count').textContent=cart+floor?`På trillebordet: ${cart}`+(floor?` · På gulvet: ${floor}`:''):'';}
 // A window opened by a tap in the room opens as the finger goes down (pointerdown); the click that follows when it is lifted would land in the window,
 // on a button or on the shade round it. So the window ignores the finger until it is lifted (and a moment more), or for 1.5 s at most.
 function guardTap(el){el.style.pointerEvents='none';let timer=0;const up=()=>{removeEventListener('pointerup',up,true);clearTimeout(timer);timer=setTimeout(()=>el.style.pointerEvents='',350);};
  addEventListener('pointerup',up,true);timer=setTimeout(up,1500);}
 function openPhone(fromTap=false){if(state.mode!=='inside'||mealBusy()||!$('phone-modal').hidden)return;clearTimeout(phoneTimer);$('phone-menu').hidden=false;$('phone-sent').hidden=true;renderPhone();
  dialog('phone-modal',true);if(fromTap)guardTap($('phone-modal'));gameAudio.effect('phone');
- gameAudio.say(state.food.length>=FOOD_MAX?'Trillebordet er fullt. Spis litt av maten først!':'Mobilen! Hva vil du bestille? Pizza, burger, sushi eller egg?',{id:'food'});}
+ gameAudio.say(foodSlot(state.food)<0?'Nå er det ikke mer plass til mat i rommet. Spis litt av maten først!':'Mobilen! Hva vil du bestille? Pizza, burger, sushi eller egg?',{id:'food'});}
 function closePhone(){clearTimeout(phoneTimer);if(!$('phone-modal').hidden)dialog('phone-modal',false);}
 function orderDish(id){const dish=dishById(id);if(!dish||$('phone-modal').hidden||!$('phone-sent').hidden)return;
- if(state.food.length>=FOOD_MAX){renderPhone();gameAudio.say('Trillebordet er fullt. Spis litt av maten først!',{id:'food'});return;}
- state.food=orderFood(state.food,id);saveProgress();deliveries.push({id,at:state.clock+DELIVERY});gameAudio.effect('order');
+ const slot=foodSlot(state.food);if(slot<0){renderPhone();gameAudio.say('Nå er det ikke mer plass til mat i rommet. Spis litt av maten først!',{id:'food'});return;}
+ state.food=orderFood(state.food,id);saveProgress();deliveries.push({id,slot,at:state.clock+DELIVERY});gameAudio.effect('order');
  gameAudio.say(`${dish.word} er bestilt! Maten er på vei.`,{id:'food'});
  $('sent-emoji').textContent=dish.emoji;$('sent-what').textContent=dish.word;$('phone-menu').hidden=true;$('phone-sent').hidden=false;phoneTimer=setTimeout(closePhone,PHONE_SENT*1000);}
 // Eating: with nothing ordered she eats from the bowl as before; otherwise she chooses, each dish she has once (with how many) and the bowl last.
@@ -1966,6 +2014,79 @@ function stopBrushing(quiet=false){if(!toothGame||!toothGame.running&&state.mode
  if(state.mode==='teeth'){state.mode='inside';showConsole('inside');$('world-hint').hidden=false;insideTitle();if(!quiet)gameAudio.stopSpeech();}}
 $('brush-teeth').onclick=startBrushing;$('teeth-done').onclick=()=>stopBrushing();
 $('teeth-speak').onclick=()=>{const s=toothGame?.step;gameAudio.say((TEETH_TEXT[s]||TEETH_TEXT.paste)[1],{force:true,id:'teeth'});};
+
+</script><script>
+/* The robot vacuum in Sofia's room (26 November 2026). The user: «vi har en svart roborock støvsuger med dock. Vi har anime øyne klistermerke på den.
+   legge den i rommet og hvis man trykker på den så starter den å støvsuge opp all maten. Hvis man starter støvsugeren og går ut av huset så kommer man inn
+   til rent hus.»
+   A round black robot vacuum with a laser tower on top, standing in its black dock against the back wall under the planets, with an anime-eyes sticker on
+   its lid («legg øyne på toppen av støvsugeren»): two big eyes with purple irises, shiny highlights and a thick line of lashes, looking forward. A tap on it, and it drives out of the dock and goes from dish to
+   dish on the floor (always the nearest next), sucking each one up with a slurp, until the floor is clean; then it drives home, turns round and backs into the
+   dock. A tap while it runs sends it home. With nothing on the floor it takes a little round of the rug. It cleans the floor only: the trolley's dishes stay.
+   If Sofia goes out of the house while it runs, the floor is clean when she comes in again (vacuumAway, from resetMeal), and the voice says so.
+   It drives straight, under the table and the bed as real ones do; she and the food on the floor are no obstacles to it. */
+// Where things are: the dock (the middle of the robot in it; the tower is behind it, against the wall), the spot in front of it where it turns, its size
+// (radius, the top's height), its speed (m/s), how fast it turns (rad/s), and how long a dish takes to suck up (s).
+const VAC={dock:[-2.6,0,-2.73],out:[-2.6,0,-2.05],r:.28,h:.115,speed:2.2,turn:9,suck:.2,
+ round:[[-2.6,0,-.9],[-2.6,0,2.75],[1.6,0,2.75],[1.6,0,-.9],[-2.6,0,-2.05]]}; // a little round of the rug, back to the spot in front of the dock
+// mode: 'dock', 'out' (driving out), 'clean', 'round', 'home' (to the spot in front of the dock), 'back' (backing in); target: the place of the dish it is going
+// to; suck: the dish it is sucking up {slot, id, t, base, yaw}; stop: a tap asked it home; cleaned: dishes so far; away: it cleaned while she was out.
+const vac={mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0,target:-1,suck:null,stop:false,round:[],cleaned:0,hum:0,brush:0,away:false};
+const vacTurn=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+// Drive towards p: turn first, then go forward (or backwards, reverse). Returns true when there.
+function vacDrive(p,dt,reverse=false,near=.04){const dx=p[0]-vac.x,dz=p[2]-vac.z,dist=Math.hypot(dx,dz);if(dist<near)return true;
+ const want=Math.atan2(dx,dz)+(reverse?Math.PI:0),turn=vacTurn(vac.yaw,want);vac.yaw+=Math.sign(turn)*Math.min(Math.abs(turn),VAC.turn*dt);
+ if(Math.abs(turn)<.35){const step=Math.min(dist,VAC.speed*(reverse?.5:1)*dt);vac.x+=dx/dist*step;vac.z+=dz/dist*step;}return dist-VAC.speed*dt<near&&Math.abs(turn)<.35;}
+// The nearest dish on the floor (floorDishes in routines.js: not those on their way, nor one on the table).
+function vacNearest(){let best=null,d=Infinity;for(const o of floorDishes()){const e=Math.hypot(o.base[0]-vac.x,o.base[2]-vac.z);if(e<d){d=e;best=o;}}return best;}
+function startVacuum(){if(vac.mode!=='dock')return;const any=floorDishes().length>0;Object.assign(vac,{mode:'out',target:-1,suck:null,stop:false,cleaned:0,hum:0,round:any?[]:VAC.round.map(p=>[...p])});
+ gameAudio.effect('robot');gameAudio.say(any?'Støvsugeren starter! Den suger opp all maten på gulvet.':'Gulvet er rent allerede, men støvsugeren tar en liten runde.',{id:'vacuum'});}
+function homeVacuum(){if(vac.mode==='dock'||vac.stop)return;vac.stop=true;gameAudio.effect('robot');gameAudio.say('Støvsugeren kjører hjem til laderen.',{id:'vacuum'});}
+function updateVacuum(dt){if(vac.mode==='dock')return;vac.brush+=dt*(vac.mode==='back'?4:16);vac.hum-=dt;if(vac.hum<=0){vac.hum=.45;gameAudio.effect('vacuum');}
+ if(vac.suck){vac.suck.t+=dt;if(vac.suck.t>=VAC.suck){state.food=eatFood(state.food,vac.suck.slot);saveProgress();vac.cleaned++;vac.suck=null;suckingSlot=-1;}return;}
+ if(vac.mode==='out'){if(vacDrive(VAC.out,dt))vac.mode=vac.round.length?'round':'clean';return;}
+ if(vac.mode==='clean'){if(vac.stop){vac.mode='home';return;}
+  let dish=floorDishes().find(o=>o.slot===vac.target);if(!dish){dish=vacNearest();vac.target=dish?dish.slot:-1;}if(!dish){vac.mode='home';return;}
+  if(vacDrive(dish.base,dt,false,.05)){vac.suck={slot:dish.slot,id:dish.id,t:0,base:dish.base,yaw:dish.yaw};suckingSlot=dish.slot;vac.target=-1;gameAudio.effect('slurp');}return;}
+ if(vac.mode==='round'){if(vac.stop||!vac.round.length){vac.mode='home';return;}if(vacDrive(vac.round[0],dt,false,.08))vac.round.shift();return;}
+ if(vac.mode==='home'){if(vacDrive(VAC.out,dt))vac.mode='back';return;}
+ // backing into the dock: facing out of it, as it stands there
+ if(vac.mode==='back'&&vacDrive(VAC.dock,dt,true,.02)){Object.assign(vac,{mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0});gameAudio.effect('robot');
+  gameAudio.say(vac.cleaned?'Ferdig! Nå er gulvet rent, og støvsugeren står i laderen igjen.':'Støvsugeren er tilbake i laderen.',{id:'vacuum'});}}
+// A tap on the robot (or its dock): start it, or send it home.
+function tapVacuum(x,y){if(state.mode!=='inside')return false;const hit=pickTarget([{p:[vac.x,.12,vac.z],r:VAC.r},{p:[VAC.dock[0],.3,VAC.dock[2]-.42],r:.25}],x,y,o=>o.p,o=>o.r,34);
+ if(!hit)return false;if(vac.mode==='dock')startVacuum();else homeVacuum();return true;}
+// Out of the house while it runs (or the room is reset): it finishes the floor at once and is back in its dock; she is told when she comes in.
+function vacuumAway(){suckingSlot=-1;if(vac.mode==='dock')return;const had=floorDishes().length>0||!!vac.suck;state.food=clearFloor(state.food);saveProgress();
+ Object.assign(vac,{mode:'dock',x:VAC.dock[0],z:VAC.dock[2],yaw:0,target:-1,suck:null,stop:false,round:[],away:vac.away||had});}
+function vacuumWelcome(){if(!vac.away)return;vac.away=false;gameAudio.say('Mens du var ute, har støvsugeren støvsuget opp all maten på gulvet.',{id:'vacuum',queue:true});}
+// ---- The robot and its dock ----
+// The robot in its own coordinates: the middle of its bottom at the origin, the front towards +z.
+function robotModel(t){const black='#1b1d22',lid='#2a2d34',dark='#111216',grey='#4a4e57',r=VAC.r,running=vac.mode!=='dock',spin=state.reduced?0:vac.brush;
+ d('cylinder',[0,.06,0],[r,.05,r],black);d('cylinder',[0,.112,0],[r-.018,.004,r-.018],lid);
+ // the bumper round the front half, a little darker
+ for(let i=-4;i<=4;i++){const a=i*.34;d('box',[Math.sin(a)*(r+.004),.055,Math.cos(a)*(r+.004)],[.038,.035,.008],dark,[0,a,0]);}
+ // the laser tower towards the back, its little window turning while it runs
+ d('cylinder',[0,.14,-.07],[.075,.026,.075],'#15161a');d('cylinder',[0,.167,-.07],[.068,.003,.068],lid);
+ d('box',[Math.sin(spin*.6)*.073,.142,-.07+Math.cos(spin*.6)*.073],[.022,.01,.004],'#3a6fd8',[0,spin*.6,0],running?.7:.2);
+ // two buttons and a light: cyan while it runs, dim white at home
+ d('box',[-.035,.117,.07],[.014,.003,.022],grey);d('box',[.035,.117,.07],[.014,.003,.022],grey);d('sphere',[0,.118,.105],[.012,.003,.012],running?'#79e4e2':'#cfd3da',[],running?1:.3);
+ // the side brush at the front left, turning
+ for(let k=0;k<3;k++){const a=spin+k*2.09;d('box',[-.17+Math.sin(a)*.05,.012,.17+Math.cos(a)*.05],[.004,.003,.05],'#8a8f99',[0,a,0]);}
+ // The anime-eyes sticker on the lid, in front of the laser tower (made up: the real sticker's look is not known): each eye a tall oval with its top towards
+ // the back, so the robot looks forward; a purple iris low in it, a dark pupil, two shiny highlights, and a thick line of lashes along the top with a flick
+ // at the outer corner. A little bigger than a real sticker, as the room is seen from low down.
+ for(const s of [-1,1])group([s*.085,.1165,.1],[1,1,1],[0,0,0],()=>{
+  d('sphere',[0,0,0],[.062,.0025,.08],'#ffffff');d('sphere',[0,.0005,.016],[.046,.003,.058],'#7b4fe0');d('sphere',[0,.001,.024],[.036,.0035,.04],'#4a2aa8');
+  d('sphere',[0,.0015,.018],[.019,.004,.025],'#140c2e');d('sphere',[-s*.015,.002,-.012],[.013,.0045,.013],'#ffffff',[],.6);d('sphere',[s*.016,.002,.042],[.006,.0045,.006],'#ffffff',[],.6);
+  d('box',[0,.0015,-.075],[.066,.003,.007],'#0d0d12',[0,s*.12,0]);d('box',[s*.068,.0015,-.06],[.018,.003,.006],'#0d0d12',[0,-s*.6,0]);});}
+// The dock: a black tower against the wall with a darker front and a light, and a ramp on the floor in front that the robot stands on.
+function dockModel(){const [x,,z]=VAC.dock,back=z-VAC.r-.17;d('box',[x,.26,back],[.24,.26,.13],'#16171b');d('box',[x,.525,back],[.245,.012,.135],'#2a2d34');
+ d('box',[x,.33,back+.132],[.17,.12,.004],'#0f1013');d('sphere',[x,.4,back+.136],[.014,.014,.004],vac.mode==='dock'?'#79e4e2':'#3a3d45',[],vac.mode==='dock'?1:.2);
+ d('box',[x,.006,z-.06],[.3,.006,.3],'#24262c');}
+function vacuumScene(t){dockModel();group([vac.x,0,vac.z],[1,1,1],[0,vac.yaw,0],()=>robotModel(t));
+ // the dish it is sucking up: smaller and smaller, drawn into the robot
+ const s=vac.suck;if(s){const k=Math.min(1,s.t/VAC.suck),e=k*k;group([s.base[0]+(vac.x-s.base[0])*e,s.base[1]+.03*Math.sin(k*Math.PI),s.base[2]+(vac.z-s.base[2])*e],[.9*(1-e),.9*(1-e),.9*(1-e)],[0,s.yaw+k*3,0],()=>dishModel(s.id,1,t));}}
 
 </script><script>
 /* Something fun on every world: short tap games that count up and cannot be lost. */

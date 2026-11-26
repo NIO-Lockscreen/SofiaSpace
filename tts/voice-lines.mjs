@@ -4,7 +4,7 @@
 import { constFrom } from './lines.mjs';
 
 export default {
-  files: ['game-core.js', 'audio.js', 'game.js', 'effects.js', 'duck.js', 'bedtime.js', 'teeth.js', 'routines.js', 'planet-play.js', 'house-quiz.js'],
+  files: ['game-core.js', 'audio.js', 'game.js', 'effects.js', 'duck.js', 'bedtime.js', 'teeth.js', 'routines.js', 'vacuum.js', 'planet-play.js', 'house-quiz.js'],
   // Never read: the download size in the voice's note in the settings.
   skip: [/\bMB\b/],
   // Functions whose arguments are read aloud.

@@ -7,7 +7,8 @@
    (24 November 2026) The food lies in a heap in the bowl that gets smaller with each spoonful, so the bowl is empty just as the last one is eaten, and a tap
    on the glass of water by the bowl makes her drink: she takes it with her free hand, lifts it to her mouth, tips it, «glugg glugg», and puts it back.
    (25 November 2026) A white mobile lies on the table in plain sight. A tap on it, and she orders pizza, a burger, sushi or an egg; the doorbell rings and
-   the dish waits on a trolley by the table. «🥄 Spise» then asks what she wants: a dish she has ordered, or the bowl as before. */
+   the dish waits on a trolley by the table. «🥄 Spise» then asks what she wants: a dish she has ordered, or the bowl as before.
+   (26 November 2026) Six on the trolley; after that the food goes on the floor, as much as there is room for (a limit nobody is told), and she walks through it. */
 // Where things are in the room: her chair (she sits facing the room), the seat's height, the table, where she stands beside the chair, the backpack
 // on the floor by the table, where she stands with it on, the bowl, the middle of the glass and the brushing chart on the back wall over the bed.
 // The mobile lies at the front of the table on the side nearest the room, so it is on the screen even when the table is half off it (a phone held
@@ -22,8 +23,9 @@ const MEAL_TIME={sit:.6,full:2,up:.5,pick:1.2,plug:.9,beep:1.5,unplug:.7,drop:1.
 // kind: null, 'spoon' or 'peg'; s: seconds into the step; bite: seconds into a spoonful (−1 between); queued: taps waiting; pump: seconds the pump has run;
 // dance: seconds into a twirl with the backpack (−1 when not); view: how far the camera has glided in to the meal (0..1); food: which food today;
 // drink: seconds into a drink from the glass (−1 when not); drinkNext: the glass was tapped while she was busy, so she drinks next; sips: how many so far.
-// dish: the id of a dish she ordered, eaten instead of the bowl (null for the bowl); taken: it has left the trolley for good (at the first bite).
-const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,sips:0,view:0,food:-1,dish:null,taken:false,from:null,last:-9};
+// dish: the id of a dish she ordered, eaten instead of the bowl (null for the bowl); slot: its place (on the trolley or the floor); taken: it has left its
+// place for good (at the first bite).
+const meal={kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,sips:0,view:0,food:-1,dish:null,slot:-1,taken:false,from:null,last:-9};
 const mealEase=k=>k*k*(3-2*k);
 // A box (or cylinder) from a to b, w thick: arms, straps, the spoon and the tube.
 function limb(a,b,w,color,mesh='box',glow=0){const v=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],len=Math.hypot(...v)||1e-6;d(mesh,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[w,len/2,w],color,[Math.atan2(v[2],v[1]),0,-Math.asin(Math.max(-1,Math.min(1,v[0]/len)))],glow);}
@@ -66,7 +68,9 @@ function mealFurniture(t){const [tx,,tz]=MEAL.table,[cx,,cz]=MEAL.chair,wood='#d
  // the backpack on the floor by the table, the light off
  if(bagOnFloor())group(MEAL.bag,[1,1,1],[0,-.25,0],()=>pegBag(t));
  // the white mobile, and the trolley with the food she has ordered
- group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);
+ group(MEAL.phone,[1,1,1],[0,MEAL.phoneYaw,0],()=>mobile(t));foodCart(t);floorFood();
+ // the robot vacuum and its dock (vacuum.js)
+ vacuumScene(t);
  // The brushing chart: a sheet with a big tooth on it and ten places for stars, one more each time she brushes. After ten they go on the walls (brushWall).
  const [hx,hy,hz]=MEAL.chart;d('box',[hx,hy,hz],[.78,.5,.02],'#fffaf0');d('box',[hx,hy+.38,hz+.02],[.78,.12,.012],'#79e4e2');
  d('sphere',[hx-.55,hy+.03,hz+.04],[.15,.17,.03],'#ffffff');for(const x of [-.07,.07])d('sphere',[hx-.55+x,hy-.13,hz+.04],[.06,.08,.03],'#ffffff');
@@ -110,9 +114,10 @@ function foodLeft(){if(meal.kind!=='spoon'||meal.step==='back'||!meal.dish&&meal
 function glassOfWater(){d('cylinder',[0,0,0],[.074,.084,.074],'#ffde71');d('cylinder',[0,.083,0],[.061,.0025,.061],'#9fd8f0');}
 // ---- Starting, the steps, and stopping ----
 function mealBusy(){return sleep.on||sleep.jump>=0||sleep.k>0||!!meal.kind;}
-// dish: the id of a dish from the trolley to eat at the table instead of the bowl.
-function startMeal(kind,dish=null){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;if(kind!=='spoon'||!state.food.includes(dish))dish=null;
- Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
+// dish: the id of a dish she has ordered, to eat at the table instead of the bowl; slot: which one (a tap on it); pickFood takes one from the floor first.
+function startMeal(kind,dish=null,slot=-1){if(state.mode!=='inside'||mealBusy())return;const p=sleep.pose?.pos||BED.idle;
+ if(kind!=='spoon'||!dishById(dish))dish=null;else{slot=pickFood(state.food,dish,slot);if(slot<0)dish=null;}
+ Object.assign(meal,{kind,lastKind:kind,step:'walk',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,dish,slot:dish?slot:-1,taken:false,from:[p[0],0,p[2]],fromYaw:sleep.pose?.rot?.[1]??-.34,last:state.clock});
  if(kind==='spoon'){if(!dish)meal.food=(meal.food+1)%FOODS.length;title('MATTID','Sofia skal spise',`I dag blir det ${foodName()}!`,(mealDish()?.emoji||'🥄')+' Nam nam');gameAudio.say(`Mat! I dag blir det ${foodName()}. Sofia setter seg ved bordet.`,{id:'meal'});}
  else{title('MATTID','Mat med PEG','Maten går gjennom slangen og rett i magen.','🎒 PEG-sekken');gameAudio.say('Nå skal Sofia få mat gjennom PEG-slangen. Hun tar på seg sekken med pumpen.',{id:'meal'});}
  tone(420,.08);renderBedConsole();}
@@ -138,16 +143,16 @@ function finishMeal(){if(!meal.kind)return;
  if(meal.kind==='spoon'&&['walk','sit','eat'].includes(meal.step)){if(meal.step==='walk'){endMeal();return;}meal.step='up';meal.s=0;meal.bite=-1;meal.queued=0;meal.drink=-1;meal.drinkNext=false;gameAudio.say('Takk for maten!',{id:'meal'});renderBedConsole();return;}
  if(meal.kind==='peg'){const i=MEAL_STEPS.peg.indexOf(meal.step);if(meal.step==='walk'){endMeal();return;}if(i<=1)return;if(i<=4){meal.step=i<=3?'unplug':'beep';meal.s=0;onStep(meal.step);renderBedConsole();}}} // before the pump has run the tube just comes off
 function endMeal(){if(!meal.kind)return;meal.kind=null;meal.step='';if(sleep.pose)sleep.blend={...sleep.pose,at:state.clock};renderBedConsole();insideTitle();}
-function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,taken:false});stopBrushing(true);
- deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;renderBedConsole();}
+function resetMeal(){Object.assign(meal,{kind:null,step:'',s:0,bites:0,bite:-1,queued:0,pump:0,dance:-1,drink:-1,drinkNext:false,view:0,dish:null,slot:-1,taken:false});stopBrushing(true);
+ deliveries.length=0;if(!$('phone-modal').hidden)closePhone();$('dish-modal').hidden=true;vacuumAway();renderBedConsole();}
 function stepTime(){if(meal.step==='walk'||meal.step==='back'){const [a,b]=walkEnds();return Math.max(.4,Math.hypot(b[0]-a[0],b[2]-a[2])/MEAL.speed);}return MEAL_TIME[meal.step]??Infinity;}
 function walkEnds(){const spot=meal.kind==='spoon'?MEAL.side:MEAL.stand;return meal.step==='walk'?[meal.from,spot]:[spot,BED.idle];}
-function updateMeal(dt){updateOrders();meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
+function updateMeal(dt){updateOrders();updateVacuum(dt);meal.view+=((meal.kind&&!['walk','back'].includes(meal.step)?1:0)-meal.view)*Math.min(1,dt*2.2);if(!meal.kind)return;meal.s+=dt;
  // A drink from the glass: «glugg» while it is tipped at her mouth, «ahh» when it comes down, then any spoonful that was tapped meanwhile.
  if(meal.step==='eat'&&meal.drink>=0){const was=meal.drink;meal.drink+=dt;if(was<.8&&meal.drink>=.8)gameAudio.effect('glugg');
   if(was<1.45&&meal.drink>=1.45&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Ahh, godt med vann!','Glugg, glugg!','Mmm, deilig vann!'][meal.sips%3],{id:'meal'});meal.sips++;}
   if(meal.drink>=DRINK){meal.drink=-1;if(meal.bites>=BITES){nextStep();return;}if(meal.queued>0){meal.queued--;meal.bite=0;}}}
- else if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.dish&&!meal.taken){meal.taken=true;state.food=eatFood(state.food,meal.dish);saveProgress();}if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
+ else if(meal.step==='eat'&&meal.bite>=0){const was=meal.bite;meal.bite+=dt;if(was<.5&&meal.bite>=.5){meal.bites++;gameAudio.effect('nam');if(meal.dish&&!meal.taken){meal.taken=true;state.food=eatFood(state.food,meal.slot);saveProgress();}if(meal.bites<BITES&&state.clock-meal.last>1.8){meal.last=state.clock;gameAudio.say(['Nam!','Mmm, godt!','Nam nam!','Så godt!'][meal.bites%4],{id:'meal'});}renderBedConsole();}
   if(meal.bite>=BITE){meal.bite=-1;if(meal.drinkNext){meal.drinkNext=false;meal.drink=0;}else if(meal.bites>=BITES){nextStep();return;}else if(meal.queued>0){meal.queued--;meal.bite=0;}}}
  if(meal.step==='pump'){meal.pump+=dt;if(Math.floor(meal.pump/2)!==Math.floor((meal.pump-dt)/2))burst(sofiaPoint(MEAL.stand,0,[.05,.5,.22]),['#fff3d2','#ffde71','#ff9ec4'],4,.8,{size:.04});
   if(meal.pump>=PUMP){meal.step='beep';meal.s=0;onStep('beep');renderBedConsole();}if(Math.floor(meal.pump)!==Math.floor(meal.pump-dt))renderBedConsole();}
@@ -171,10 +176,10 @@ function drinkPose(){const k=meal.drink;if(meal.kind!=='spoon'||meal.step!=='eat
 // Her arms while she eats with the spoon: the left hand by the bowl, the right lifting the spoon to her mouth; or both hands patting her full tummy.
 function spoonArms(t){const b=meal.bite,lift=b<0?0:b<.4?mealEase(b/.4):b<.6?1:b<1?1-mealEase((b-.6)/.4):0,scoop=b>=0&&b<.15?Math.sin(b/.15*Math.PI)*.05:0,yellow=SOFIA.top,skin=SOFIA.skin;
  const dish=mealDish();
- if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];limb([x*.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
- const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;limb([-.3,.78,0],lh,.085,yellow);d('sphere',lh,[.1,.1,.1],skin);
+ if(meal.step==='full'){const pat=state.reduced?0:Math.abs(Math.sin(meal.s*9))*.04;for(const x of [-1,1]){const h=[x*.1,.5+pat,.22];sofiaArm([x*.3,.78,0],h);}if(!dish?.hand)d('box',[.3,.47,.52],[.018,.008,.13],'#c9ced8',[0,-.4,0]);return;}
+ const dp=drinkPose(),lh=dp?dp.hand:HAND.rest;sofiaArm([-.3,.78,0],lh);
  if(dp?.held)group(dp.c,[1,1,1],[-dp.tilt,0,0],glassOfWater); // tipped towards her, the top to her mouth
- const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;limb([.3,.78,0],h,.085,yellow);d('sphere',h,[.1,.1,.1],skin);
+ const h=mix3(HAND.bowl,HAND.mouth,lift);h[1]-=scoop;sofiaArm([.3,.78,0],h);
  // pizza, the burger and sushi she eats with her fingers: a bite in her hand on its way to her mouth
  // (held above her fist and a little in front of it, so the hand does not hide it)
  if(dish?.hand){if(b>=.1&&b<.52)dishBite(dish.id,[h[0]-.04*lift,h[1]+.075,h[2]+.04]);return;}
@@ -228,11 +233,12 @@ function mealCamera(eye,at,a,aspect){const k=mealEase(Math.min(1,meal.view));if(
 function tapMeal(x,y){const onGlass=()=>!!pickTarget([{p:MEAL.cup}],x,y,o=>o.p,()=>.1,meal.kind?44:30);
  if(meal.kind){if(meal.kind==='spoon'&&onGlass())drink();else if(meal.step==='eat')takeBite();else if(meal.step==='ready')startPump();else if(meal.step==='pump')dance();return true;}
  if(mealBusy())return false;
+ if(tapVacuum(x,y))return true;
  // The glass and the mobile lie close on a small screen: the one nearer the finger.
  const near=pickTarget([{k:'glass',p:MEAL.cup,r:.1},{k:'phone',p:MEAL.phone,r:.13}],x,y,o=>o.p,o=>o.r,32);
  if(near?.k==='glass'){startMeal('spoon');if(meal.kind==='spoon')meal.drinkNext=true;return true;}
  if(near?.k==='phone'){openPhone(true);return true;}
- const dish=pickTarget(cartDishes(),x,y,o=>o.p,()=>.2,38);if(dish){startMeal('spoon',dish.id);return true;}
+ const dish=pickTarget(cartDishes(),x,y,o=>o.p,()=>.2,38)||pickTarget(floorDishes(),x,y,o=>o.p,()=>.2,26);if(dish){startMeal('spoon',dish.id,dish.slot);return true;}
  // The table and the backpack together, so a tap between them goes to the nearer; both answer at least 56 px round them, as the backpack is small.
  const hit=pickTarget([{kind:'spoon',p:[MEAL.table[0],.62,MEAL.table[2]],r:.6},{kind:'peg',p:[MEAL.bag[0],.3,MEAL.bag[2]],r:.5}],x,y,o=>o.p,o=>o.r,56);
  if(hit){if(hit.kind==='spoon')chooseMeal(true);else startMeal('peg');return true;}
@@ -255,20 +261,23 @@ $('meal-action').onclick=()=>{if(meal.step==='eat')takeBite();else if(meal.step=
 // ---- The white mobile and the food she orders (25 November 2026) ----
 // The mobile lies on the table in plain sight, and nothing says it is there: now and then its screen lights up, as if a message came in. A tap opens
 // it (the phone in index.html), and she orders pizza, a burger, sushi or an egg. The order is saved at once; a moment later the doorbell rings and the
-// dish stands on a trolley at the front of the room (the trolley rolls in with the first dish, and is gone again when the food is eaten). It holds
-// FOOD_MAX dishes. «🥄 Spise» or a tap on the table asks what she wants: a dish from the trolley or the bowl as before, and a tap on a dish on the trolley
-// eats that one. The dish leaves the trolley for good at the first bite, so a meal stopped before that leaves it there.
+// dish stands on a trolley at the front of the room (the trolley rolls in with the first dish, and is gone again when its food is eaten). It holds
+// FOOD_CART dishes; after that they go on the floor (26 November 2026), the places nearest the trolley first (FLOOR_FOOD), until the room is full (FOOD_LIMIT,
+// which nobody is told). Each dish keeps its place; a new one takes the first empty one. She walks through the food on the floor.
+// «🥄 Spise» or a tap on the table asks what she wants: a dish she has ordered or the bowl as before, and a tap on a dish on the trolley or the floor eats
+// that one. The dish leaves its place for good at the first bite, so a meal stopped before that leaves it there.
 const DELIVERY=2.2,PHONE_SENT=1.5; // seconds from the order to the doorbell; how long the phone shows «Bestilt!» before it is put away
-const deliveries=[];let phoneTimer=0; // orders on their way: {id, at: when the doorbell rings (state.clock)}
+const deliveries=[];let phoneTimer=0; // orders on their way: {id, slot, at: when the doorbell rings (state.clock)}
 // The mobile, lying flat (its top towards −z): white, with a dark screen that glows now and then, and the camera at the top.
 function mobile(t){const lit=!$('phone-modal').hidden?1:state.reduced?.3:Math.pow(Math.max(0,Math.sin(t*1.3)),8);
  d('box',[0,0,0],[.062,.009,.118],'#f8f9fc');d('box',[0,.0092,.006],[.052,.0012,.098],mixHex('#1d2540','#9fd3ff',lit),[0,0,0],lit*.8);
  d('sphere',[0,.0095,-.106],[.007,.002,.007],'#2a2f3a');}
 // A slice of pizza (a fifth of a round), a mesh of its own: the tip at the middle, the crust towards +z, y from −1 to 1. Made the first time it is drawn.
-function sliceMesh(){if(renderer.meshes.slice)return;const out=[],seg=6,w=Math.PI*2/5,a0=-w/2,P=(a,y)=>[Math.sin(a),y,Math.cos(a)];
+function sliceData(){const out=[],seg=6,w=Math.PI*2/5,a0=-w/2,P=(a,y)=>[Math.sin(a),y,Math.cos(a)];
  const tri=(a,b,c)=>{const n=norm(cross(sub(b,a),sub(c,a)));for(const q of [a,b,c])out.push(...q,...n);};
  for(let i=0;i<seg;i++){const a=a0+i*w/seg,b=a0+(i+1)*w/seg;tri([0,1,0],P(a,1),P(b,1));tri([0,-1,0],P(b,-1),P(a,-1));tri(P(a,-1),P(b,-1),P(b,1));tri(P(a,-1),P(b,1),P(a,1));}
- tri([0,-1,0],P(a0,1),[0,1,0]);tri([0,-1,0],P(a0,-1),P(a0,1));tri([0,-1,0],[0,1,0],P(-a0,1));tri([0,-1,0],P(-a0,1),P(-a0,-1));renderer.setMesh('slice',out);}
+ tri([0,-1,0],P(a0,1),[0,1,0]);tri([0,-1,0],P(a0,-1),P(a0,1));tri([0,-1,0],[0,1,0],P(-a0,1));tri([0,-1,0],P(-a0,1),P(-a0,-1));return out;}
+function sliceMesh(){if(!renderer.meshes.slice)renderer.setMesh('slice',sliceData());}
 // A dish, standing on the table (y = 0) with its middle at the origin; left: how much is left (1 whole, 0 eaten). Pizza: five slices, one fewer each
 // bite. The burger gets smaller. Sushi: five pieces on a board, maki and nigiri, eaten from her right. The egg: soft-boiled in a yellow egg cup, eaten
 // from the top with the spoon, the yolk showing once it is opened.
@@ -294,36 +303,69 @@ function dishBite(id,[x,y,z]){if(id==='pizza'){sliceMesh();group([x,y+.04,z],[1,
   for(const [px,pz,r] of [[0,.05,.012],[.012,.028,.009]])d('cylinder',[px,.009,pz],[r,.002,r],'#c8382b');});}
  else if(id==='burger'){d('sphere',[x,y+.014,z],[.042,.03,.042],'#e7a556');d('cylinder',[x,y-.008,z],[.045,.009,.045],'#6b3b22');d('cylinder',[x,y-.022,z],[.04,.008,.04],'#d7934a');}
  else if(id==='sushi')sushiPiece([x,y-.028,z],BITES-meal.bites);}
-// What stands on the trolley, and where: the dishes she has ordered in order, the top shelf first, without those still on their way and the one on the table.
-function cartDishes(){const shown=[...state.food],[cx,,cz]=MEAL.cart;
- for(const o of deliveries){const i=shown.lastIndexOf(o.id);if(i>=0)shown.splice(i,1);}
- if(meal.kind==='spoon'&&meal.dish&&!meal.taken){const i=shown.indexOf(meal.dish);if(i>=0)shown.splice(i,1);}
- return shown.map((id,i)=>{const base=[cx+(i%3-1)*.4,i<3?.605:.24,cz];return {id,i,base,p:[base[0],base[1]+.07,base[2]]};});}
+// The dishes there are to see, each in its place: not those still on their way, nor the one on the table, nor the one the robot vacuum is sucking up.
+let suckingSlot=-1;
+function shownFood(from,to){const out=[];for(let slot=from;slot<Math.min(to,state.food.length);slot++){const id=state.food[slot];
+ if(id&&slot!==suckingSlot&&!deliveries.some(o=>o.slot===slot)&&!(meal.kind==='spoon'&&meal.dish&&!meal.taken&&meal.slot===slot))out.push({id,slot});}return out;}
+// On the trolley: places 0–5, the top shelf first.
+function cartDishes(){const [cx,,cz]=MEAL.cart;return shownFood(0,FOOD_CART).map(o=>{const base=[cx+(o.slot%3-1)*.4,o.slot<3?.605:.24,cz];return {...o,base,p:[base[0],base[1]+.07,base[2]]};});}
+// On the floor: the places after those, in FLOOR_FOOD (on the rug a little higher).
+function floorDishes(){return shownFood(FOOD_CART,FOOD_LIMIT).map(o=>{const f=FLOOR_FOOD[o.slot-FOOD_CART];return {...o,base:[f.x,f.y,f.z],yaw:f.yaw,p:[f.x,f.y+.07,f.z]};});}
 // The trolley: white shelves with a mint rim, grey legs on little wheels and a pink handle; there while it has food on it, or while she eats a dish from it.
-function foodCart(t){const items=cartDishes();if(!items.length&&!mealDish())return;const [cx,,cz]=MEAL.cart,white='#fdfbf7',mint='#79e4e2',steel='#c9ced8';
+function foodCart(t){const items=cartDishes();if(!items.length&&!(mealDish()&&meal.slot<FOOD_CART))return;const [cx,,cz]=MEAL.cart,white='#fdfbf7',mint='#79e4e2',steel='#c9ced8';
  d('box',[cx,.58,cz],[.62,.025,.26],white);for(const k of [-1,1]){d('box',[cx,.615,cz+k*.255],[.62,.012,.01],mint);d('box',[cx+k*.615,.615,cz],[.01,.012,.26],mint);}
  d('box',[cx,.22,cz],[.6,.02,.24],white);
  for(const [x,z] of [[-.58,-.22],[.58,-.22],[-.58,.22],[.58,.22]]){d('cylinder',[cx+x,.34,cz+z],[.022,.27,.022],steel);d('sphere',[cx+x,.05,cz+z],[.05,.05,.05],'#3a3a40');}
  for(const k of [-1,1])d('box',[cx+.64,.7,cz+k*.2],[.014,.1,.014],steel);d('box',[cx+.66,.8,cz],[.022,.022,.24],'#ff9ec4');
  for(const o of items)group(o.base,[.85,.85,.85],[0,0,0],()=>dishModel(o.id,1,t));}
-// The doorbell for each order that has come: «Ding dong!», sparkles where it stands on the trolley.
-function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=cartDishes().reverse().find(c=>c.id===o.id);
+// ---- The food on the floor, as one mesh per colour ----
+// A floor full of food is close to two hundred dishes of a dozen pieces or more: drawn one piece at a time that would be thousands of draws each frame.
+// So the floor's dishes are made into one mesh per colour (as the brushing stars are), again only when a dish comes or goes. bakeShapes: the engine's
+// shapes (box, sphere, cylinder) and the pizza slice, a little coarser; each triangle wound so that it faces out (the software renderer drops the back).
+// The floor is made in pieces of FLOOR_CHUNK places, so a dish that goes (the robot vacuum takes one every half second) makes only its own piece again.
+const FLOOR_CHUNK=32;let bakeShapes=null,floorBuilt=[];
+function shapes(){if(bakeShapes)return bakeShapes;
+ const tri=(out,a,b,c,na,nb,nc,o)=>{if(dot(cross(sub(b,a),sub(c,a)),o)<0){[b,c]=[c,b];[nb,nc]=[nc,nb];}out.push(...a,...na,...b,...nb,...c,...nc);};
+ const flat=(out,a,b,c,n)=>tri(out,a,b,c,n,n,n,n),quad=(out,a,b,c,e,n)=>{flat(out,a,b,c,n);flat(out,a,c,e,n);};
+ const box=[];for(const [ax,s] of [[0,1],[0,-1],[1,1],[1,-1],[2,1],[2,-1]]){const n=[0,0,0];n[ax]=s;const u=(ax+1)%3,v=(ax+2)%3,P=(i,j)=>{const p=[0,0,0];p[ax]=s;p[u]=i;p[v]=j;return p;};quad(box,P(-1,-1),P(1,-1),P(1,1),P(-1,1),n);}
+ const sphere=(R,C)=>{const out=[],pt=(i,j)=>{const t=i*Math.PI/R,q=j*Math.PI*2/C;return [Math.sin(t)*Math.cos(q),Math.cos(t),Math.sin(t)*Math.sin(q)];};
+  for(let i=0;i<R;i++)for(let j=0;j<C;j++){const a=pt(i,j),b=pt(i+1,j),c=pt(i+1,j+1),e=pt(i,j+1),m=norm(a.map((v,k)=>v+b[k]+c[k]+e[k]));tri(out,a,b,c,a,b,c,m);tri(out,a,c,e,a,c,e,m);}return out;};
+ const cylinder=S=>{const out=[];for(let i=0;i<S;i++){const q0=i*Math.PI*2/S,q1=(i+1)*Math.PI*2/S,c0=[Math.cos(q0),0,Math.sin(q0)],c1=[Math.cos(q1),0,Math.sin(q1)],o=norm([c0[0]+c1[0],0,c0[2]+c1[2]]);
+  tri(out,[c0[0],-1,c0[2]],[c1[0],-1,c1[2]],[c1[0],1,c1[2]],c0,c1,c1,o);tri(out,[c0[0],-1,c0[2]],[c1[0],1,c1[2]],[c0[0],1,c0[2]],c0,c1,c0,o);
+  flat(out,[0,1,0],[c0[0],1,c0[2]],[c1[0],1,c1[2]],[0,1,0]);flat(out,[0,-1,0],[c1[0],-1,c1[2]],[c0[0],-1,c0[2]],[0,-1,0]);}return out;};
+ // the small pieces (pepperoni, sesame seeds, the salmon in a roll) coarser still: on the floor they are a few pixels across
+ return bakeShapes={box,sphere:sphere(6,10),cylinder:cylinder(10),sphereSmall:sphere(3,5),cylinderSmall:cylinder(6),slice:sliceData()};}
+// The pieces of the given dishes (dishModel, run with d and group recording instead of drawing), by colour: Map colour → [x,y,z,nx,ny,nz, …].
+function bakeDishes(items){const base=shapes(),by=new Map(),stack=[M.identity()],drawD=d,drawGroup=group;
+ const record=(mesh,p,s,c,r=[0,0,0])=>{const data=Math.max(...s)<.035&&base[mesh+'Small']||base[mesh];if(!data)return;const m=M.mul(stack.at(-1),M.model(p,s,r));let out=by.get(c);if(!out)by.set(c,out=[]);
+  for(let i=0;i<data.length;i+=6){const x=data[i],y=data[i+1],z=data[i+2],nx=data[i+3]/s[0],ny=data[i+4]/s[1],nz=data[i+5]/s[2];
+   out.push(m[0]*x+m[4]*y+m[8]*z+m[12],m[1]*x+m[5]*y+m[9]*z+m[13],m[2]*x+m[6]*y+m[10]*z+m[14]);const n=norm([m[0]*nx+m[4]*ny+m[8]*nz,m[1]*nx+m[5]*ny+m[9]*nz,m[2]*nx+m[6]*ny+m[10]*nz]);out.push(...n);}};
+ const nest=(p,s,r,fn)=>{stack.push(M.mul(stack.at(-1),M.model(p,s,r)));try{fn();}finally{stack.pop();}};
+ d=record;group=nest;try{for(const o of items)nest(o.base,[.9,.9,.9],[0,o.yaw,0],()=>dishModel(o.id,1,0));}finally{d=drawD;group=drawGroup;}
+ return by;}
+function floorFood(){const items=floorDishes(),chunks=[];for(const o of items)(chunks[Math.floor((o.slot-FOOD_CART)/FLOOR_CHUNK)]??=[]).push(o);
+ for(let c=0;c<Math.ceil(FLOOR_FOOD.length/FLOOR_CHUNK);c++){const list=chunks[c]||[],key=list.map(o=>o.slot+o.id).join(),b=floorBuilt[c]??={key:'',colours:[]};
+  if(key!==b.key){b.colours.forEach((col,k)=>renderer.setMesh(`floorFood${c}_${k}`,[]));b.key=key;b.colours=[...bakeDishes(list)].map(([colour,data],k)=>{renderer.setMesh(`floorFood${c}_${k}`,data);return colour;});}
+  b.colours.forEach((col,k)=>{const name=`floorFood${c}_${k}`;if(renderer.meshes[name])renderer.draw(name,[0,0,0],[1,1,1],col);});}}
+// The doorbell for each order that has come: «Ding dong!», sparkles where it stands, on the trolley or the floor.
+function updateOrders(){for(let i=deliveries.length-1;i>=0;i--){const o=deliveries[i];if(state.clock<o.at)continue;deliveries.splice(i,1);const dish=dishById(o.id),spot=[...cartDishes(),...floorDishes()].find(c=>c.slot===o.slot);
  gameAudio.effect('doorbell');if(spot)burst(spot.p,['#ffde71','#ffffff','#ff9ec4','#79e4e2'],14,1.5,{size:.06});
- gameAudio.say(`Ding dong! Her kommer ${dish.the}. Maten står på trillebordet.`,{id:'food',queue:true});notify(dish.emoji+' '+dish.word+' er levert!');}}
-// The phone: the menu with a button for each dish, «Bestilt!» while the order is sent, and a note when the trolley is full.
-function renderPhone(){const full=state.food.length>=FOOD_MAX;$('phone-full').hidden=!full;
- for(const b of $('order-grid').children)b.disabled=full;$('phone-count').textContent=state.food.length?`På trillebordet: ${state.food.length} av ${FOOD_MAX}`:'';}
+ gameAudio.say(`Ding dong! Her kommer ${dish.the}.`+(o.slot<FOOD_CART?' Maten står på trillebordet.':' Trillebordet er fullt, så maten står på gulvet.'),{id:'food',queue:true});notify(dish.emoji+' '+dish.word+' er levert!');}}
+// The phone: the menu with a button for each dish, «Bestilt!» while the order is sent, how much there is (never how much there may be), and a note
+// when the room is full.
+function renderPhone(){const full=foodSlot(state.food)<0,cart=foodCount(state.food.slice(0,FOOD_CART)),floor=foodCount(state.food)-cart;$('phone-full').hidden=!full;
+ for(const b of $('order-grid').children)b.disabled=full;$('phone-count').textContent=cart+floor?`På trillebordet: ${cart}`+(floor?` · På gulvet: ${floor}`:''):'';}
 // A window opened by a tap in the room opens as the finger goes down (pointerdown); the click that follows when it is lifted would land in the window,
 // on a button or on the shade round it. So the window ignores the finger until it is lifted (and a moment more), or for 1.5 s at most.
 function guardTap(el){el.style.pointerEvents='none';let timer=0;const up=()=>{removeEventListener('pointerup',up,true);clearTimeout(timer);timer=setTimeout(()=>el.style.pointerEvents='',350);};
  addEventListener('pointerup',up,true);timer=setTimeout(up,1500);}
 function openPhone(fromTap=false){if(state.mode!=='inside'||mealBusy()||!$('phone-modal').hidden)return;clearTimeout(phoneTimer);$('phone-menu').hidden=false;$('phone-sent').hidden=true;renderPhone();
  dialog('phone-modal',true);if(fromTap)guardTap($('phone-modal'));gameAudio.effect('phone');
- gameAudio.say(state.food.length>=FOOD_MAX?'Trillebordet er fullt. Spis litt av maten først!':'Mobilen! Hva vil du bestille? Pizza, burger, sushi eller egg?',{id:'food'});}
+ gameAudio.say(foodSlot(state.food)<0?'Nå er det ikke mer plass til mat i rommet. Spis litt av maten først!':'Mobilen! Hva vil du bestille? Pizza, burger, sushi eller egg?',{id:'food'});}
 function closePhone(){clearTimeout(phoneTimer);if(!$('phone-modal').hidden)dialog('phone-modal',false);}
 function orderDish(id){const dish=dishById(id);if(!dish||$('phone-modal').hidden||!$('phone-sent').hidden)return;
- if(state.food.length>=FOOD_MAX){renderPhone();gameAudio.say('Trillebordet er fullt. Spis litt av maten først!',{id:'food'});return;}
- state.food=orderFood(state.food,id);saveProgress();deliveries.push({id,at:state.clock+DELIVERY});gameAudio.effect('order');
+ const slot=foodSlot(state.food);if(slot<0){renderPhone();gameAudio.say('Nå er det ikke mer plass til mat i rommet. Spis litt av maten først!',{id:'food'});return;}
+ state.food=orderFood(state.food,id);saveProgress();deliveries.push({id,slot,at:state.clock+DELIVERY});gameAudio.effect('order');
  gameAudio.say(`${dish.word} er bestilt! Maten er på vei.`,{id:'food'});
  $('sent-emoji').textContent=dish.emoji;$('sent-what').textContent=dish.word;$('phone-menu').hidden=true;$('phone-sent').hidden=false;phoneTimer=setTimeout(closePhone,PHONE_SENT*1000);}
 // Eating: with nothing ordered she eats from the bowl as before; otherwise she chooses, each dish she has once (with how many) and the bowl last.
